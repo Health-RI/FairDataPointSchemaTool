@@ -1,13 +1,10 @@
 package transferdata.requestbodies;
 
-import java.util.ArrayList;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public record EditSchemaParms(
-        String name,
-        String description,
-        boolean abstractSchema,
-        String definition,
-        ArrayList<String> extendsSchemaUuids,
-        String suggestedResourceName,
-        String suggestedUrlPrefix) {
+public record ReleaseSchemaParms(
+        @JsonProperty("description")
+        String resourceName,
+        boolean published,
+        String version) {
 }

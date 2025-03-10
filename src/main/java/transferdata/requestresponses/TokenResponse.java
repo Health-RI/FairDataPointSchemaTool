@@ -1,4 +1,7 @@
 package transferdata.requestresponses;
 
-public class TokenResponse {
+public record TokenResponse(String token) {
+    public String asHeaderString() {
+        return "Bearer " + token;
+    }
 }

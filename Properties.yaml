@@ -1,0 +1,42 @@
+---
+inputDir: "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\\
+  Core\\PiecesShape\\"
+schemas:
+  Project:
+    - "Project.ttl"
+    - "Agent.ttl"
+  Study:
+    - "Study.ttl"
+  Dataset:
+    - "Dataset.ttl"
+    - "Agent.ttl"
+    - "Kind.ttl"
+    - "PeriodOfTime.ttl"
+  Distribution:
+    - "Distribution.ttl"
+    - "PeriodOfTime.ttl"
+    - "Checksum.ttl"
+  Resource:
+    - "Resource.ttl"
+  Catalog:
+    - "Catalog.ttl"
+    - "Agent.ttl"
+    - "Kind.ttl"
+    - "PeriodOfTime.ttl"
+  DatasetSeries:
+    - "DatasetSeries.ttl"
+    - "Agent.ttl"
+    - "Kind.ttl"
+  DataService:
+    - "DataService.ttl"
+    - "Agent.ttl"
+    - "Kind.ttl"
+fdpUrl: "http://localhost:80"
+fdpUsername: "albert.einstein@example.com"
+parentChild:
+  Resource:
+    - "Dataset"
+    - "Catalog"
+resourcesToPublish:
+  - "Project"
+  - "Study"

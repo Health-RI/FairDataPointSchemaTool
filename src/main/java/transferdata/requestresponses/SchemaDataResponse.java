@@ -2,7 +2,7 @@ package transferdata.requestresponses;
 
 import java.util.ArrayList;
 
-public record SchemaResponse(
+public record SchemaDataResponse(
         String uuid,
         String name,
         Latest latest,
@@ -30,5 +30,6 @@ public record SchemaResponse(
             String suggestedResourceName,
             String suggestedUrlPrefix
     ) {
+
     }
 }

@@ -2,7 +2,7 @@ package transferdata.requestbodies;
 
 import java.util.ArrayList;
 
-public record EditSchema(
+public record EditSchemaParms(
         String name,
         String description,
         boolean abstractSchema,

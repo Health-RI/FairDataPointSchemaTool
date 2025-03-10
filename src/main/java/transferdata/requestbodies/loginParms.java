@@ -1,4 +1,5 @@
 package transferdata.requestbodies;
 
-public class loginParms {
+public record loginParms(String email,
+                         String password) {
 }
