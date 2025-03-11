@@ -22,8 +22,8 @@ using Maven and requires a YAML configuration file to specify input directories 
 Clone the repository and build the project using Maven:
 
 ```sh
-    git clone https://github.com/your-repository/schematools.git
-    cd schematools
+    git clone https://github.com/Health-RI/FairDataPointSchemaTool.git
+    cd FairDataPointSchemaTool
     mvn clean install
 ```
 
@@ -32,7 +32,7 @@ Clone the repository and build the project using Maven:
 Run the tool with the required configuration file:
 
 ```sh
-    java -jar target/schematools.jar /path/to/Properties.yaml
+    java -jar target/FairDataPointSchemaTool-1.0-SNAPSHOT.jar -i /path/to/Properties.yaml -p yourpassword
 ```
 
 ## Configuration File (YAML Format)
