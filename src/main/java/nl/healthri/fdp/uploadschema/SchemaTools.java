@@ -40,6 +40,7 @@ public class SchemaTools implements Runnable {
             //fetch exsisting schemas from FDP
             var schemaOnFdp = fdp.fetchSchemaFromFDP();
             logger.info("found following schemas on fdp: {}", schemaOnFdp.keySet());
+            var normalizedSchemaNameOnFdp = FDP.normalizedKeys(schemaOnFdp);
 
             //list of ttl used by the resources.
             final var files = p.getFiles();
@@ -54,8 +55,8 @@ public class SchemaTools implements Runnable {
                 var ttlFiles = Optional.ofNullable(files.get(r)).orElseThrow(() -> new NoSuchElementException(r + " not present in schema section of yaml-file"));
 
                 task.model = RdfUtils.modelAsTurtleString(RdfUtils.readFiles(ttlFiles));
-                if (schemaOnFdp.containsKey(r)) {
-                    var info = schemaOnFdp.get(r);
+                if (normalizedSchemaNameOnFdp.containsKey(r)) {
+                    var info = normalizedSchemaNameOnFdp.get(r);
                     task.version = info.version.next(); //next patch version
                     task.uuid = info.uuid;
                     task.exists = true;

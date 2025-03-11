@@ -46,14 +46,19 @@ public class FDP {
         return fdp;
     }
 
+    public static <V> Map<String, V> normalizedKeys(Map<String, V> original) {
+        TreeMap<String, V> map = new TreeMap<>((o1, o2) -> o1.replace(" ", "").compareToIgnoreCase(o2.replaceAll(" ", "")));
+        map.putAll(original);
+        return map;
+    }
+
     private Set<String> getParentUID(Set<String> schema) {
         if (schema.isEmpty()) {
             return Collections.emptySet();
         }
-        var map = fetchSchemaFromFDP();
-
+        var normalizedKeys = fetchSchemaFromFDP();
         return schema.stream()
-                .map(map::get)
+                .map(normalizedKeys::get)
                 .filter(Objects::nonNull)
                 .map(entity -> entity.uuid)
                 .collect(Collectors.toSet());
