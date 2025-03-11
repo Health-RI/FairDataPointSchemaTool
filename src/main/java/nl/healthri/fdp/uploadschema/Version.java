@@ -1,18 +1,14 @@
-package transferdata;
+package nl.healthri.fdp.uploadschema;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class Version {
+public class Version {
 
     private static final Pattern pattern = Pattern.compile("(\\d+)\\.(\\d+)\\.(\\d+)");
     int major;
     int minor;
     int patch;
-
-    public Version() {
-        new Version(1, 0, 0);
-    }
 
     public Version(String version) {
         Matcher matcher = pattern.matcher(version);
@@ -25,10 +21,10 @@ class Version {
         }
     }
 
-    private Version(int a, int b, int c) {
-        major = a;
-        minor = b;
-        patch = c;
+    public Version(int major, int minor, int patch) {
+        this.major = major;
+        this.minor = minor;
+        this.patch = patch;
     }
 
     public String toString() {
@@ -37,5 +33,17 @@ class Version {
 
     Version next() {
         return new Version(major, minor, patch + 1);
+    }
+
+    public String major() {
+        return Integer.toString(major);
+    }
+
+    public String minor() {
+        return Integer.toString(minor);
+    }
+
+    public String patch() {
+        return Integer.toString(patch);
     }
 }

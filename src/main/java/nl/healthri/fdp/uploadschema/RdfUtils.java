@@ -1,4 +1,4 @@
-package transferdata;
+package nl.healthri.fdp.uploadschema;
 
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Namespace;

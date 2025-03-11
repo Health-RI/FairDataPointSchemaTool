@@ -37,6 +37,15 @@ parentChild:
   Resource:
     - "Dataset"
     - "Catalog"
+    - "DataService"
+    - "Project"
+    - "Study"
 resourcesToPublish:
+  - "Resource"
+  - "Catalog"
+  - "Dataset"
+  - "DatasetSeries"
+  - "Distribution"
+  - "DataService"
   - "Project"
   - "Study"

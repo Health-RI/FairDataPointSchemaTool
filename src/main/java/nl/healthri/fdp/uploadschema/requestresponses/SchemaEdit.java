@@ -1,6 +1,6 @@
-package transferdata.requestresponses;
+package nl.healthri.fdp.uploadschema.requestresponses;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 
 public record SchemaEdit(
         String uuid,
@@ -8,7 +8,7 @@ public record SchemaEdit(
         String description,
         boolean abstractSchema,
         String definition,
-        ArrayList<String> extendsSchemaUuids,
+        HashSet<String> extendsSchemaUuids,
         String suggestedResourceName,
         String suggestedUrlPrefix,
         String lastVersion

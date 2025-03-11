@@ -1,4 +1,4 @@
-package transferdata;
+package nl.healthri.fdp.uploadschema;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -6,10 +6,8 @@ import picocli.CommandLine;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Predicate;
 
 @CommandLine.Command(name = "SchemaTools merge multiple shapes files into one.",
         mixinStandardHelpOptions = true, version = "SchemaTool v1.0")
@@ -62,18 +60,19 @@ public class SchemaTools implements Runnable {
                     task.uuid = info.uuid;
                     task.exists = true;
                 } else {
-                    task.version = new Version(); //1.0.0
+                    task.version = new Version(1, 0, 0);
                     task.uuid = "";
                     task.exists = false;
                 }
+                task.parents = p.getParents(r);
                 tasks.add(task);
             }
-            //insert new resources and keep the UUID.
+//          insert new resources and keep the UUID.
             tasks.stream().filter(Task::isInsert).forEach(t ->
                     t.updateUUID(fdp.insertSchema(t)));
 
-            //update existings resource, will get status draft.
-//            tasks.stream().forEach(fdp::updateSchema);
+//            update existings resource, will get status draft.
+            tasks.stream().filter(Predicate.not(Task::isInsert)).forEach(fdp::updateSchema);
 
             tasks.forEach(fdp::releaseSchema);
 
@@ -85,11 +84,12 @@ public class SchemaTools implements Runnable {
         }
     }
 
-    static class Task {
+    public static class Task {
         String resource;
         Version version;
         String uuid;
-        String parent;
+        //name of parents for this schema.
+        Set<String> parents;
         String model;
         boolean exists = false;
 

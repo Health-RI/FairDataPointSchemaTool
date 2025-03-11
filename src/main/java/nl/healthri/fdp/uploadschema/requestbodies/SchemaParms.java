@@ -1,4 +1,4 @@
-package transferdata.requestbodies;
+package nl.healthri.fdp.uploadschema.requestbodies;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

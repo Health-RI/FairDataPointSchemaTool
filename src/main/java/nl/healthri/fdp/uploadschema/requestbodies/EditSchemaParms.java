@@ -1,13 +1,13 @@
-package transferdata.requestbodies;
+package nl.healthri.fdp.uploadschema.requestbodies;
 
-import java.util.ArrayList;
+import java.util.Set;
 
 public record EditSchemaParms(
         String name,
         String description,
         boolean abstractSchema,
         String definition,
-        ArrayList<String> extendsSchemaUuids,
+        Set<String> extendsSchemaUuids,
         String suggestedResourceName,
         String suggestedUrlPrefix) {
 }

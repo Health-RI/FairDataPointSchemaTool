@@ -1,4 +1,4 @@
-package transferdata;
+package nl.healthri.fdp.uploadschema;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 public class Properties {
@@ -29,9 +31,13 @@ public class Properties {
     //Running the main will create a Properties.yaml file, it will overwrite the files so manual edit will be lost!
     public static void main(String[] args) throws IOException {
         var p = new Properties();
+        p.fdpUrl = "http://localhost:80";
+        //password is set as cmd-line option.
+        p.fdpUsername = "albert.einstein@example.com";
+
         p.inputDir = "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\Core\\PiecesShape\\";
 
-        //target = output files, files: are the files that need to be merged.
+        //target = Schema name in the FDP, files: are the files that need to be merged.
         p.addFile("Catalog", "Catalog.ttl", "Agent.ttl", "Kind.ttl", "PeriodOfTime.ttl");
         p.addFile("Dataset", "Dataset.ttl", "Agent.ttl", "Kind.ttl", "PeriodOfTime.ttl");
         p.addFile("DatasetSeries", "DatasetSeries.ttl", "Agent.ttl", "Kind.ttl");
@@ -41,11 +47,11 @@ public class Properties {
         p.addFile("Study", "Study.ttl");
         p.addFile("DataService", "DataService.ttl", "Agent.ttl", "Kind.ttl");
 
-        p.addParent("Resource", "Dataset", "Catalog");
-        p.fdpUrl = "http://localhost:80";
-        p.fdpUsername = "albert.einstein@example.com";
+        //this defines the "extends" in the schema definition.
+        p.addParent("Resource", "Dataset", "Catalog", "DataService", "Project", "Study");
 
-        p.resourcesToPublish = List.of("Project", "Study");
+        //this is list schema to publish, Make sure Parents are places first in the list(!)
+        p.resourcesToPublish = List.of("Resource", "Catalog", "Dataset", "DatasetSeries", "Distribution", "DataService", "Project", "Study");
 
         var mapper = new ObjectMapper(new YAMLFactory());
         mapper.writeValue(new File("Properties.yaml"), p);
@@ -55,8 +61,8 @@ public class Properties {
         schemas.put(target, List.of(files));
     }
 
-    public void addParent(String parent, String... childeren) {
-        parentChild.put(parent, List.of(childeren));
+    public void addParent(String parent, String... children) {
+        parentChild.put(parent, List.of(children));
     }
 
     @JsonIgnore
@@ -68,6 +74,13 @@ public class Properties {
             files.put(e.getKey(), inputFiles);
         }
         return files;
+    }
+
+    @JsonIgnore
+    public Set<String> getParents(String child) {
+        return parentChild.entrySet().stream()
+                .filter(e -> e.getValue().contains(child))
+                .map(Map.Entry::getKey).collect(Collectors.toSet());
     }
 }
 

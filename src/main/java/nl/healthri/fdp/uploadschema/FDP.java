@@ -1,23 +1,21 @@
-package transferdata;
+package nl.healthri.fdp.uploadschema;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import nl.healthri.fdp.uploadschema.requestbodies.EditSchemaParms;
+import nl.healthri.fdp.uploadschema.requestbodies.ReleaseSchemaParms;
+import nl.healthri.fdp.uploadschema.requestbodies.SchemaParms;
+import nl.healthri.fdp.uploadschema.requestbodies.loginParms;
+import nl.healthri.fdp.uploadschema.requestresponses.SchemaDataResponse;
+import nl.healthri.fdp.uploadschema.requestresponses.SchemaEdit;
+import nl.healthri.fdp.uploadschema.requestresponses.TokenResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import transferdata.requestbodies.EditSchemaParms;
-import transferdata.requestbodies.ReleaseSchemaParms;
-import transferdata.requestbodies.SchemaParms;
-import transferdata.requestbodies.loginParms;
-import transferdata.requestresponses.SchemaDataResponse;
-import transferdata.requestresponses.SchemaEdit;
-import transferdata.requestresponses.TokenResponse;
 
 import java.net.http.HttpClient;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class FDP {
@@ -48,6 +46,19 @@ public class FDP {
         return fdp;
     }
 
+    private Set<String> getParentUID(Set<String> schema) {
+        if (schema.isEmpty()) {
+            return Collections.emptySet();
+        }
+        var map = fetchSchemaFromFDP();
+
+        return schema.stream()
+                .map(map::get)
+                .filter(Objects::nonNull)
+                .map(entity -> entity.uuid)
+                .collect(Collectors.toSet());
+    }
+
     private void setToken(TokenResponse token) {
         this.token = token;
     }
@@ -73,7 +84,7 @@ public class FDP {
         logger.info("Insert {} into the fdp", t.resource);
         EditSchemaParms esp = new EditSchemaParms(t.resource,
                 t.description(), false,
-                t.model, new ArrayList<>(),
+                t.model, getParentUID(t.parents),
                 t.resource,
                 t.url());
 
@@ -95,7 +106,7 @@ public class FDP {
         logger.info("Update {} into the fdp", t.resource);
         EditSchemaParms esp = new EditSchemaParms(t.resource,
                 t.description(), false,
-                t.model, new ArrayList<>(),
+                t.model, getParentUID(t.parents),
                 t.resource,
                 t.url());
 
@@ -108,13 +119,13 @@ public class FDP {
 
     public String releaseSchema(SchemaTools.Task t) {
         logger.info("Release {} into the fdp", t.resource);
-        ReleaseSchemaParms rsp = new ReleaseSchemaParms(t.resource,
-                false, t.version.toString());
+        ReleaseSchemaParms rsp = ReleaseSchemaParms.of(t.resource,
+                false, t.version);
 
         SchemaDataResponse se = request().setUri(url + "/metadata-schemas/" + t.uuid + "/versions")
                 .setBody(rsp)
                 .setToken(token)
-                .put(SchemaDataResponse.class);
+                .post(SchemaDataResponse.class);
         return se.uuid();
     }
 
