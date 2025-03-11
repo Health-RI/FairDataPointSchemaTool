@@ -38,13 +38,17 @@ Run the tool with the required configuration file:
 ## Configuration File (YAML Format)
 
 The tool requires a properties file in YAML format to specify input directories, schemas, and FDP connection details.
-Below is an example:
+Below is an example: In most cases you can use the property file in the FairDataPointSchemaTool, but update InputDir,
+fdpUrl en fdpUsername
 
 ```yaml
 ---
-inputDir: "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\Core\\PiecesShape\\"
+#Note thi
+inputDir: "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\\
+  Core\\PiecesShape\\"
+fdpUrl: "http://localhost:80"
+fdpUsername: "albert.einstein@example.com"
 schemas:
-  #here define the resource that will be uploaded to fdp, you don't have to update this..
   Project:
     - "Project.ttl"
     - "Agent.ttl"
@@ -74,17 +78,21 @@ schemas:
     - "DataService.ttl"
     - "Agent.ttl"
     - "Kind.ttl"
-#address of the fairdatapoint
-fdpUrl: "http://localhost:80"
-#username of the admin user, password is set in the command line.
-fdpUsername: "albert.einstein@example.com"
-#not used right now
 parentChild:
+  #Resource schema is parent for the following schema's
   Resource:
     - "Dataset"
     - "Catalog"
-#the following schema will be update/publish to the FDP. Note it will create a new version with only the patch number update
+    - "DataService"
+    - "Project"
+    - "Study"
 resourcesToPublish:
+  - "Resource"
+  - "Catalog"
+  - "Dataset"
+  - "DatasetSeries"
+  - "Distribution"
+  - "DataService"
   - "Project"
   - "Study"
 ```
