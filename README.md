@@ -32,8 +32,10 @@ Clone the repository and build the project using Maven:
 Run the tool with the required configuration file:
 
 ```sh
-    java -jar target/FairDataPointSchemaTool-1.0-SNAPSHOT.jar -i /path/to/Properties.yaml -p yourpassword
+    java -jar target/FairDataPointSchemaTool-1.0-SNAPSHOT.jar -i /path/to/Properties.yaml -p yourpassword -c command
 ```
+
+the -c command is determine if we update the Schema, Resources or both.
 
 ## Configuration File (YAML Format)
 
@@ -43,11 +45,12 @@ fdpUrl en fdpUsername
 
 ```yaml
 ---
-#Note thi
+#Note this is the folder containing the 'core' shacls.
 inputDir: "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\\
   Core\\PiecesShape\\"
 fdpUrl: "http://localhost:80"
 fdpUsername: "albert.einstein@example.com"
+#this section describes what "core" shacl files are needed for this schema. 
 schemas:
   Project:
     - "Project.ttl"

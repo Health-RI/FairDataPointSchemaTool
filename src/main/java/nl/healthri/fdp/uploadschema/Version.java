@@ -31,7 +31,10 @@ public class Version {
         return major + "." + minor + "." + patch;
     }
 
-    Version next() {
+    public Version next(int requestedMajorVersion) {
+        if (requestedMajorVersion > major) {
+            return new Version(major, 0, 0);
+        }
         return new Version(major, minor, patch + 1);
     }
 

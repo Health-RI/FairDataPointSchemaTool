@@ -1,15 +1,18 @@
 package nl.healthri.fdp.uploadschema;
 
+import nl.healthri.fdp.uploadschema.tasks.ResourceUpdateInsertTask;
+import nl.healthri.fdp.uploadschema.tasks.ShapeUpdateInsertTask;
+import nl.healthri.fdp.uploadschema.utils.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
-import java.util.function.Predicate;
 
-@CommandLine.Command(name = "SchemaTools merge multiple shapes files into one.",
+import static java.util.function.Predicate.not;
+
+@CommandLine.Command(name = "SchemaTools utility that helps woth Shacls and Fair Datapoints",
         mixinStandardHelpOptions = true, version = "SchemaTool v1.0")
 public class SchemaTools implements Runnable {
 
@@ -20,6 +23,9 @@ public class SchemaTools implements Runnable {
 
     @CommandLine.Option(names = {"-p", "--password"}, required = true, description = "FDP admin password")
     String password;
+
+    @CommandLine.Option(names = {"-c", "--command"}, required = true, description = "Valid values: ${COMPLETION-CANDIDATES}")
+    CommandEnum command;
 
     public static void main(String... args) {
         var cmd = new CommandLine(new SchemaTools());
@@ -37,81 +43,45 @@ public class SchemaTools implements Runnable {
 
             final FDP fdp = FDP.connectToFdp(p.fdpUrl, p.fdpUsername, password);
 
-            //fetch exsisting schemas from FDP
-            var schemaOnFdp = fdp.fetchSchemaFromFDP();
-            logger.info("found following schemas on fdp: {}", schemaOnFdp.keySet());
-            var normalizedSchemaNameOnFdp = FDP.normalizedKeys(schemaOnFdp);
+            if (command == CommandEnum.SCHEMA || command == CommandEnum.BOTH) {
+                //Shapes we want to update/insert
+                var shapeTasks = ShapeUpdateInsertTask.createTasks(p, fdp);
 
-            //list of ttl used by the resources.
-            final var files = p.getFiles();
+//          insert new schemas and keep the UUID, this is needed for the "release step"
+                shapeTasks.stream().filter(ShapeUpdateInsertTask::isInsert).forEach(fdp::insertSchema);
 
-            //Resources we want to update/insert
-            final List<String> resources = p.resourcesToPublish;
+//          update existing shape, will get status draft.
+                shapeTasks.stream().filter(not(ShapeUpdateInsertTask::isInsert)).forEach(fdp::updateSchema);
 
-            List<Task> tasks = new ArrayList<>();
-            for (var r : resources) {
-                var task = new Task(r);
-
-                var ttlFiles = Optional.ofNullable(files.get(r)).orElseThrow(() -> new NoSuchElementException(r + " not present in schema section of yaml-file"));
-
-                task.model = RdfUtils.modelAsTurtleString(RdfUtils.readFiles(ttlFiles));
-                if (normalizedSchemaNameOnFdp.containsKey(r)) {
-                    var info = normalizedSchemaNameOnFdp.get(r);
-                    task.version = info.version.next(); //next patch version
-                    task.uuid = info.uuid;
-                    task.exists = true;
-                } else {
-                    task.version = new Version(1, 0, 0);
-                    task.uuid = "";
-                    task.exists = false;
-                }
-                task.parents = p.getParents(r);
-                tasks.add(task);
+                //the draft-schema are released,
+                shapeTasks.forEach(fdp::releaseSchema);
             }
-//          insert new resources and keep the UUID.
-            tasks.stream().filter(Task::isInsert).forEach(t ->
-                    t.updateUUID(fdp.insertSchema(t)));
 
-//            update existings resource, will get status draft.
-            tasks.stream().filter(Predicate.not(Task::isInsert)).forEach(fdp::updateSchema);
+            if (command == CommandEnum.RESOURCE || command == CommandEnum.BOTH) {
+                //add resource-descriptions
+                var resourceTasks = ResourceUpdateInsertTask.createTask(p, fdp);
+                resourceTasks.stream().filter(ResourceUpdateInsertTask::isInsert).forEach(fdp::insertResource);
 
-            tasks.forEach(fdp::releaseSchema);
+                if (resourceTasks.stream().noneMatch(not(ResourceUpdateInsertTask::isInsert))) {
+                    logger.warn("Updating resources is not supported yet, but will try to add childeren if needed)");
+                }
 
-            //release resource, we use new version numner for this.
+                //add the previous resources as child to parent.
+                var resourceTasksParents = ResourceUpdateInsertTask.createParentTask(p, fdp);
+                resourceTasksParents.stream().filter(ResourceUpdateInsertTask::hasChild).forEach(fdp::updateResource);
 
+//          insert new resource and keep the UUID.
+                resourceTasks.stream().filter(ResourceUpdateInsertTask::isInsert)
+                        .forEach(fdp::insertResource);
+            }
 
         } catch (IOException io) {
             throw new RuntimeException(io);
         }
     }
 
-    public static class Task {
-        String resource;
-        Version version;
-        String uuid;
-        //name of parents for this schema.
-        Set<String> parents;
-        String model;
-        boolean exists = false;
-
-        public Task(String resource) {
-            this.resource = resource;
-        }
-
-        public String description() {
-            return resource;
-        }
-
-        public String url() {
-            return resource.toLowerCase();
-        }
-
-        public boolean isInsert() {
-            return !exists;
-        }
-
-        public void updateUUID(String uuid) {
-            this.uuid = uuid;
-        }
+    public enum CommandEnum {
+        SCHEMA, RESOURCE, BOTH//add FILES option to save combine files.
     }
+
 }

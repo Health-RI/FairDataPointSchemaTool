@@ -1,4 +1,4 @@
-package nl.healthri.fdp.uploadschema;
+package nl.healthri.fdp.uploadschema.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,7 +13,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Optional;
 
-class RequestBuilder {
+public class RequestBuilder {
 
     private static final Logger logger = LoggerFactory.getLogger(RequestBuilder.class);
 
@@ -96,11 +96,11 @@ class RequestBuilder {
 
             logger.debug("body: {}", body);
             logger.debug("url: {}", uri.toString());
-            logger.info("request: {}", request);
+            logger.debug("request: {}", request);
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             if ((response.statusCode() / 100) == 2) {
-                logger.debug("request succes: {}", response.statusCode());
+                logger.debug("request success: {}", response.statusCode());
                 return mapper.readValue(response.body(), clazz);
             }
             throw new RuntimeException("Invalid request: " + response.statusCode() + " -> " + response.body());

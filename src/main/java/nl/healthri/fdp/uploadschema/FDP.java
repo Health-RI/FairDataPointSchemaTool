@@ -1,16 +1,18 @@
 package nl.healthri.fdp.uploadschema;
 
 import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import nl.healthri.fdp.uploadschema.requestbodies.EditSchemaParms;
-import nl.healthri.fdp.uploadschema.requestbodies.ReleaseSchemaParms;
-import nl.healthri.fdp.uploadschema.requestbodies.SchemaParms;
-import nl.healthri.fdp.uploadschema.requestbodies.loginParms;
-import nl.healthri.fdp.uploadschema.requestresponses.SchemaDataResponse;
-import nl.healthri.fdp.uploadschema.requestresponses.SchemaEdit;
-import nl.healthri.fdp.uploadschema.requestresponses.TokenResponse;
+import nl.healthri.fdp.uploadschema.requestbodies.*;
+import nl.healthri.fdp.uploadschema.requestresponses.*;
+import nl.healthri.fdp.uploadschema.tasks.ResourceUpdateInsertTask;
+import nl.healthri.fdp.uploadschema.tasks.ShapeUpdateInsertTask;
+import nl.healthri.fdp.uploadschema.utils.RequestBuilder;
+import nl.healthri.fdp.uploadschema.utils.ResourceMap;
+import nl.healthri.fdp.uploadschema.utils.ShapesMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.net.http.HttpClient;
 import java.time.Duration;
@@ -37,118 +39,165 @@ public class FDP {
 
     public static FDP connectToFdp(String url, String username, String password) {
         FDP fdp = new FDP(url);
+        var info = fdp.request().setUri(fdp.url("actuator/info")).get(FDPInfoResponse.class);
+        logger.info("FDP info: {}", info.toString());
 
         var mp = new loginParms(username, password);
-        var token = fdp.request().setUri(url + "/tokens").setBody(mp).post(TokenResponse.class);
+        var token = fdp.request().setUri(fdp.url("tokens")).setBody(mp).post(TokenResponse.class);
 
         logger.info("Token received: {}", token);
-        fdp.setToken(token);
+        fdp.token = token;
+
         return fdp;
     }
 
-    public static <V> Map<String, V> normalizedKeys(Map<String, V> original) {
-        TreeMap<String, V> map = new TreeMap<>((o1, o2) -> o1.replace(" ", "").compareToIgnoreCase(o2.replaceAll(" ", "")));
-        map.putAll(original);
-        return map;
+    private String url(String path) {
+        return MessageFormatter.format("{}/{}", url, path).getMessage();
     }
 
-    private Set<String> getParentUID(Set<String> schema) {
-        if (schema.isEmpty()) {
+    private String url(String path, String uuid) {
+        return MessageFormatter.arrayFormat("{}/{}/{}", new Object[]{url, path, uuid}).getMessage();
+    }
+
+    private Set<String> getParentUID(Set<String> shapes) {
+        if (shapes.isEmpty()) {
             return Collections.emptySet();
         }
-        var normalizedKeys = fetchSchemaFromFDP();
-        return schema.stream()
-                .map(normalizedKeys::get)
-                .filter(Objects::nonNull)
-                .map(entity -> entity.uuid)
+        var shapesOnFdp = fetchSchemaFromFDP();
+        return shapes.stream()
+                .map(shapesOnFdp::getUUID).flatMap(Optional::stream)
                 .collect(Collectors.toSet());
     }
 
-    private void setToken(TokenResponse token) {
-        this.token = token;
-    }
-
-    private RequestBuilder request() {
+    public RequestBuilder request() {
         return new RequestBuilder(mapper, client);
 
     }
 
-    public Map<String, SchemaInfo> fetchSchemaFromFDP() {
+    public ShapesMap fetchSchemaFromFDP() {
+        logger.info("Fetch schema info from fdp");
         var sp = new SchemaParms(false, true);
         SchemaDataResponse[] schemas = request().setUri(url + "/metadata-schemas", sp)
                 .setBody(sp).setToken(token).get(SchemaDataResponse[].class);
+        return new ShapesMap(schemas);
+    }
 
-        return Arrays.stream(schemas).collect(Collectors.toMap(SchemaDataResponse::name, SchemaInfo::new));
+    public ResourceMap fetchResourceFromFDP() {
+        logger.info("Fetch schema info from fdp");
+        ResourceResponse[] resources = request().setUri(url + "/resource-definitions")
+                .setToken(token).get(ResourceResponse[].class);
+
+        return new ResourceMap(resources);
+    }
+
+    public void insertResource(ResourceUpdateInsertTask task) {
+        logger.info("Insert {} resource into the fdp", task.resource);
+        ResourceParms RP = new ResourceParms(
+                task.resource,
+                task.url(),
+                new ArrayList<>(List.of(task.shapeUUUID)),
+                new ArrayList<>(),
+                new ArrayList<>(),
+                new ArrayList<>());
+        ResourceResponse rer = request().setUri(url("resource-definitions"))
+                .setBody(RP)
+                .setToken(token).post(ResourceResponse.class);
+        task.UUID = rer.uuid();
+    }
+
+    public void updateResource(ResourceUpdateInsertTask task) {
+        logger.info("fetch resource {} from fdp", task.resource);
+        var rr = request()
+                .setToken(token)
+                .setUri(url("resource-definitions", task.UUID))
+                .get(ResourceResponse.class);
+
+        if (rr.children().stream().anyMatch(c -> c.resourceDefinitionUuid().equals(task.childUUuid))) {
+            logger.warn("resource {} already has link to child {}", rr.name(), task.childName);
+        } else {
+            //FIXME TagsURI is hardcoded..
+            var child = new ResourceResponse.Child(task.childUUuid, task.childRelationIri,
+                    new ResourceResponse.ListView(task.pluralName(), "http://www.w3.org/ns/dcat#themeTaxonomy", new ArrayList<>()));
+            rr.children().add(child);
+        }
+
+//        prettyPrint(rr);
+        //copy ResourceResponse to ResourceParms, when you look at the consule of the webclient
+        //it looks like the ResourceResponse class is used as parameter instead of ResourceParms class!
+
+//        var rpChild = rr.children().stream().map(c -> new ResourceParms.ResourceChild(c.resourceDefinitionUuid())).toList();
+//        var rpExternalLink = rr.externalLinks().stream().map(el -> new ResourceParms.ResourceLink(el.title(), el.propertyUri())).toList();
+//
+//        ResourceParms rp = new ResourceParms(task.resource,
+//                task.url(),
+//                rr.metadataSchemaUuids(),
+//                rr.targetClassUris(),
+//                new ArrayList<>(rpChild),
+//                new ArrayList<>(rpExternalLink));
+        logger.info("update resource {} on the fdp", task.resource);
+        request().setToken(token)
+                .setUri(url("resource-definition", task.UUID))
+                .setBody(rr)
+                .put(ResourceResponse.class);
+    }
+
+    private void prettyPrint(Object o) {
+        try {
+            System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(o));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     /**
-     * @param t task, with info about the resource to create.
-     * @return uuid of the newly created resource.
+     * @param t task, with info about the shape to create,
+     *          when the shapes are created it will update this parameter by setting the UUID!
      */
-    public String insertSchema(SchemaTools.Task t) {
-        logger.info("Insert {} into the fdp", t.resource);
-        EditSchemaParms esp = new EditSchemaParms(t.resource,
+    public void insertSchema(ShapeUpdateInsertTask t) {
+        logger.info("Insert {} shape into the fdp", t.shape);
+        EditSchemaParms esp = new EditSchemaParms(t.shape,
                 t.description(), false,
                 t.model, getParentUID(t.parents),
-                t.resource,
+                t.shape,
                 t.url());
 
         SchemaEdit se = request().setUri(url + "/metadata-schemas")
                 .setBody(esp)
                 .setToken(token)
                 .post(SchemaEdit.class);
-        return se.uuid();
+        t.uuid = se.uuid();
     }
 
     /**
-     * update exisiting resource on the fdp
+     * update exiting shape on the fdp
      *
-     * @param t task, with resource information
-     * @return uuid, of the update resource, should be same as in resource information.
+     * @param t task, with shape information
      */
 
-    public String updateSchema(SchemaTools.Task t) {
-        logger.info("Update {} into the fdp", t.resource);
-        EditSchemaParms esp = new EditSchemaParms(t.resource,
+    public void updateSchema(ShapeUpdateInsertTask t) {
+        logger.info("Update {} into the fdp", t.shape);
+        EditSchemaParms esp = new EditSchemaParms(t.shape,
                 t.description(), false,
                 t.model, getParentUID(t.parents),
-                t.resource,
+                t.shape,
                 t.url());
 
         SchemaEdit se = request().setUri(url + "/metadata-schemas/" + t.uuid + "/draft")
                 .setBody(esp)
                 .setToken(token)
                 .put(SchemaEdit.class);
-        return se.uuid();
     }
 
-    public String releaseSchema(SchemaTools.Task t) {
-        logger.info("Release {} into the fdp", t.resource);
-        ReleaseSchemaParms rsp = ReleaseSchemaParms.of(t.resource,
+    public void releaseSchema(ShapeUpdateInsertTask t) {
+        logger.info("Release {} into the fdp", t.shape);
+        ReleaseSchemaParms rsp = ReleaseSchemaParms.of(t.shape,
                 false, t.version);
 
         SchemaDataResponse se = request().setUri(url + "/metadata-schemas/" + t.uuid + "/versions")
                 .setBody(rsp)
                 .setToken(token)
                 .post(SchemaDataResponse.class);
-        return se.uuid();
     }
 
-    public static class SchemaInfo {
-        Version version;
-        String uuid;
-
-        private SchemaInfo(SchemaDataResponse sdr) {
-            this.version = new Version(sdr.latest().version());
-            this.uuid = sdr.latest().uuid();
-        }
-
-        @Override
-        public String toString() {
-            return "SchemaInfo{" +
-                    "version=" + version +
-                    ", uuid='" + uuid + '\'' +
-                    '}';
-        }
-    }
 }

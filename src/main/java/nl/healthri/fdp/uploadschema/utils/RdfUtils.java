@@ -1,4 +1,4 @@
-package nl.healthri.fdp.uploadschema;
+package nl.healthri.fdp.uploadschema.utils;
 
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Namespace;
@@ -28,16 +28,21 @@ public class RdfUtils {
         parser.parse(fis);
     }
 
-    public static Model readFiles(List<File> files) throws IOException {
-        RDFParser rdfParser = Rio.createParser(RDFFormat.TURTLE);
-        Model model = new LinkedHashModel();
-        rdfParser.setRDFHandler(new StatementCollector(model));
-        for (File f : files) {
-            readFile(f, rdfParser);
+    public static Model readFiles(List<File> files) {
+        try {
+            RDFParser rdfParser = Rio.createParser(RDFFormat.TURTLE);
+            Model model = new LinkedHashModel();
+            rdfParser.setRDFHandler(new StatementCollector(model));
+            for (File f : files) {
+                readFile(f, rdfParser);
+            }
+            return model;
+        } catch (IOException ioe) {
+            throw new RuntimeException(ioe);
         }
-        return model;
     }
 
+    @SuppressWarnings("unused")
     public static void printModelAsTurtle(Model m) {
         saveModelToStream(System.out, m);
     }
@@ -48,6 +53,7 @@ public class RdfUtils {
         return out.toString();
     }
 
+    @SuppressWarnings("unused")
     public static void safeModel(File f, Model m) throws FileNotFoundException {
         saveModelToStream(new FileOutputStream(f), m);
     }
