@@ -33,7 +33,7 @@ public class Version {
 
     public Version next(int requestedMajorVersion) {
         if (requestedMajorVersion > major) {
-            return new Version(major, 0, 0);
+            return new Version(requestedMajorVersion, 0, 0);
         }
         return new Version(major, minor, patch + 1);
     }

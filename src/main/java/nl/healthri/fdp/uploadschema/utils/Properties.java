@@ -15,6 +15,7 @@ public class Properties {
     public final Map<String, List<String>> parentChild = new LinkedHashMap<>();
     public final Map<String, ResourceProperties> resources = new HashMap<>();
     public String inputDir;
+    public String outputDir;
     public String fdpUrl;
     public String fdpUsername;
     public List<String> schemasToPublish;
@@ -33,6 +34,7 @@ public class Properties {
         p.fdpUsername = "albert.einstein@example.com";
 
         p.inputDir = "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\Core\\PiecesShape\\";
+        p.outputDir = "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\Core\\FairDataPointShape";
 
         //target = Schema name in the FDP, files: are the files that need to be merged.
         p.addFile("Catalog", "Catalog.ttl", "Agent.ttl", "Kind.ttl", "PeriodOfTime.ttl");
