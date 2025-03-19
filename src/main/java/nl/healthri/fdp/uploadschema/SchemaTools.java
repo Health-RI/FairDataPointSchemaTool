@@ -11,6 +11,8 @@ import picocli.CommandLine;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import static java.util.function.Predicate.not;
 
@@ -20,22 +22,25 @@ public class SchemaTools implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(SchemaTools.class);
 
-    @CommandLine.Option(names = {"-i", "--input"}, required = true, description = "Property file, in yaml format")
+    @CommandLine.Option(names = {"-i", "--input"}, defaultValue = "./Properties.yaml", description = "location of the Property.yaml file (default: ${DEFAULT-VALUE})")
     File propertyFile;
 
-    @CommandLine.Option(names = {"-p", "--password"}, required = true, description = "FDP admin password")
+    @CommandLine.Option(names = {"-u", "--user"}, defaultValue = "albert.einstein@example.com", description = "FDP admin user (default: ${DEFAULT-VALUE})")
+    String username;
+
+    @CommandLine.Option(names = {"-h", "--host"}, defaultValue = "http://localhost:80", converter = UriConverter.class, description = "fdp url (default: ${DEFAULT-VALUE})"
+    )
+    URI hostname;
+
+    @CommandLine.Option(names = {"-p", "--password"}, defaultValue = "password", description = "FDP admin password (default: ${DEFAULT-VALUE})")
     String password;
 
-    @CommandLine.Option(names = {"-c", "--command"}, required = true, description = "Valid values: ${COMPLETION-CANDIDATES}", converter = CommandEnumConverter.class)
+    @CommandLine.Option(names = {"-c", "--command"}, defaultValue = "both", description = "Valid values: ${COMPLETION-CANDIDATES} (default: ${DEFAULT-VALUE})", converter = CommandEnumConverter.class)
     CommandEnum command;
 
     public static void main(String... args) {
         var cmd = new CommandLine(new SchemaTools());
-        if (args.length == 0) {
-            cmd.usage(System.out);
-        } else {
-            System.exit(cmd.execute(args));
-        }
+        System.exit(cmd.execute(args));
     }
 
     @Override
@@ -52,7 +57,7 @@ public class SchemaTools implements Runnable {
                 }
             } else {
 
-                final FDP fdp = FDP.connectToFdp(p.fdpUrl, p.fdpUsername, password);
+                final FDP fdp = FDP.connectToFdp(hostname, username, password);
 
                 if (command == CommandEnum.SCHEMA || command == CommandEnum.BOTH) {
                     //Shapes we want to update/insert
@@ -80,10 +85,6 @@ public class SchemaTools implements Runnable {
                     //add the previous resources as child to parent.
                     var resourceTasksParents = ResourceUpdateInsertTask.createParentTask(p, fdp);
                     resourceTasksParents.stream().filter(ResourceUpdateInsertTask::hasChild).forEach(fdp::updateResource);
-
-//          insert new resource and keep the UUID.
-                    resourceTasks.stream().filter(ResourceUpdateInsertTask::isInsert)
-                            .forEach(fdp::insertResource);
                 }
             }
         } catch (IOException io) {
@@ -92,14 +93,29 @@ public class SchemaTools implements Runnable {
     }
 
     public enum CommandEnum {
-        SCHEMA, RESOURCE, BOTH, FILES//add FILES option to save combine files.
+        SCHEMA, RESOURCE, BOTH, FILES
     }
 
-    //this class is needed to make the -c option case insenstive..
+    //this class is needed to make the -c option case-insensitive.
     public static class CommandEnumConverter implements CommandLine.ITypeConverter<CommandEnum> {
         @Override
-        public CommandEnum convert(String value) throws Exception {
+        public CommandEnum convert(String value) {
             return CommandEnum.valueOf(value.toUpperCase());
+        }
+    }
+
+    public static class UriConverter implements CommandLine.ITypeConverter<URI> {
+        @Override
+        public URI convert(String value) {
+            try {
+                var uri = new URI(value);
+                if (!uri.isAbsolute()) {
+                    throw new CommandLine.TypeConversionException("Invalid URI format: " + value);
+                }
+                return uri;
+            } catch (URISyntaxException e) {
+                throw new CommandLine.TypeConversionException("Invalid URI format: " + value);
+            }
         }
     }
 

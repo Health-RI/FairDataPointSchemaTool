@@ -1,14 +1,15 @@
 package nl.healthri.fdp.uploadschema;
 
+import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Version {
+public class Version implements Comparable<Version> {
 
     private static final Pattern pattern = Pattern.compile("(\\d+)\\.(\\d+)\\.(\\d+)");
-    int major;
-    int minor;
-    int patch;
+    final private int major;
+    final private int minor;
+    final private int patch;
 
     public Version(String version) {
         Matcher matcher = pattern.matcher(version);
@@ -31,22 +32,30 @@ public class Version {
         return major + "." + minor + "." + patch;
     }
 
-    public Version next(int requestedMajorVersion) {
-        if (requestedMajorVersion > major) {
-            return new Version(requestedMajorVersion, 0, 0);
+    public Version next(Version requestedVersion) {
+        if (requestedVersion.compareTo(this) > 0) {
+            return requestedVersion;
         }
         return new Version(major, minor, patch + 1);
     }
 
-    public String major() {
-        return Integer.toString(major);
+    public int major() {
+        return major;
+    }
+    
+    public int minor() {
+        return minor;
     }
 
-    public String minor() {
-        return Integer.toString(minor);
+    public int patch() {
+        return patch;
     }
 
-    public String patch() {
-        return Integer.toString(patch);
+    @Override
+    public int compareTo(Version other) {
+        return Comparator.comparingInt(Version::major)
+                .thenComparingInt(Version::minor)
+                .thenComparingInt(Version::patch)
+                .compare(this, other);
     }
 }

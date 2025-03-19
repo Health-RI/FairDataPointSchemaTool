@@ -14,13 +14,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
+import java.net.URI;
 import java.net.http.HttpClient;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class FDP {
+public class FDP implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(FDP.class);
 
     private final String url;
@@ -28,8 +29,8 @@ public class FDP {
     private final HttpClient client;
     private TokenResponse token;
 
-    private FDP(String url) {
-        this.url = url;
+    private FDP(URI url) {
+        this.url = url.toString();
         this.mapper = new ObjectMapper(new JsonFactory());
         this.client = HttpClient.newBuilder()
                 .followRedirects(HttpClient.Redirect.NORMAL)
@@ -37,7 +38,7 @@ public class FDP {
                 .build();
     }
 
-    public static FDP connectToFdp(String url, String username, String password) {
+    public static FDP connectToFdp(URI url, String username, String password) {
         FDP fdp = new FDP(url);
         var info = fdp.request().setUri(fdp.url("actuator/info")).get(FDPInfoResponse.class);
         logger.info("FDP info: {}", info.toString());
@@ -136,7 +137,7 @@ public class FDP {
 //                new ArrayList<>(rpExternalLink));
         logger.info("update resource {} on the fdp", task.resource);
         request().setToken(token)
-                .setUri(url("resource-definition", task.UUID))
+                .setUri(url("resource-definitions", task.UUID))
                 .setBody(rr)
                 .put(ResourceResponse.class);
     }
@@ -183,7 +184,8 @@ public class FDP {
                 t.shape,
                 t.url());
 
-        SchemaEdit se = request().setUri(url + "/metadata-schemas/" + t.uuid + "/draft")
+        //result of request is not needed.
+        request().setUri(url + "/metadata-schemas/" + t.uuid + "/draft")
                 .setBody(esp)
                 .setToken(token)
                 .put(SchemaEdit.class);
@@ -193,11 +195,17 @@ public class FDP {
         logger.info("Release {} into the fdp", t.shape);
         ReleaseSchemaParms rsp = ReleaseSchemaParms.of(t.shape,
                 false, t.version);
-
-        SchemaDataResponse se = request().setUri(url + "/metadata-schemas/" + t.uuid + "/versions")
+//      result of request is not needed.
+        request().setUri(url + "/metadata-schemas/" + t.uuid + "/versions")
                 .setBody(rsp)
                 .setToken(token)
                 .post(SchemaDataResponse.class);
     }
 
+    @Override
+    public void close() throws Exception {
+        if (client != null) {
+            client.close();
+        }
+    }
 }

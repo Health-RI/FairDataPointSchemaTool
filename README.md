@@ -35,7 +35,12 @@ Run the tool with the required configuration file:
     java -jar target/FairDataPointSchemaTool-1.0-SNAPSHOT.jar -i /path/to/Properties.yaml -p yourpassword -c command
 ```
 
-the -c command is determine if we update the Schema, Resources or both.
+the -c Determine what the tool will do: we have 4 options:
+
+* schema -> The schema will be updated
+* resource -> Resource descriptions will be updated.
+* both -> Schema and resource will be updated.
+* files -> will create merged turtle files only, this option is for internal use only.
 
 ## Configuration File (YAML Format)
 
@@ -73,11 +78,11 @@ schemas:
     - "Agent.ttl"
     - "Kind.ttl"
     - "PeriodOfTime.ttl"
-  DatasetSeries:
+  Dataset Series:
     - "DatasetSeries.ttl"
     - "Agent.ttl"
     - "Kind.ttl"
-  DataService:
+  Data Service:
     - "DataService.ttl"
     - "Agent.ttl"
     - "Kind.ttl"
@@ -86,19 +91,22 @@ parentChild:
   Resource:
     - "Dataset"
     - "Catalog"
-    - "DataService"
+    - "Data Service"
     - "Project"
     - "Study"
 resourcesToPublish:
   - "Resource"
   - "Catalog"
   - "Dataset"
-  - "DatasetSeries"
+  - "Dataset Series"
   - "Distribution"
-  - "DataService"
+  - "Data Service"
   - "Project"
   - "Study"
 ```
+
+Note the "resourceToPublih" and "Schema" should be identical as the schemaname it should replace on the Fair Data
+Point! (including space & case)
 
 ## License
 

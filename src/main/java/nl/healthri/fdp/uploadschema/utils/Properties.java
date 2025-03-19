@@ -3,9 +3,12 @@ package nl.healthri.fdp.uploadschema.utils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import nl.healthri.fdp.uploadschema.Version;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -16,24 +19,25 @@ public class Properties {
     public final Map<String, ResourceProperties> resources = new HashMap<>();
     public String inputDir;
     public String outputDir;
-    public String fdpUrl;
-    public String fdpUsername;
     public List<String> schemasToPublish;
-    public int schemaVersion;
+    public String schemaVersion;
 
     public static Properties load(File file) throws IOException {
         var mapper = new ObjectMapper(new YAMLFactory());
         return mapper.readValue(file, Properties.class);
     }
 
-    //Running the main will create a Properties.yaml file, it will overwrite the files so manual edit will be lost!
+    /**
+     * You can run this class to create a default Propertie.yaml. it will overwrite existing one!
+     *
+     * @param args
+     * @throws IOException
+     */
     public static void main(String[] args) throws IOException {
         var p = new Properties();
-        p.fdpUrl = "http://localhost:80";
-        //password is set as cmd-line option.
-        p.fdpUsername = "albert.einstein@example.com";
-
-        p.inputDir = "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\Core\\PiecesShape\\";
+        p.inputDir = "https://raw.githubusercontent.com/Health-RI/health-ri-metadata/v2.0.0-beta.2/Formalisation(shacl)/Core/PiecesShape/";
+        //NOTE: extra / in front drive letter!
+//        p.inputDir = "file:///C:/Users/PatrickDekker(Health/IdeaProjects/health-ri-metadata/Formalisation(shacl)/Core/PiecesShape/";
         p.outputDir = "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\Core\\FairDataPointShape";
 
         //target = Schema name in the FDP, files: are the files that need to be merged.
@@ -51,12 +55,28 @@ public class Properties {
 
         //this is list schema to publish, Make sure Parents are places first in the list(!)
         p.schemasToPublish = List.of("Resource", "Catalog", "Dataset", "Dataset Series", "Distribution", "Data Service", "Project", "Study");
-        p.addResourceDescription("Project", "FAIR Data Point", "http://foaf.project.com");
+        p.addResourceDescription("Project", "FAIR Data Point", "http://www.example.com/project");
+        p.addResourceDescription("Study", "Project", "http://www.example.com/study");
+        p.addResourceDescription("Dataset Series", "FAIR Data Point", "http://www.example.com/study");
+        p.schemaVersion = "2.0.0";
 
-        p.schemaVersion = 2;
 
         var mapper = new ObjectMapper(new YAMLFactory());
         mapper.writeValue(new File("Properties.yaml"), p);
+    }
+
+    private URI uri(String file) {
+        try {
+            return new URI(inputDir + file);
+        } catch (URISyntaxException ex) {
+            throw new RuntimeException(ex);
+        }
+
+    }
+
+    @JsonIgnore
+    public Version getVersion() {
+        return new Version(schemaVersion);
     }
 
     public void addFile(String target, String... files) {
@@ -72,14 +92,14 @@ public class Properties {
     }
 
     @JsonIgnore
-    public Map<String, List<File>> getFiles() {
-        Map<String, List<File>> files = new HashMap<>();
-
-        for (var e : schemas.entrySet()) {
-            var inputFiles = e.getValue().stream().map(f -> new File(inputDir, f)).toList();
-            files.put(e.getKey(), inputFiles);
-        }
-        return files;
+    public Map<String, List<URI>> getFiles() {
+        return schemas.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> e.getValue().stream()
+                                .map(this::uri)
+                                .toList()
+                ));
     }
 
     @JsonIgnore

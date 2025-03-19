@@ -54,7 +54,6 @@ public class RequestBuilder {
     public RequestBuilder setBody(Object obj) {
         try {
             this.body = mapper.writeValueAsString(obj);
-            logger.trace("body: {}", body);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

@@ -15,6 +15,6 @@ public record ReleaseSchemaParms(
 
     @JsonIgnore
     public static ReleaseSchemaParms of(String resourceName, boolean published, Version v) {
-        return new ReleaseSchemaParms(resourceName, published, v.toString(), v.major(), v.minor(), v.patch());
+        return new ReleaseSchemaParms(resourceName, published, v.toString(), "" + v.major(), "" + v.minor(), "" + v.patch());
     }
 }

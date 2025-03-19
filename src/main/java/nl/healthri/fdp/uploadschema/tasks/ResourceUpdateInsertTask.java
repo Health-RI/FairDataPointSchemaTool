@@ -49,6 +49,9 @@ public class ResourceUpdateInsertTask {
     }
 
     public String pluralName() {
+        //FIXME shape datasetSeries is already plural form.
+        if (childName.toLowerCase().endsWith("series")) return childName;
+
         // Rule 1: Words ending in consonant + "y" -> replace "y" with "ies"
         if (Pattern.matches(".*[^aeiou]y$", childName)) {
             return childName.replaceAll("y$", "ies");
