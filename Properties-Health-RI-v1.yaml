@@ -1,0 +1,30 @@
+---
+schemas:
+  Catalog:
+  - "Catalog.ttl"
+  Dataset:
+  - "Dataset.ttl"
+  Dataset Series:
+  - "DatasetSeries.ttl"
+  Resource:
+  - "Resource.ttl"
+  Distribution:
+  - "Distribution.ttl"
+  Data Service:
+  - "DataService.ttl"
+parentChild:
+  Resource:
+  - "Dataset"
+  - "Catalog"
+  - "Data Service"
+resources:
+inputDir: "https://raw.githubusercontent.com/Health-RI/health-ri-metadata/v1.0.0/Formalisation(shacl)/Core/PiecesShape/"
+outputDir: "./FairDataPointShape/"
+schemasToPublish:
+- "Resource"
+- "Catalog"
+- "Dataset"
+- "Dataset Series"
+- "Distribution"
+- "Data Service"
+schemaVersion: "1.0.2"
