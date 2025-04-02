@@ -45,7 +45,7 @@ resources:
     parentRelationIri: "http://www.example.com/study"
   Dataset Series:
     parentResource: "FAIR Data Point"
-    parentRelationIri: "http://www.example.com/study"
+    parentRelationIri: "http://www.example.com/dataset"
 inputDir: "https://raw.githubusercontent.com/Health-RI/health-ri-metadata/v2.0.0-beta.2/Formalisation(shacl)/Core/PiecesShape/"
 outputDir: "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\\
   Core\\FairDataPointShape"
