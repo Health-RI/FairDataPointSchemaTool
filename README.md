@@ -32,10 +32,11 @@ Clone the repository and build the project using Maven:
 Run the tool with the required configuration file:
 
 ```sh
-    java -jar target/FairDataPointSchemaTool-1.0.jar -i /path/to/Properties.yaml -h address_of_fdp -p yourpassword -u username -c command
+    java -jar FairDataPointSchemaTool-1.0.jar -i /path/to/Properties.yaml -h address_of_fdp -p yourpassword -u username -c command
 ```
 
--i path to Properties.yaml, if this files is located you can use relative location (default is ./Properties.yaml)
+-i path to Properties.yaml, you can use relative location (default is ./Properties.yaml) works if the property file is
+locate
 
 -u fdp admin user (default: albert.einstein@example.com)
 
