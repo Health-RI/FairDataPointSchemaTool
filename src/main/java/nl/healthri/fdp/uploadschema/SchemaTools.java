@@ -51,7 +51,7 @@ public class SchemaTools implements Runnable {
             if (command == CommandEnum.FILES) {
                 logger.info("Writing files: {}", p.getFiles().keySet());
                 for (var e : p.getFiles().entrySet()) {
-                    File file = new File(p.outputDir, e.getKey() + ".ttl");
+                    File file = new File(p.outputDir, e.getKey().replaceAll(" ", "") + ".ttl");
                     Model m = RdfUtils.readFiles(e.getValue());
                     RdfUtils.safeModel(file, m);
                 }
@@ -79,7 +79,7 @@ public class SchemaTools implements Runnable {
                     resourceTasks.stream().filter(ResourceUpdateInsertTask::isInsert).forEach(fdp::insertResource);
 
                     if (resourceTasks.stream().noneMatch(not(ResourceUpdateInsertTask::isInsert))) {
-                        logger.warn("Updating resources is not supported yet, but will try to add childeren if needed)");
+                        logger.warn("Updating resources is not supported yet, but will try to add children if needed)");
                     }
 
                     //add the previous resources as child to parent.

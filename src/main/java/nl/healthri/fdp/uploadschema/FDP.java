@@ -1,7 +1,6 @@
 package nl.healthri.fdp.uploadschema;
 
 import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.healthri.fdp.uploadschema.requestbodies.*;
 import nl.healthri.fdp.uploadschema.requestresponses.*;
@@ -84,7 +83,7 @@ public class FDP implements AutoCloseable {
     }
 
     public ResourceMap fetchResourceFromFDP() {
-        logger.info("Fetch schema info from fdp");
+        logger.info("Fetch resource info from fdp");
         ResourceResponse[] resources = request().setUri(url + "/resource-definitions")
                 .setToken(token).get(ResourceResponse[].class);
 
@@ -122,33 +121,11 @@ public class FDP implements AutoCloseable {
             rr.children().add(child);
         }
 
-//        prettyPrint(rr);
-        //copy ResourceResponse to ResourceParms, when you look at the consule of the webclient
-        //it looks like the ResourceResponse class is used as parameter instead of ResourceParms class!
-
-//        var rpChild = rr.children().stream().map(c -> new ResourceParms.ResourceChild(c.resourceDefinitionUuid())).toList();
-//        var rpExternalLink = rr.externalLinks().stream().map(el -> new ResourceParms.ResourceLink(el.title(), el.propertyUri())).toList();
-//
-//        ResourceParms rp = new ResourceParms(task.resource,
-//                task.url(),
-//                rr.metadataSchemaUuids(),
-//                rr.targetClassUris(),
-//                new ArrayList<>(rpChild),
-//                new ArrayList<>(rpExternalLink));
         logger.info("update resource {} on the fdp", task.resource);
         request().setToken(token)
                 .setUri(url("resource-definitions", task.UUID))
                 .setBody(rr)
                 .put(ResourceResponse.class);
-    }
-
-    private void prettyPrint(Object o) {
-        try {
-            System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(o));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-
     }
 
     /**
@@ -203,7 +180,7 @@ public class FDP implements AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         if (client != null) {
             client.close();
         }

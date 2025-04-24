@@ -11,7 +11,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.Optional;
 
 public class RequestBuilder {
 
@@ -21,7 +20,7 @@ public class RequestBuilder {
     private final HttpClient client;
 
     private String body = "";
-    private Optional<String> bearer = Optional.empty();
+    private String bearer = "";
     private URI uri = null;
 
     public RequestBuilder(ObjectMapper mapper, HttpClient client) {
@@ -61,7 +60,7 @@ public class RequestBuilder {
     }
 
     public RequestBuilder setToken(TokenResponse token) {
-        this.bearer = token == null ? Optional.empty() : Optional.of(token.asHeaderString());
+        this.bearer = token == null ? "" : token.asHeaderString();
         return this;
     }
 
@@ -89,8 +88,8 @@ public class RequestBuilder {
             var b = builder
                     .header("accept", "application/json")
                     .header("Content-Type", "application/json");
-            var request = bearer.isPresent() ?
-                    b.header("Authorization", bearer.get()).build()
+            var request = !bearer.isBlank() ?
+                    b.header("Authorization", bearer).build()
                     : b.build();
 
             logger.debug("body: {}", body);
@@ -104,6 +103,7 @@ public class RequestBuilder {
             }
             throw new RuntimeException("Invalid request: " + response.statusCode() + " -> " + response.body());
         } catch (IOException e) {
+            logger.error("url: {}", uri.toString());
             throw new RuntimeException(e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();//

@@ -1,61 +1,59 @@
 ---
 schemas:
   Catalog:
-  - "Catalog.ttl"
-  - "Agent.ttl"
-  - "Kind.ttl"
-  - "PeriodOfTime.ttl"
+    - "Catalog.ttl"
+    - "Agent.ttl"
+    - "Kind.ttl"
+    - "PeriodOfTime.ttl"
   Dataset:
-  - "Dataset.ttl"
-  - "Agent.ttl"
-  - "Kind.ttl"
-  - "PeriodOfTime.ttl"
+    - "Dataset.ttl"
+    - "Agent.ttl"
+    - "Kind.ttl"
+    - "PeriodOfTime.ttl"
+    - "Attribution.ttl"
+    - "Identifier.ttl"
+    - "QualityCertificate.ttl"
+    - "Relationship.ttl"
   Dataset Series:
-  - "DatasetSeries.ttl"
-  - "Agent.ttl"
-  - "Kind.ttl"
+    - "DatasetSeries.ttl"
+    - "Agent.ttl"
+    - "Kind.ttl"
   Resource:
-  - "Resource.ttl"
+    - "Resource.ttl"
   Distribution:
-  - "Distribution.ttl"
-  - "PeriodOfTime.ttl"
-  - "Checksum.ttl"
-  Project:
-  - "Project.ttl"
-  - "Agent.ttl"
-  Study:
-  - "Study.ttl"
+    - "Distribution.ttl"
+    - "PeriodOfTime.ttl"
+    - "Checksum.ttl"
   Data Service:
-  - "DataService.ttl"
-  - "Agent.ttl"
-  - "Kind.ttl"
+    - "DataService.ttl"
+    - "Agent.ttl"
+    - "Kind.ttl"
 parentChild:
   Resource:
-  - "Dataset"
-  - "Catalog"
-  - "Data Service"
-  - "Project"
-  - "Study"
+    - "Dataset"
+    - "Catalog"
+    - "Data Service"
 resources:
-  Project:
-    parentResource: "FAIR Data Point"
-    parentRelationIri: "http://www.example.com/project"
-  Study:
-    parentResource: "Project"
-    parentRelationIri: "http://www.example.com/study"
   Dataset Series:
-    parentResource: "FAIR Data Point"
-    parentRelationIri: "http://www.example.com/study"
-inputDir: "https://raw.githubusercontent.com/Health-RI/health-ri-metadata/v2.0.0-beta.2/Formalisation(shacl)/Core/PiecesShape/"
+    schema: "Dataset Series"
+    parentResource: "Dataset"
+    parentRelationIri: "http://www.w3.org/ns/dcat#inSeries"
+  Sample Distribution:
+    schema: "Distribution"
+    parentResource: "Dataset"
+    parentRelationIri: "http://www.w3.org/ns/adms#sample"
+  Analytics Distribution:
+    schema: "Distribution"
+    parentResource: "Dataset"
+    parentRelationIri: "http://healthdataportal.eu/ns/health#analytics"
+inputDir: "https://raw.githubusercontent.com/Health-RI/health-ri-metadata/develop/Formalisation(shacl)/Core/PiecesShape/"
 outputDir: "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\\
   Core\\FairDataPointShape"
 schemasToPublish:
-- "Resource"
-- "Catalog"
-- "Dataset"
-- "Dataset Series"
-- "Distribution"
-- "Data Service"
-- "Project"
-- "Study"
+  - "Resource"
+  - "Catalog"
+  - "Dataset"
+  - "Dataset Series"
+  - "Distribution"
+  - "Data Service"
 schemaVersion: "2.0.0"
