@@ -30,8 +30,8 @@ public class Properties {
     /**
      * You can run this class to create a default Propertie.yaml. it will overwrite existing one!
      *
-     * @param args
-     * @throws IOException
+     * @param args arguments are ignored.
+     * @throws IOException when properties can't be written.
      */
     public static void main(String[] args) throws IOException {
         var p = new Properties();
@@ -55,11 +55,10 @@ public class Properties {
 
         //this is list schema to publish, Make sure Parents are places first in the list(!)
         p.schemasToPublish = List.of("Resource", "Catalog", "Dataset", "Dataset Series", "Distribution", "Data Service", "Project", "Study");
-        p.addResourceDescription("Project", "FAIR Data Point", "http://www.example.com/project");
-        p.addResourceDescription("Study", "Project", "http://www.example.com/study");
-        p.addResourceDescription("Dataset Series", "FAIR Data Point", "http://www.example.com/study");
+        p.addResourceDescription("Dataset Series", "Dataset", "http://www.w3.org/ns/dcat#inSeries", "Dataset Series");
+        p.addResourceDescription("Sample Distribution", "Dataset", "http://www.w3.org/ns/adms#sample", "Distribution");
+        p.addResourceDescription("Analytics Distribution", "Dataset", "http://healthdataportal.eu/ns/health#analytics", "Distribution");
         p.schemaVersion = "2.0.0";
-
 
         var mapper = new ObjectMapper(new YAMLFactory());
         mapper.writeValue(new File("Properties.yaml"), p);
@@ -83,8 +82,8 @@ public class Properties {
         schemas.put(target, List.of(files));
     }
 
-    public void addResourceDescription(String name, String parentResource, String parentLinkIRI) {
-        resources.put(name, new ResourceProperties(parentResource, parentLinkIRI));
+    public void addResourceDescription(String name, String parentResource, String parentLinkIRI, String schema) {
+        resources.put(name, new ResourceProperties(parentResource, parentLinkIRI, schema));
     }
 
     public void addParent(String parent, String... children) {
@@ -111,7 +110,8 @@ public class Properties {
 
     public record ResourceProperties(
             String parentResource,
-            String parentRelationIri) {
+            String parentRelationIri,
+            String schema) {
     }
 }
 

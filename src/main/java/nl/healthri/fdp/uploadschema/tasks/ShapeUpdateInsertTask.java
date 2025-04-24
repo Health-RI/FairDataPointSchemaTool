@@ -35,7 +35,6 @@ public class ShapeUpdateInsertTask {
         var shapesOnFdp = fdp.fetchSchemaFromFDP();
         logger.info("found following shapes on fdp: {}", shapesOnFdp.keySet());
 
-
         //list of the task we have to do for insert/updating shacls
         return Shapes.stream().map(r -> {
             var ShapeUpdateInsertTask = new ShapeUpdateInsertTask(r);

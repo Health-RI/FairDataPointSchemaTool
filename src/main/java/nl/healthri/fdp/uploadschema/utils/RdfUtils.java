@@ -1,5 +1,6 @@
 package nl.healthri.fdp.uploadschema.utils;
 
+import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Namespace;
 import org.eclipse.rdf4j.model.Statement;
@@ -20,12 +21,37 @@ import java.net.http.HttpResponse;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class RdfUtils {
     private static final Logger logger = LoggerFactory.getLogger(RdfUtils.class);
 
     private RdfUtils() {
         //prevents instantiation
+    }
+
+    private static void validateNamespaces(Model model) {
+        // Collect all namespaces used in the model
+        final Set<String> usedNamespaces = model.stream()
+                .flatMap(st -> Set.of(st.getSubject(), st.getPredicate(), st.getObject()).stream())
+                .filter(st -> st instanceof IRI)
+                .map(st -> ((IRI) st).getNamespace())
+                .collect(Collectors.toSet());
+        // Remove unused namespaces
+        Set<Namespace> namespacesToRemove = model.getNamespaces().stream()
+                .filter(ns -> !usedNamespaces.contains(ns.getName()))
+                .collect(Collectors.toSet());
+        logger.info("Following namespace are unused: {}", namespacesToRemove);
+
+        Set<String> prefixes = model.getNamespaces().stream().map(Namespace::getPrefix).collect(Collectors.toSet());
+        if (prefixes.size() != model.getNamespaces().size()) {
+            logger.warn("Duplicate prefixes found.");
+        }
+        Set<String> names = model.getNamespaces().stream().map(Namespace::getName).collect(Collectors.toSet());
+        if (names.size() != model.getNamespaces().size()) {
+            logger.warn("Duplicate namespace found.");
+        }
     }
 
     private static void readFile(URI uri, RDFParser parser) throws IOException {
@@ -48,6 +74,7 @@ public class RdfUtils {
             for (URI u : files) {
                 readFile(u, rdfParser);
             }
+            validateNamespaces(model);
             return model;
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);

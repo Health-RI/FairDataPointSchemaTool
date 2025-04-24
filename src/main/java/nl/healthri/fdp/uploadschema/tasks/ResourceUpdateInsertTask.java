@@ -43,14 +43,14 @@ public class ResourceUpdateInsertTask {
     public static List<ResourceUpdateInsertTask> createTask(Properties p, FDP fdp) {
         var resourcesOnFdp = fdp.fetchResourceFromFDP();
         var shapesOnFdp = fdp.fetchSchemaFromFDP();
-        return p.resources.keySet().stream().map(r -> new ResourceUpdateInsertTask(r)
+        return p.resources.entrySet().stream().map(r -> new ResourceUpdateInsertTask(r.getKey())
                 .addExistingInfo(resourcesOnFdp)
-                .addShapeUUID(shapesOnFdp)).toList();
+                .addShapeUUID(shapesOnFdp, r.getValue().schema())).toList();
     }
 
     public String pluralName() {
         //FIXME shape datasetSeries is already plural form.
-        if (childName.toLowerCase().endsWith("series")) return childName;
+        if (childName.toLowerCase().endsWith("ies")) return childName;
 
         // Rule 1: Words ending in consonant + "y" -> replace "y" with "ies"
         if (Pattern.matches(".*[^aeiou]y$", childName)) {
@@ -66,8 +66,9 @@ public class ResourceUpdateInsertTask {
         }
     }
 
-    public ResourceUpdateInsertTask addShapeUUID(ShapesMap shapes) {
-        var shape = shapes.getUUID(resource);
+    public ResourceUpdateInsertTask addShapeUUID(ShapesMap shapes, String schema) {
+        String name = schema.isBlank() ? resource : schema;
+        var shape = shapes.getUUID(name);
         shape.ifPresentOrElse(s -> shapeUUUID = s,
                 () -> logger.error("Can't find shape: {} ", resource));
         return this;
