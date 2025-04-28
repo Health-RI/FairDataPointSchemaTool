@@ -47,9 +47,11 @@ resources:
     parentResource: "Dataset"
     parentRelationIri: "http://healthdataportal.eu/ns/health#analytics"
 inputDir: "https://raw.githubusercontent.com/Health-RI/health-ri-metadata/develop/Formalisation(shacl)/Core/PiecesShape/"
-
 outputDir: "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\\
   Core\\FairDataPointShape"
+piecesDir: "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\\
+  Core\\PiecesShape"
+templateDir: "C:\\Users\\PatrickDekker(Health\\templates\\"
 schemasToPublish:
   - "Resource"
   - "Catalog"

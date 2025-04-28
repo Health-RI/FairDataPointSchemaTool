@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -18,6 +19,8 @@ public class Properties {
     public final Map<String, List<String>> parentChild = new LinkedHashMap<>();
     public final Map<String, ResourceProperties> resources = new HashMap<>();
     public String inputDir;
+    public String templateDir;
+    public String piecesDir;
     public String outputDir;
     public List<String> schemasToPublish;
     public String schemaVersion;
@@ -39,7 +42,7 @@ public class Properties {
         //NOTE: extra / in front drive letter!
 //        p.inputDir = "file:///C:/Users/PatrickDekker(Health/IdeaProjects/health-ri-metadata/Formalisation(shacl)/Core/PiecesShape/";
         p.outputDir = "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\Core\\FairDataPointShape";
-
+        p.templateDir = "C:\\Users\\PatrickDekker(Health\\";
         //target = Schema name in the FDP, files: are the files that need to be merged.
         p.addFile("Catalog", "Catalog.ttl", "Agent.ttl", "Kind.ttl", "PeriodOfTime.ttl");
         p.addFile("Dataset", "Dataset.ttl", "Agent.ttl", "Kind.ttl", "PeriodOfTime.ttl");
@@ -70,7 +73,6 @@ public class Properties {
         } catch (URISyntaxException ex) {
             throw new RuntimeException(ex);
         }
-
     }
 
     @JsonIgnore
@@ -100,6 +102,18 @@ public class Properties {
                                 .toList()
                 ));
     }
+
+    @JsonIgnore
+    public Map<String, List<URI>> getFiles(String dir) {
+        return schemas.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> e.getValue().stream()
+                                .map(f -> Path.of(dir, f).toFile().toURI())
+                                .toList()
+                ));
+    }
+
 
     @JsonIgnore
     public Set<String> getParents(String child) {
