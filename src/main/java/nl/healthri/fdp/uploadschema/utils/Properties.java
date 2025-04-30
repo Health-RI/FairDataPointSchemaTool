@@ -19,6 +19,7 @@ public class Properties {
     public final Map<String, ResourceProperties> resources = new HashMap<>();
     public String inputDir;
     public String outputDir;
+    public String outputMergedDir;
     public List<String> schemasToPublish;
     public String schemaVersion;
 
@@ -39,7 +40,7 @@ public class Properties {
         //NOTE: extra / in front drive letter!
 //        p.inputDir = "file:///C:/Users/PatrickDekker(Health/IdeaProjects/health-ri-metadata/Formalisation(shacl)/Core/PiecesShape/";
         p.outputDir = "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\Core\\FairDataPointShape";
-
+        p.outputMergedDir = "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\Core\\ValidationShape";
         //target = Schema name in the FDP, files: are the files that need to be merged.
         p.addFile("Catalog", "Catalog.ttl", "Agent.ttl", "Kind.ttl", "PeriodOfTime.ttl");
         p.addFile("Dataset", "Dataset.ttl", "Agent.ttl", "Kind.ttl", "PeriodOfTime.ttl");
@@ -99,6 +100,10 @@ public class Properties {
                                 .map(this::uri)
                                 .toList()
                 ));
+    }
+
+    public Set<URI> getAllFiles() {
+        return getFiles().values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
     }
 
     @JsonIgnore

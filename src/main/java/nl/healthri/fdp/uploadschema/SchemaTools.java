@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 
 import static java.util.function.Predicate.not;
 
@@ -55,6 +56,10 @@ public class SchemaTools implements Runnable {
                     Model m = RdfUtils.readFiles(e.getValue());
                     RdfUtils.safeModel(file, m);
                 }
+                logger.info("Write validation file: {}", p.getAllFiles());
+                File file = new File(p.outputMergedDir, "HRI-Datamodel-shapes.ttl");
+                Model m = RdfUtils.readFiles(new ArrayList<>(p.getAllFiles()));
+                RdfUtils.safeModel(file, m);
             } else {
 
                 final FDP fdp = FDP.connectToFdp(hostname, username, password);
