@@ -52,6 +52,8 @@ outputDir: "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\F
 piecesDir: "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\\
   Core\\PiecesShape"
 templateDir: "C:\\Users\\PatrickDekker(Health\\templates\\"
+outputMergedDir: "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\\
+  Core\\ValidationShape"
 schemasToPublish:
   - "Resource"
   - "Catalog"

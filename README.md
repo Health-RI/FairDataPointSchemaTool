@@ -14,17 +14,27 @@ This Java tool will configure a Fair Data Point to use the Health-ri metamodel v
 ## Requirements
 
 - Java (JDK 17 or higher)
-- Maven
+- Maven (mot needed if you use the prebuild jar file)
 
 ## Installation
 
-You can skip this part, if you download the v1.0. release from github. The jar folder will contain the pre-build tool.
-Clone the repository and build the project using Maven:
+if you want to use the prebuild jar file:
+
+Clone the repository
 
 ```sh
     git clone https://github.com/Health-RI/FairDataPointSchemaTool.git
-    cd FairDataPointSchemaTool
-    mvn clean install
+    cd FairDataPointSchemaTool/jar/
+```
+
+if you want to build the tool yourself using maven:
+
+Clone the repository and build
+
+```sh
+    git clone https://github.com/Health-RI/FairDataPointSchemaTool.git
+    cd FairDataPointSchemaTool/
+    mvn install
 ```
 
 ## Usage
@@ -36,7 +46,7 @@ Run the tool with the required configuration file:
 ```
 
 -i path to Properties.yaml, you can use relative location (default is ./Properties.yaml) works if the property file is
-locate
+located at the some location as the jar file.
 
 -u fdp admin user (default: albert.einstein@example.com)
 
@@ -47,7 +57,7 @@ locate
 * both -> Schema and resource will be updated. (default option)
 * schema -> The schema will be updated
 * resource -> Resource descriptions will be updated.
-* files -> will create merged turtle files only, this option is for internal use only.)
+* files -> will create merged turtle files only, (this option is for internal use only.)
 
 ## Configuration File (YAML Format)
 
@@ -55,6 +65,7 @@ The tool requires a properties file in YAML format to specify input schemas and 
 Below is an example: For most cases the properties doesn't need to be updated.
 
 ```yaml
+---
 ---
 schemas:
   Catalog:
@@ -67,6 +78,10 @@ schemas:
     - "Agent.ttl"
     - "Kind.ttl"
     - "PeriodOfTime.ttl"
+    - "Attribution.ttl"
+    - "Identifier.ttl"
+    - "QualityCertificate.ttl"
+    - "Relationship.ttl"
   Dataset Series:
     - "DatasetSeries.ttl"
     - "Agent.ttl"
@@ -77,38 +92,33 @@ schemas:
     - "Distribution.ttl"
     - "PeriodOfTime.ttl"
     - "Checksum.ttl"
-  Project:
-    - "Project.ttl"
-    - "Agent.ttl"
-  Study:
-    - "Study.ttl"
   Data Service:
     - "DataService.ttl"
     - "Agent.ttl"
     - "Kind.ttl"
 parentChild:
-  #dataset, catalog, data Service and Study all extend from resource. 
+#Dataset, Catalog and Data Service all extend from the "Resource" schema.
   Resource:
     - "Dataset"
     - "Catalog"
     - "Data Service"
-    - "Project"
-    - "Study"
 resources:
-  #note the FDP client, works with resources & childeren. This property file specify parents instead!
-  Project:
-    parentResource: "FAIR Data Point"
-    parentRelationIri: "http://www.example.com/project"
-  Study:
-    parentResource: "Project"
-    parentRelationIri: "http://www.example.com/study"
   Dataset Series:
-    parentResource: "FAIR Data Point"
-    parentRelationIri: "http://www.example.com/study"
-inputDir: "https://raw.githubusercontent.com/Health-RI/health-ri-metadata/v2.0.0-beta.2/Formalisation(shacl)/Core/PiecesShape/"
+    schema: "Dataset Series"
+    parentResource: "Dataset"
+    parentRelationIri: "http://www.w3.org/ns/dcat#inSeries"
+  Sample Distribution:
+    schema: "Distribution"
+    parentResource: "Dataset"
+    parentRelationIri: "http://www.w3.org/ns/adms#sample"
+  Analytics Distribution:
+    schema: "Distribution"
+    parentResource: "Dataset"
+    parentRelationIri: "http://healthdataportal.eu/ns/health#analytics"
+#by default it fetches the shacl files from github develop branch, but you use local folder but you have to use URL encoding ("file:///path/to/folder/")
+inputDir: "https://raw.githubusercontent.com/Health-RI/health-ri-metadata/develop/Formalisation(shacl)/Core/PiecesShape/"
 outputDir: "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\\
   Core\\FairDataPointShape"
-#list of schemas we want to update.
 schemasToPublish:
   - "Resource"
   - "Catalog"
@@ -116,10 +126,8 @@ schemasToPublish:
   - "Dataset Series"
   - "Distribution"
   - "Data Service"
-  - "Project"
-  - "Study"
 #prefered version number of the schemas, only works if current version is smaller.
-#if not the current version is used, but patch number is increased (2.0.0 -> 2.0.1)
+#if not,  the current version is used, but patch number is increased (2.0.0 -> 2.0.1)
 schemaVersion: "2.0.0"
 
 ```

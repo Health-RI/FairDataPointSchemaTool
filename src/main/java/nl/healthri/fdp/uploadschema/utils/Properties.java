@@ -22,6 +22,7 @@ public class Properties {
     public String templateDir;
     public String piecesDir;
     public String outputDir;
+    public String outputMergedDir;
     public List<String> schemasToPublish;
     public String schemaVersion;
 
@@ -43,6 +44,7 @@ public class Properties {
 //        p.inputDir = "file:///C:/Users/PatrickDekker(Health/IdeaProjects/health-ri-metadata/Formalisation(shacl)/Core/PiecesShape/";
         p.outputDir = "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\Core\\FairDataPointShape";
         p.templateDir = "C:\\Users\\PatrickDekker(Health\\";
+        p.outputMergedDir = "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\Core\\ValidationShape";
         //target = Schema name in the FDP, files: are the files that need to be merged.
         p.addFile("Catalog", "Catalog.ttl", "Agent.ttl", "Kind.ttl", "PeriodOfTime.ttl");
         p.addFile("Dataset", "Dataset.ttl", "Agent.ttl", "Kind.ttl", "PeriodOfTime.ttl");
@@ -114,6 +116,10 @@ public class Properties {
                 ));
     }
 
+
+    public Set<URI> getAllFiles() {
+        return getFiles().values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
+    }
 
     @JsonIgnore
     public Set<String> getParents(String child) {
