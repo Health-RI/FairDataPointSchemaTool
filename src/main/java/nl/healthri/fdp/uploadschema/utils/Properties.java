@@ -1,6 +1,7 @@
 package nl.healthri.fdp.uploadschema.utils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import nl.healthri.fdp.uploadschema.Version;
@@ -15,16 +16,29 @@ import java.util.stream.Collectors;
 
 
 public class Properties {
+
     public final Map<String, List<String>> schemas = new LinkedHashMap<>();
     public final Map<String, List<String>> parentChild = new LinkedHashMap<>();
     public final Map<String, ResourceProperties> resources = new HashMap<>();
-    public String inputDir;
-    public String templateDir;
-    public String piecesDir;
-    public String outputDir;
-    public String outputMergedDir;
     public List<String> schemasToPublish;
     public String schemaVersion;
+
+    public String inputDir;
+
+    public String templateDir;
+    public String outputRoot;
+    @JsonProperty("piecesDir")
+    public String piecesDir;
+    @JsonProperty("fairDataPointDir")
+    public String fairDataPointDir;
+    @JsonProperty("validationDir")
+    public String validationDir;
+
+    public record ResourceProperties(
+            String parentResource,
+            String parentRelationIri,
+            String schema) {
+    }
 
     public static Properties load(File file) throws IOException {
         var mapper = new ObjectMapper(new YAMLFactory());
@@ -42,28 +56,31 @@ public class Properties {
         p.inputDir = "https://raw.githubusercontent.com/Health-RI/health-ri-metadata/v2.0.0-beta.2/Formalisation(shacl)/Core/PiecesShape/";
         //NOTE: extra / in front drive letter!
 //        p.inputDir = "file:///C:/Users/PatrickDekker(Health/IdeaProjects/health-ri-metadata/Formalisation(shacl)/Core/PiecesShape/";
-        p.outputDir = "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\Core\\FairDataPointShape";
         p.templateDir = "C:\\Users\\PatrickDekker(Health\\";
-        p.outputMergedDir = "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\Core\\ValidationShape";
+
+        p.outputRoot = "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\Core\\";
+        p.fairDataPointDir = "FairDataPointShape";
+        p.piecesDir = "PiecesShape";
+        p.validationDir = "ValidationShape";
+
         //target = Schema name in the FDP, files: are the files that need to be merged.
         p.addFile("Catalog", "Catalog.ttl", "Agent.ttl", "Kind.ttl", "PeriodOfTime.ttl");
         p.addFile("Dataset", "Dataset.ttl", "Agent.ttl", "Kind.ttl", "PeriodOfTime.ttl");
         p.addFile("Dataset Series", "DatasetSeries.ttl", "Agent.ttl", "Kind.ttl");
         p.addFile("Resource", "Resource.ttl");
         p.addFile("Distribution", "Distribution.ttl", "PeriodOfTime.ttl", "Checksum.ttl");
-        p.addFile("Project", "Project.ttl", "Agent.ttl");
-        p.addFile("Study", "Study.ttl");
         p.addFile("Data Service", "DataService.ttl", "Agent.ttl", "Kind.ttl");
 
         //this defines the "extends" in the schema definition.
-        p.addParent("Resource", "Dataset", "Catalog", "Data Service", "Project", "Study");
+        p.addParent("Resource", "Dataset", "Catalog", "Data Service");
 
         //this is list schema to publish, Make sure Parents are places first in the list(!)
-        p.schemasToPublish = List.of("Resource", "Catalog", "Dataset", "Dataset Series", "Distribution", "Data Service", "Project", "Study");
+        p.schemasToPublish = List.of("Resource", "Catalog", "Dataset", "Dataset Series", "Distribution", "Data Service");
+        p.schemaVersion = "2.0.0";
+
         p.addResourceDescription("Dataset Series", "Dataset", "http://www.w3.org/ns/dcat#inSeries", "Dataset Series");
         p.addResourceDescription("Sample Distribution", "Dataset", "http://www.w3.org/ns/adms#sample", "Distribution");
         p.addResourceDescription("Analytics Distribution", "Dataset", "http://healthdataportal.eu/ns/health#analytics", "Distribution");
-        p.schemaVersion = "2.0.0";
 
         var mapper = new ObjectMapper(new YAMLFactory());
         mapper.writeValue(new File("Properties.yaml"), p);
@@ -82,6 +99,21 @@ public class Properties {
         return new Version(schemaVersion);
     }
 
+    @JsonIgnore
+    public Path getPiecesDir() {
+        return Path.of(outputRoot, piecesDir);
+    }
+
+    @JsonIgnore
+    public Path getValidationDir() {
+        return Path.of(outputRoot, validationDir);
+    }
+
+    @JsonIgnore
+    public Path getFairDataPointDir() {
+        return Path.of(outputRoot, fairDataPointDir);
+    }
+
     public void addFile(String target, String... files) {
         schemas.put(target, List.of(files));
     }
@@ -94,6 +126,9 @@ public class Properties {
         parentChild.put(parent, List.of(children));
     }
 
+    /**
+     * @return a map where each key is a schema name and the corresponding value is a list of URIs representing the files associated with that schema.
+     */
     @JsonIgnore
     public Map<String, List<URI>> getFiles() {
         return schemas.entrySet().stream()
@@ -105,20 +140,29 @@ public class Properties {
                 ));
     }
 
+    /**
+     * @param dir, location where the shema files are located.
+     * @return a map where each key is a schema name and the corresponding value is a list of URIs \
+     * representing the files associated with that schema in the given directory.
+     */
     @JsonIgnore
-    public Map<String, List<URI>> getFiles(String dir) {
+    public Map<String, List<URI>> getFiles(Path dir) {
         return schemas.entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         e -> e.getValue().stream()
-                                .map(f -> Path.of(dir, f).toFile().toURI())
+                                .map(f -> dir.resolve(f).toFile().toURI())
                                 .toList()
                 ));
     }
 
 
+    /**
+     * @return a set with all files from the pieces folder
+     */
+    @JsonIgnore
     public Set<URI> getAllFiles() {
-        return getFiles().values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
+        return schemas.values().stream().flatMap(Collection::stream).map(f -> getPiecesDir().resolve(f).toFile().toURI()).collect(Collectors.toSet());
     }
 
     @JsonIgnore
@@ -128,10 +172,5 @@ public class Properties {
                 .map(Map.Entry::getKey).collect(Collectors.toSet());
     }
 
-    public record ResourceProperties(
-            String parentResource,
-            String parentRelationIri,
-            String schema) {
-    }
 }
 

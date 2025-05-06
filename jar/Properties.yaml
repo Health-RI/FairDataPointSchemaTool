@@ -1,5 +1,6 @@
 ---
 schemas:
+  #The FDP shape files are constructed using the files in the PiecesShape folder.
   Catalog:
     - "Catalog.ttl"
     - "Agent.ttl"
@@ -10,10 +11,6 @@ schemas:
     - "Agent.ttl"
     - "Kind.ttl"
     - "PeriodOfTime.ttl"
-    - "Attribution.ttl"
-    - "Identifier.ttl"
-    - "QualityCertificate.ttl"
-    - "Relationship.ttl"
   Dataset Series:
     - "DatasetSeries.ttl"
     - "Agent.ttl"
@@ -28,28 +25,26 @@ schemas:
     - "DataService.ttl"
     - "Agent.ttl"
     - "Kind.ttl"
+# Some scheme are extending the Resource schema.
 parentChild:
   Resource:
     - "Dataset"
     - "Catalog"
     - "Data Service"
+#the resources for the FDP, note we are using Parent relation instead of Childeren (as the FDP does)
 resources:
-  Dataset Series:
-    schema: "Dataset Series"
-    parentResource: "Dataset"
-    parentRelationIri: "http://www.w3.org/ns/dcat#inSeries"
   Sample Distribution:
-    schema: "Distribution"
     parentResource: "Dataset"
     parentRelationIri: "http://www.w3.org/ns/adms#sample"
-  Analytics Distribution:
     schema: "Distribution"
+  Dataset Series:
+    parentResource: "Dataset"
+    parentRelationIri: "http://www.w3.org/ns/dcat#inSeries"
+    schema: "Dataset Series"
+  Analytics Distribution:
     parentResource: "Dataset"
     parentRelationIri: "http://healthdataportal.eu/ns/health#analytics"
-inputDir: "https://raw.githubusercontent.com/Health-RI/health-ri-metadata/develop/Formalisation(shacl)/Core/PiecesShape/"
-
-outputDir: "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\\
-  Core\\FairDataPointShape"
+    schema: "Distribution"
 schemasToPublish:
   - "Resource"
   - "Catalog"
@@ -58,3 +53,13 @@ schemasToPublish:
   - "Distribution"
   - "Data Service"
 schemaVersion: "2.0.0"
+#Location of the shapes directory used for uploading to FDP, This needs to be a URL, you can use local directory but
+#then use file:/// (three /!)
+inputDir: "https://raw.githubusercontent.com/Health-RI/health-ri-metadata/v2.0.0-RC/Formalisation(shacl)/Core/PiecesShape/"
+#for use with the template option, uses Excel template to generate shapes files (Health-ri use only!)
+templateDir: "C:\\Users\\PatrickDekker(Health\\templates\\"
+outputRoot: "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\\
+  Core\\"
+piecesDir: "PiecesShape"
+fairDataPointDir: "FairDataPointShape"
+validationDir: "ValidationShape"

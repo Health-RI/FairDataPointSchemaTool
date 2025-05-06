@@ -1,11 +1,16 @@
 package nl.healthri.fdp.uploadschema;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import fr.sparna.rdf.xls2rdf.Xls2RdfConverter;
 import fr.sparna.rdf.xls2rdf.write.RepositoryModelWriter;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.turtle.TurtleWriter;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -41,18 +46,29 @@ public class XlsToRdfUtils {
     }
 
     public static String createShacl(Path p) {
+        //Disable logging during conversion
+        var logger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        var oldLevel = logger.getLevel();
+        logger.setLevel(Level.WARN);
         var outputRepository = new SailRepository(new MemoryStore());
         outputRepository.init();
 
-        var converter = new Xls2RdfConverter(new RepositoryModelWriter(outputRepository));
-        converter.setSkipHidden(true);
-        converter.processFile(p.toFile());
-        try (RepositoryConnection connection = outputRepository.getConnection();
+        try (Workbook workbook = WorkbookFactory.create(p.toFile());
+             RepositoryConnection connection = outputRepository.getConnection();
              var baos = new ByteArrayOutputStream()) {
+
+            var converter = new Xls2RdfConverter(new RepositoryModelWriter(outputRepository));
+            converter.setSkipHidden(true);
+            //the converter.procesFile, doesn't properly close the resource
+            //so we use the workbook instead and take care of closing it.
+            converter.processWorkbook(workbook); //converter.processFile, doesn't close resource properly
             connection.export(new TurtleWriter(baos));
+
             return baos.toString(StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        } finally {
+            logger.setLevel(oldLevel);
         }
     }
 }

@@ -7,7 +7,7 @@ This Java tool will configure a Fair Data Point to use the Health-ri metamodel v
 ## Features
 
 - Reads SHACL files from a specified directory or github
-- Combines multiple SHACL files based on schema definitions
+- Use of excel template to create SHACL files.
 - Uploads the combined data to a Fair Data Point
 - Configurable via a YAML properties file
 
@@ -57,17 +57,18 @@ located at the some location as the jar file.
 * both -> Schema and resource will be updated. (default option)
 * schema -> The schema will be updated
 * resource -> Resource descriptions will be updated.
-* files -> will create merged turtle files only, (this option is for internal use only.)
+* template -> will create Shacl files, from Excel templates (this option is for internal use only.)
 
 ## Configuration File (YAML Format)
 
 The tool requires a properties file in YAML format to specify input schemas and resource information.
-Below is an example: For most cases the properties doesn't need to be updated.
+Below is an example: In most cases the property file doesn't need to be updated.
 
 ```yaml
 ---
 ---
 schemas:
+  #The FDP shape files are constructed using the files in the PiecesShape folder.
   Catalog:
     - "Catalog.ttl"
     - "Agent.ttl"
@@ -78,10 +79,6 @@ schemas:
     - "Agent.ttl"
     - "Kind.ttl"
     - "PeriodOfTime.ttl"
-    - "Attribution.ttl"
-    - "Identifier.ttl"
-    - "QualityCertificate.ttl"
-    - "Relationship.ttl"
   Dataset Series:
     - "DatasetSeries.ttl"
     - "Agent.ttl"
@@ -96,29 +93,26 @@ schemas:
     - "DataService.ttl"
     - "Agent.ttl"
     - "Kind.ttl"
+# Some schemas are extending the Resource schema.
 parentChild:
-#Dataset, Catalog and Data Service all extend from the "Resource" schema.
   Resource:
     - "Dataset"
     - "Catalog"
     - "Data Service"
+#the resources for the FDP, note we are using Parent relation instead of Childeren (as the FDP does)
 resources:
-  Dataset Series:
-    schema: "Dataset Series"
-    parentResource: "Dataset"
-    parentRelationIri: "http://www.w3.org/ns/dcat#inSeries"
   Sample Distribution:
-    schema: "Distribution"
     parentResource: "Dataset"
     parentRelationIri: "http://www.w3.org/ns/adms#sample"
-  Analytics Distribution:
     schema: "Distribution"
+  Dataset Series:
+    parentResource: "Dataset"
+    parentRelationIri: "http://www.w3.org/ns/dcat#inSeries"
+    schema: "Dataset Series"
+  Analytics Distribution:
     parentResource: "Dataset"
     parentRelationIri: "http://healthdataportal.eu/ns/health#analytics"
-#by default it fetches the shacl files from github develop branch, but you use local folder but you have to use URL encoding ("file:///path/to/folder/")
-inputDir: "https://raw.githubusercontent.com/Health-RI/health-ri-metadata/develop/Formalisation(shacl)/Core/PiecesShape/"
-outputDir: "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\\
-  Core\\FairDataPointShape"
+    schema: "Distribution"
 schemasToPublish:
   - "Resource"
   - "Catalog"
@@ -126,18 +120,26 @@ schemasToPublish:
   - "Dataset Series"
   - "Distribution"
   - "Data Service"
-#prefered version number of the schemas, only works if current version is smaller.
-#if not,  the current version is used, but patch number is increased (2.0.0 -> 2.0.1)
 schemaVersion: "2.0.0"
+#Location of the shapes files used for uploading to FDP.
+inputDir: "https://raw.githubusercontent.com/Health-RI/health-ri-metadata/v2.0.0-RC/Formalisation(shacl)/Core/PiecesShape/"
+#for use with the template option, uses Excel template to generate shapes files (Health-ri use only!)
+templateDir: "C:\\Users\\PatrickDekker(Health\\templates\\"
+outputRoot: "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\\
+  Core\\"
+piecesDir: "PiecesShape"
+fairDataPointDir: "FairDataPointShape"
+validationDir: "ValidationShape"
+
 
 ```
 
-Note the "resourceToPublih" and "Schema" should be identical as the schema name it should replace on the Fair Data
-Point! (including space & case)
+Note schema names can have spaces, but the turtle filename will be without spaces.
 
 ## License
 
 This project is licensed under the MIT License. See the LICENSE file for details.
+This tool uses https://github.com/sparna-git/xls2rdf for conversion of excel templates to shacl.
 
 ## Contributing
 

@@ -50,60 +50,57 @@ public class SchemaTools implements Runnable {
     public void run() {
         try {
             final Properties p = Properties.load(propertyFile);
-            switch (command) {
-                case EXCEL -> {
-                    logger.info("reading templates from {} ", p.templateDir);
-                    for (var e : XlsToRdfUtils.getTemplateFiles(p.templateDir).entrySet()) {
-                        Path path = Path.of(p.piecesDir, e.getKey() + ".ttl");
-                        String shacl = XlsToRdfUtils.createShacl(e.getValue());
-                        Files.write(path, shacl.getBytes());
-                        System.out.println(shacl);
-                        logger.info("Writing files: {}", p.getFiles().keySet());
-                        for (var entry : p.getFiles(p.piecesDir).entrySet()) {
-                            File file = new File(p.outputDir, e.getKey().replaceAll(" ", "") + ".ttl");
-                            Model m = RdfUtils.readFiles(entry.getValue());
-                            RdfUtils.safeModel(file, m);
-                        }
-                    }
+            if (command == CommandEnum.TEMPLATE) {
+                //1 read all(!) excel files from folder, write shapes in Pieces directory
+                logger.info("reading templates from {} ", p.templateDir);
+                for (var e : XlsToRdfUtils.getTemplateFiles(p.templateDir).entrySet()) {
+                    logger.info("  converting {} ", e.getValue());
+                    Path path = p.getPiecesDir().resolve(e.getKey() + ".ttl");
+                    String shacl = XlsToRdfUtils.createShacl(e.getValue());
+                    Files.write(path, shacl.getBytes());
                 }
-                case FILES -> {
-                    logger.info("Writing files: {}", p.getFiles().keySet());
-                    for (var e : p.getFiles().entrySet()) {
-                        File file = new File(p.outputDir, e.getKey().replaceAll(" ", "") + ".ttl");
-                        Model m = RdfUtils.readFiles(e.getValue());
-                        RdfUtils.safeModel(file, m);
-                    }
+                //2 merge piece to FairDataPoint dir.
+                logger.info("Writing files: {}", p.getFiles().keySet());
+                for (var e : p.getFiles(p.getPiecesDir()).entrySet()) {
+                    Path path = p.getFairDataPointDir().resolve(RdfUtils.schemaToFile(e.getKey()));
+                    Model m = RdfUtils.readFiles(e.getValue());
+                    RdfUtils.safeModel(path, m);
                 }
-                default -> {
-                    final FDP fdp = FDP.connectToFdp(hostname, username, password);
+                //3 merge all pieces into validation dir.
 
-                    if (command == CommandEnum.SCHEMA || command == CommandEnum.BOTH) {
-                        //Shapes we want to update/insert
-                        var shapeTasks = ShapeUpdateInsertTask.createTasks(p, fdp);
+                Path path = p.getValidationDir().resolve("HRI-Datamodel-shapes.ttl");
+                logger.info("Write validation file {} combining {} files", path, p.getAllFiles().size());
+                Model m = RdfUtils.readFiles(new ArrayList<>(p.getAllFiles()));
+                RdfUtils.safeModel(path, m);
+            } else {
+                final FDP fdp = FDP.connectToFdp(hostname, username, password);
+
+                if (command == CommandEnum.SCHEMA || command == CommandEnum.BOTH) {
+                    //Shapes we want to update/insert
+                    var shapeTasks = ShapeUpdateInsertTask.createTasks(p, fdp);
 
 //          insert new schemas and keep the UUID, this is needed for the "release step"
-                        shapeTasks.stream().filter(ShapeUpdateInsertTask::isInsert).forEach(fdp::insertSchema);
+                    shapeTasks.stream().filter(ShapeUpdateInsertTask::isInsert).forEach(fdp::insertSchema);
 
 //          update existing shape, will get status draft.
-                        shapeTasks.stream().filter(not(ShapeUpdateInsertTask::isInsert)).forEach(fdp::updateSchema);
+                    shapeTasks.stream().filter(not(ShapeUpdateInsertTask::isInsert)).forEach(fdp::updateSchema);
 
-                        //the draft-schema are released,
-                        shapeTasks.forEach(fdp::releaseSchema);
+                    //the draft-schema are released,
+                    shapeTasks.forEach(fdp::releaseSchema);
+                }
+
+                if (command == CommandEnum.RESOURCE || command == CommandEnum.BOTH) {
+                    //add resource-descriptions
+                    var resourceTasks = ResourceUpdateInsertTask.createTask(p, fdp);
+                    resourceTasks.stream().filter(ResourceUpdateInsertTask::isInsert).forEach(fdp::insertResource);
+
+                    if (resourceTasks.stream().noneMatch(not(ResourceUpdateInsertTask::isInsert))) {
+                        logger.warn("Updating resources is not supported yet, but will try to add children if needed)");
                     }
 
-                    if (command == CommandEnum.RESOURCE || command == CommandEnum.BOTH) {
-                        //add resource-descriptions
-                        var resourceTasks = ResourceUpdateInsertTask.createTask(p, fdp);
-                        resourceTasks.stream().filter(ResourceUpdateInsertTask::isInsert).forEach(fdp::insertResource);
-
-                        if (resourceTasks.stream().noneMatch(not(ResourceUpdateInsertTask::isInsert))) {
-                            logger.warn("Updating resources is not supported yet, but will try to add children if needed)");
-                        }
-
-                        //add the previous resources as child to parent.
-                        var resourceTasksParents = ResourceUpdateInsertTask.createParentTask(p, fdp);
-                        resourceTasksParents.stream().filter(ResourceUpdateInsertTask::hasChild).forEach(fdp::updateResource);
-                    }
+                    //add the previous resources as child to parent.
+                    var resourceTasksParents = ResourceUpdateInsertTask.createParentTask(p, fdp);
+                    resourceTasksParents.stream().filter(ResourceUpdateInsertTask::hasChild).forEach(fdp::updateResource);
                 }
             }
         } catch (IOException io) {
@@ -112,7 +109,7 @@ public class SchemaTools implements Runnable {
     }
 
     public enum CommandEnum {
-        SCHEMA, RESOURCE, BOTH, FILES, EXCEL
+        SCHEMA, RESOURCE, BOTH, TEMPLATE
     }
 
     //this class is needed to make the -c option case-insensitive.
