@@ -13,6 +13,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 
 import static java.util.function.Predicate.not;
@@ -48,20 +50,29 @@ public class SchemaTools implements Runnable {
     public void run() {
         try {
             final Properties p = Properties.load(propertyFile);
-
-            if (command == CommandEnum.FILES) {
-                logger.info("Writing files: {}", p.getFiles().keySet());
-                for (var e : p.getFiles().entrySet()) {
-                    File file = new File(p.outputDir, e.getKey().replaceAll(" ", "") + ".ttl");
-                    Model m = RdfUtils.readFiles(e.getValue());
-                    RdfUtils.safeModel(file, m);
+            if (command == CommandEnum.TEMPLATE) {
+                //1 read all(!) excel files from folder, write shapes in Pieces directory
+                logger.info("reading templates from {} ", p.templateDir);
+                for (var e : XlsToRdfUtils.getTemplateFiles(p.templateDir).entrySet()) {
+                    logger.info("  converting {} ", e.getValue());
+                    Path path = p.getPiecesDir().resolve(e.getKey() + ".ttl");
+                    String shacl = XlsToRdfUtils.createShacl(e.getValue());
+                    Files.write(path, shacl.getBytes());
                 }
-                logger.info("Write validation file: {}", p.getAllFiles());
-                File file = new File(p.outputMergedDir, "HRI-Datamodel-shapes.ttl");
-                Model m = RdfUtils.readFiles(new ArrayList<>(p.getAllFiles()));
-                RdfUtils.safeModel(file, m);
-            } else {
+                //2 merge piece to FairDataPoint dir.
+                logger.info("Writing files: {}", p.getFiles().keySet());
+                for (var e : p.getFiles(p.getPiecesDir()).entrySet()) {
+                    Path path = p.getFairDataPointDir().resolve(RdfUtils.schemaToFile(e.getKey()));
+                    Model m = RdfUtils.readFiles(e.getValue());
+                    RdfUtils.safeModel(path, m);
+                }
+                //3 merge all pieces into validation dir.
 
+                Path path = p.getValidationDir().resolve("HRI-Datamodel-shapes.ttl");
+                logger.info("Write validation file {} combining {} files", path, p.getAllFiles().size());
+                Model m = RdfUtils.readFiles(new ArrayList<>(p.getAllFiles()));
+                RdfUtils.safeModel(path, m);
+            } else {
                 final FDP fdp = FDP.connectToFdp(hostname, username, password);
 
                 if (command == CommandEnum.SCHEMA || command == CommandEnum.BOTH) {
@@ -98,7 +109,7 @@ public class SchemaTools implements Runnable {
     }
 
     public enum CommandEnum {
-        SCHEMA, RESOURCE, BOTH, FILES
+        SCHEMA, RESOURCE, BOTH, TEMPLATE
     }
 
     //this class is needed to make the -c option case-insensitive.

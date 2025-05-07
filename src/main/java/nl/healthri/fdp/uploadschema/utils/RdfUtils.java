@@ -18,6 +18,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
@@ -65,7 +67,6 @@ public class RdfUtils {
     }
 
     public static Model readFiles(List<URI> files) {
-
         try {
             logger.info("reading shacls from {}", files.getFirst().toString());
             RDFParser rdfParser = Rio.createParser(RDFFormat.TURTLE);
@@ -93,8 +94,8 @@ public class RdfUtils {
     }
 
     @SuppressWarnings("unused")
-    public static void safeModel(File f, Model m) throws FileNotFoundException {
-        saveModelToStream(new FileOutputStream(f), m);
+    public static void safeModel(Path p, Model m) throws IOException {
+        saveModelToStream(Files.newOutputStream(p), m);
     }
 
     private static void saveModelToStream(OutputStream out, Model m) {
@@ -129,5 +130,9 @@ public class RdfUtils {
         } else {
             return new FileInputStream(Paths.get(uri).toFile());
         }
+    }
+
+    public static String schemaToFile(String name) {
+        return name.replaceAll(" ", "") + ".ttl";
     }
 }
