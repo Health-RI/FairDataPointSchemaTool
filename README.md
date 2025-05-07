@@ -122,7 +122,7 @@ schemasToPublish:
   - "Data Service"
 schemaVersion: "2.0.0"
 #Location of the shapes files used for uploading to FDP.
-inputDir: "https://raw.githubusercontent.com/Health-RI/health-ri-metadata/v2.0.0-RC/Formalisation(shacl)/Core/PiecesShape/"
+inputDir: "https://raw.githubusercontent.com/Health-RI/health-ri-metadata/v2.0.0/Formalisation(shacl)/Core/PiecesShape/"
 #for use with the template option, uses Excel template to generate shapes files (Health-ri use only!)
 templateDir: "C:\\Users\\PatrickDekker(Health\\templates\\"
 outputRoot: "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\\

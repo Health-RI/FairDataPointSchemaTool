@@ -53,7 +53,7 @@ public class Properties {
      */
     public static void main(String[] args) throws IOException {
         var p = new Properties();
-        p.inputDir = "https://raw.githubusercontent.com/Health-RI/health-ri-metadata/v2.0.0-beta.2/Formalisation(shacl)/Core/PiecesShape/";
+        p.inputDir = "https://raw.githubusercontent.com/Health-RI/health-ri-metadata/v2.0.0/Formalisation(shacl)/Core/PiecesShape/";
         //NOTE: extra / in front drive letter!
 //        p.inputDir = "file:///C:/Users/PatrickDekker(Health/IdeaProjects/health-ri-metadata/Formalisation(shacl)/Core/PiecesShape/";
         p.templateDir = "C:\\Users\\PatrickDekker(Health\\";
