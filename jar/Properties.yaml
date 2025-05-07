@@ -25,7 +25,7 @@ schemas:
     - "DataService.ttl"
     - "Agent.ttl"
     - "Kind.ttl"
-# Some scheme are extending the Resource schema.
+# Some schemas are extending the Resource schema.
 parentChild:
   Resource:
     - "Dataset"
@@ -53,9 +53,8 @@ schemasToPublish:
   - "Distribution"
   - "Data Service"
 schemaVersion: "2.0.0"
-#Location of the shapes directory used for uploading to FDP, This needs to be a URL, you can use local directory but
-#then use file:/// (three /!)
-inputDir: "https://raw.githubusercontent.com/Health-RI/health-ri-metadata/v2.0.0-RC/Formalisation(shacl)/Core/PiecesShape/"
+#Location of the shapes files used for uploading to FDP.
+inputDir: "https://raw.githubusercontent.com/Health-RI/health-ri-metadata/v2.0.0/Formalisation(shacl)/Core/PiecesShape/"
 #for use with the template option, uses Excel template to generate shapes files (Health-ri use only!)
 templateDir: "C:\\Users\\PatrickDekker(Health\\templates\\"
 outputRoot: "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\\
