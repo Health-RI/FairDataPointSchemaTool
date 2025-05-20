@@ -34,6 +34,7 @@ Clone the repository and build
 ```sh
     git clone https://github.com/Health-RI/FairDataPointSchemaTool.git
     cd FairDataPointSchemaTool/
+    mvn install:install-file -Dfile=./xls2rdf-lib-3.2.1.jar -DgroupId=fr.sparna.rdf.xls2rdf -DartifactId=xls2rdf-pom -Dversion=3.2.1 -Dpackaging=jar 
     mvn install
 ```
 

@@ -19,7 +19,7 @@ import java.util.ArrayList;
 
 import static java.util.function.Predicate.not;
 
-@CommandLine.Command(name = "SchemaTools utility that helps woth Shacls and Fair Datapoints",
+@CommandLine.Command(name = "SchemaTools utility that create FDP ready Shacls and upload them the the FDP.",
         mixinStandardHelpOptions = true, version = "SchemaTool v1.0")
 public class SchemaTools implements Runnable {
 
@@ -73,6 +73,8 @@ public class SchemaTools implements Runnable {
                 Model m = RdfUtils.readFiles(new ArrayList<>(p.getAllFiles()));
                 RdfUtils.safeModel(path, m);
             } else {
+                logger.info("Connecting to FDP at {} as {} ", hostname, username);
+
                 final FDP fdp = FDP.connectToFdp(hostname, username, password);
 
                 if (command == CommandEnum.SCHEMA || command == CommandEnum.BOTH) {
