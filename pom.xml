@@ -115,8 +115,8 @@
             <groupId>fr.sparna.rdf.xls2rdf</groupId>
             <artifactId>xls2rdf-pom</artifactId>
             <version>3.2.1</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/src/main/resources/xls2rdf-lib-3.2.1.jar</systemPath>
+            <!--            <scope>system</scope>-->
+            <!--            <systemPath>xls2rdf-lib-3.2.1.jar</systemPath>-->
         </dependency>
         <dependency>
             <groupId>org.apache.poi</groupId>
