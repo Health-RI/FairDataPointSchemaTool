@@ -11,9 +11,14 @@ schemas:
     - "Agent.ttl"
     - "Kind.ttl"
     - "PeriodOfTime.ttl"
+    - "Attribution.ttl"
+    - "Identifier.ttl"
+    - "QualityCertificate.ttl"
+    - "Relationship.ttl"
   Dataset Series:
     - "DatasetSeries.ttl"
     - "Agent.ttl"
+    - "PeriodOfTime.ttl"
     - "Kind.ttl"
   Resource:
     - "Resource.ttl"
@@ -25,6 +30,7 @@ schemas:
     - "DataService.ttl"
     - "Agent.ttl"
     - "Kind.ttl"
+    - "Identifier.ttl"
 # Some schemas are extending the Resource schema.
 parentChild:
   Resource:
