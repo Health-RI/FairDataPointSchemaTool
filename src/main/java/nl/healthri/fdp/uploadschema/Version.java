@@ -1,6 +1,7 @@
 package nl.healthri.fdp.uploadschema;
 
 import java.util.Comparator;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -42,7 +43,7 @@ public class Version implements Comparable<Version> {
     public int major() {
         return major;
     }
-    
+
     public int minor() {
         return minor;
     }
@@ -57,5 +58,16 @@ public class Version implements Comparable<Version> {
                 .thenComparingInt(Version::minor)
                 .thenComparingInt(Version::patch)
                 .compare(this, other);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Version version)) return false;
+        return major == version.major && minor == version.minor && patch == version.patch;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(major, minor, patch);
     }
 }
