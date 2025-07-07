@@ -15,14 +15,14 @@ public class PropertiesYamlTest {
     @Test
     void testLoadPropertiesYamlFromProjectRoot() {
         assertTrue(
-                Files.exists(Paths.get("properties.yaml")),
+                Files.exists(Paths.get("Properties.yaml")),
                 "properties.yaml should exist in the project root"
         );
     }
 
     @Test
     void testPropertiesValid() {
-        File file = Paths.get("properties.yaml").toFile();
+        File file = Paths.get("Properties.yaml").toFile();
         try {
             Properties.load(file);
         } catch (IOException e) {
