@@ -74,4 +74,14 @@ class VersionTest {
         assertEquals(a, b);
         assertEquals(a.hashCode(), b.hashCode());
     }
+
+    @Test
+    void testEquals() {
+        Version a = new Version(1, 2, 3);
+        Version b = new Version(1, 2, 3);
+        Version c = new Version(1, 2, 4);
+        assertNotEquals(a, "1.2.3"); // Different type
+        assertEquals(a, b); // Same version, different instances
+        assertNotEquals(a, c); // Different type
+    }
 }
