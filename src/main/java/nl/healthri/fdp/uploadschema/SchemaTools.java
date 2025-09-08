@@ -19,8 +19,10 @@ import java.util.ArrayList;
 
 import static java.util.function.Predicate.not;
 
-@CommandLine.Command(name = "SchemaTools utility that create FDP ready Shacls and upload them the the FDP.",
-        mixinStandardHelpOptions = true, version = "SchemaTool v1.0")
+@CommandLine.Command(name = "FDP schema update tool",
+        description = "FDP SchemaTools utility that create FDP ready Shacls and upload/configure them the the FDP.",
+        mixinStandardHelpOptions = true,
+        version = "SchemaTool v1.0")
 public class SchemaTools implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(SchemaTools.class);
@@ -31,7 +33,7 @@ public class SchemaTools implements Runnable {
     @CommandLine.Option(names = {"-u", "--user"}, defaultValue = "albert.einstein@example.com", description = "FDP admin user (default: ${DEFAULT-VALUE})")
     String username;
 
-    @CommandLine.Option(names = {"-h", "--host"}, defaultValue = "http://localhost:80", converter = UriConverter.class, description = "fdp url (default: ${DEFAULT-VALUE})"
+    @CommandLine.Option(names = {"-H", "--host"}, defaultValue = "http://localhost:80", converter = UriConverter.class, description = "fdp url (default: ${DEFAULT-VALUE})"
     )
     URI hostname;
 

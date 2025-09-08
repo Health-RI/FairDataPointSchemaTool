@@ -13,7 +13,7 @@ This Java tool will configure a Fair Data Point to use the Health-ri metamodel v
 
 ## Requirements
 
-- Java (JDK 17 or higher)
+- Java OpenJDK 21 or higher. Some source  (if you use the prebuild jar file, you only need a JRE 21 or higher)
 - Maven (mot needed if you use the prebuild jar file)
 
 ## Installation
@@ -34,31 +34,53 @@ Clone the repository and build
 ```sh
     git clone https://github.com/Health-RI/FairDataPointSchemaTool.git
     cd FairDataPointSchemaTool/
-    mvn install:install-file -Dfile=./xls2rdf-lib-3.2.1.jar -DgroupId=fr.sparna.rdf.xls2rdf -DartifactId=xls2rdf-pom -Dversion=3.2.1 -Dpackaging=jar 
+    mvn install:install-file -Dfile=./xls2rdf-lib-3.2.1.jar -DgeneratePom=true -DgroupId=fr.sparna.rdf.xls2rdf -DartifactId=xls2rdf-lib  -Dversion=3.2.1 -Dpackaging=jar
     mvn install
 ```
+
+### Advanced Installation
+
+You can use [GraalVM](https://www.graalvm.org/)] to create a native executable for your platform. This will create an
+executable file that can be directly executed without requiring a Java runtime.
+GraalVM supports various platforms including Windows, Linux, and macOS, but doesn't support cross compilation. So
+GraalVM on windows can only generate windows executables.
+
+Please read [GraalVM getting started](https://www.graalvm.org/latest/getting-started/) for installation instructions.
+
+```sh
+    git clone https://github.com/Health-RI/FairDataPointSchemaTool.git
+    cd FairDataPointSchemaTool/
+    mvn install:install-file -Dfile=./xls2rdf-lib-3.2.1.jar -DgeneratePom=true -DgroupId=fr.sparna.rdf.xls2rdf -DartifactId=xls2rdf-lib  -Dversion=3.2.1 -Dpackaging=jar
+    mvn org.graalvm.buildtools:native-maven-plugin:0.11.0:compile -DskipTests
+```
+
+The executable can be found in the target directory.
 
 ## Usage
 
 Run the tool with the required configuration file:
 
 ```sh
-    java -jar FairDataPointSchemaTool-1.0.jar -i /path/to/Properties.yaml -h address_of_fdp -p yourpassword -u username -c command
+    java -jar FairDataPointSchemaTool-1.0.jar -i /path/to/Properties.yaml -H address_of_fdp -p yourpassword -u username -c command
 ```
 
--i path to Properties.yaml, you can use relative location (default is ./Properties.yaml) works if the property file is
-located at the some location as the jar file.
+-i/--input path to Properties.yaml, you can use relative location (default is ./Properties.yaml) works if the property
+file is located at the same location as the jar file.
 
--u fdp admin user (default: albert.einstein@example.com)
+-H/--host address of the Fair Data Point (default: http://localhost:80/)
+-u/--user fdp admin user (default: albert.einstein@example.com)
 
--p password (default: password)
+-p/--password password (default: password)
 
--c Determine what the tool will do: we have 4 options:
+-c/--command Determine what the tool will do: we have 4 options:
 
 * both -> Schema and resource will be updated. (default option)
 * schema -> The schema will be updated
 * resource -> Resource descriptions will be updated.
 * template -> will create Shacl files, from Excel templates (this option is for internal use only.)
+
+-h/--help display help
+-v/--version display version information
 
 ## Configuration File (YAML Format)
 
