@@ -1,0 +1,7 @@
+services:
+  schema-tool:
+    build:
+      context: .
+    network_mode: host
+    volumes:
+      - ./Properties.yaml:/opt/app/Properties.yaml:ro

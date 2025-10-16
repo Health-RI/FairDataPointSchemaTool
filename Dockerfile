@@ -1,0 +1,4 @@
+FROM eclipse-temurin:24
+WORKDIR /opt/app
+COPY ./jar/FairDataPointSchemaTool-1.0.jar /opt/app
+CMD ["java", "-jar", "FairDataPointSchemaTool-1.0.jar"]
