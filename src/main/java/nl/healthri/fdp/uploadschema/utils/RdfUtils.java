@@ -82,7 +82,6 @@ public class RdfUtils {
         }
     }
 
-    @SuppressWarnings("unused")
     public static void printModelAsTurtle(Model m) {
         saveModelToStream(System.out, m);
     }
@@ -93,7 +92,6 @@ public class RdfUtils {
         return out.toString();
     }
 
-    @SuppressWarnings("unused")
     public static void safeModel(Path p, Model m) throws IOException {
         saveModelToStream(Files.newOutputStream(p), m);
     }

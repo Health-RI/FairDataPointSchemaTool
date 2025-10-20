@@ -2,11 +2,18 @@ package nl.healthri.fdp.uploadschema.tasks;
 
 import nl.healthri.fdp.uploadschema.FDP;
 import nl.healthri.fdp.uploadschema.Version;
+import nl.healthri.fdp.uploadschema.requestresponses.SchemaDataResponse;
 import nl.healthri.fdp.uploadschema.utils.Properties;
 import nl.healthri.fdp.uploadschema.utils.RdfUtils;
+import org.eclipse.rdf4j.model.Model;
+import org.eclipse.rdf4j.model.util.Models;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.Rio;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.net.URI;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -20,8 +27,7 @@ public class ShapeUpdateInsertTask {
     public final String shape;
     public Version version;
     public String uuid;
-    //name of parents for this schema.
-    public Set<String> parents;
+    public Set<String> parents; //name of parents for this schema.
     public String model;
     public boolean exists = false;
 
@@ -68,5 +74,14 @@ public class ShapeUpdateInsertTask {
 
     public boolean isInsert() {
         return !exists;
+    }
+
+    public boolean isSameSchema(SchemaDataResponse schemaData) throws IOException {
+        // Parse TTL strings into RDF4J Models
+        Model taskModel = Rio.parse(new StringReader(this.model), "", RDFFormat.TURTLE);
+        Model schemaResponseModel = Rio.parse(new StringReader(schemaData.latest().definition()), "", RDFFormat.TURTLE);
+
+        // Check if models have equivalent RDF Graphs to know if schema should be updated
+        return Models.isomorphic(taskModel, schemaResponseModel);
     }
 }
