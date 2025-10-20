@@ -77,9 +77,23 @@ public class ShapeUpdateInsertTask {
     }
 
     public boolean isSameSchema(SchemaDataResponse schemaData) throws IOException {
+        StringReader stringReaderNew;
+        if(this.model == null){
+            stringReaderNew = new StringReader("");
+        } else {
+            stringReaderNew = new StringReader(this.model);
+        }
+
+        StringReader stringReaderOld;
+        if(schemaData.latest() == null){
+            stringReaderOld = new StringReader("");
+        } else {
+            stringReaderOld = new StringReader(schemaData.latest().definition());
+        }
+
         // Parse TTL strings into RDF4J Models
-        Model taskModel = Rio.parse(new StringReader(this.model), "", RDFFormat.TURTLE);
-        Model schemaResponseModel = Rio.parse(new StringReader(schemaData.latest().definition()), "", RDFFormat.TURTLE);
+        Model taskModel = Rio.parse(stringReaderNew, "", RDFFormat.TURTLE);
+        Model schemaResponseModel = Rio.parse(stringReaderOld, "", RDFFormat.TURTLE);
 
         // Check if models have equivalent RDF Graphs to know if schema should be updated
         return Models.isomorphic(taskModel, schemaResponseModel);
