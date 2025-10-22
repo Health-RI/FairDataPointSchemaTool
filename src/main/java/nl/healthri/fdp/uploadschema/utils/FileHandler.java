@@ -5,10 +5,7 @@ import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Namespace;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.impl.LinkedHashModel;
-import org.eclipse.rdf4j.rio.RDFFormat;
-import org.eclipse.rdf4j.rio.RDFParser;
-import org.eclipse.rdf4j.rio.RDFWriter;
-import org.eclipse.rdf4j.rio.Rio;
+import org.eclipse.rdf4j.rio.*;
 import org.eclipse.rdf4j.rio.helpers.StatementCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,9 +46,11 @@ public class FileHandler {
         writer.endRDF();
     }
 
+
     public Model readFiles(List<URI> files) {
+        logger.info("reading and parsing Shacl from {}", files.getFirst().toString());
+
         try {
-            logger.info("reading shacls from {}", files.getFirst().toString());
             RDFParser rdfParser = Rio.createParser(RDFFormat.TURTLE);
             Model model = new LinkedHashModel();
             rdfParser.setRDFHandler(new StatementCollector(model));
@@ -60,18 +59,22 @@ public class FileHandler {
             }
             validateNamespaces(model);
             return model;
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read SHACL files: " + files, e);
         }
     }
 
+
     private void readFile(URI uri, RDFParser parser) throws IOException {
-        logger.debug("reading {}", uri.getPath());
         try {
             InputStream fis = getInputStream(uri);
             parser.parse(fis);
-        } catch (Exception e) {
-            logger.error(e.toString());
+        } catch (IOException e) {
+            throw new IOException("I/O error while reading the file: " + uri, e);
+        } catch (RDFParseException e) {
+            throw new IOException("Error parsing RDF file - invalid Turtle syntax: " + uri, e);
+        } catch (RDFHandlerException e) {
+            throw new IOException("Error while processing RDF content from file: " + uri, e);
         }
     }
 
