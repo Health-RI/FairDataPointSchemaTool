@@ -34,6 +34,8 @@ public class RdfUtils {
     }
 
     private static void validateNamespaces(Model model) {
+        logger.info("validating namespaces {}", model.getNamespaces());
+
         // Collect all namespaces used in the model
         final Set<String> usedNamespaces = model.stream()
                 .flatMap(st -> Set.of(st.getSubject(), st.getPredicate(), st.getObject()).stream())
@@ -57,7 +59,7 @@ public class RdfUtils {
     }
 
     private static void readFile(URI uri, RDFParser parser) throws IOException {
-        logger.debug("reading {}", uri.getPath());
+        logger.info("reading {}", uri.getPath());
         try {
             InputStream fis = getInputStream(uri);
             parser.parse(fis);
@@ -67,8 +69,9 @@ public class RdfUtils {
     }
 
     public static Model readFiles(List<URI> files) {
+        logger.info("reading shacls from {}", files.getFirst().toString());
+
         try {
-            logger.info("reading shacls from {}", files.getFirst().toString());
             RDFParser rdfParser = Rio.createParser(RDFFormat.TURTLE);
             Model model = new LinkedHashModel();
             rdfParser.setRDFHandler(new StatementCollector(model));

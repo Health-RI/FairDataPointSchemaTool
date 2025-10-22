@@ -51,6 +51,7 @@ public class ShapeUpdateInsertTask {
 
             ShapeUpdateInsertTask.model = RdfUtils.modelAsTurtleString(RdfUtils.readFiles(ttlFiles));
             if (shapesOnFdp.isPresent(r)) {
+                // todo: add current compare ttl schemas here
                 ShapeUpdateInsertTask.version = shapesOnFdp.getVersion(r).get().next(requestedVersion); //next patch version
                 ShapeUpdateInsertTask.uuid = shapesOnFdp.getUUID(r).get();
                 ShapeUpdateInsertTask.exists = true;
