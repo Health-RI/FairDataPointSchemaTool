@@ -12,7 +12,11 @@ public class ShapesMap extends ObjectMap<ShapesMap.SchemaInfo> {
     public ShapesMap(SchemaDataResponse[] repsonses) {
         this.map = Arrays
                 .stream(repsonses)
-                .collect(Collectors.toMap(SchemaDataResponse::name, sr -> new SchemaInfo(new Version(sr.latest().version()), sr.uuid())));
+                .collect(Collectors.toMap(SchemaDataResponse::name, sr -> new SchemaInfo(new Version(sr.latest().version()), sr.uuid(), sr.latest().definition())));
+    }
+
+    public Optional<String> getDefinition(String name) {
+        return getValue(name).map(SchemaInfo::definition);
     }
 
     public Optional<Version> getVersion(String name) {
@@ -23,6 +27,6 @@ public class ShapesMap extends ObjectMap<ShapesMap.SchemaInfo> {
         return getValue(name).map(SchemaInfo::uuid);
     }
 
-    public record SchemaInfo(Version version, String uuid) {
+    public record SchemaInfo(Version version, String uuid, String definition) {
     }
 }
