@@ -205,7 +205,7 @@ public class FDP implements AutoCloseable {
 
             // Handle each response based on Fair Data Point (FDP) Swagger documentation.
             switch (response.statusCode()) {
-                case 200 -> logger.info("OK");
+                case 200 -> logger.info("Successfully received all schemas from FDP");
                 case 400 ->
                         throw new IllegalArgumentException(String.valueOf(HttpStatus.SC_BAD_REQUEST));
                 case 401 ->
