@@ -1,0 +1,8 @@
+services:
+  schema-tool:
+    build:
+      context: .
+    network_mode: host
+    volumes:
+      - ./${PROPERTIES_LOCATION}:/opt/app/Properties.yaml:ro
+    command: ["-h", "${FDP_HOST}", "-u", "${FDP_USER}", "-p", "${FDP_PWD}"]

@@ -60,6 +60,18 @@ located at the some location as the jar file.
 * resource -> Resource descriptions will be updated.
 * template -> will create Shacl files, from Excel templates (this option is for internal use only.)
 
+### Docker
+
+First, copy the example `.env` file and modify the values to your FDP deployment.
+```sh
+cp .env.example .env
+```
+
+Second, run the container:
+```sh
+docker compose up
+```
+
 ## Configuration File (YAML Format)
 
 The tool requires a properties file in YAML format to specify input schemas and resource information.
