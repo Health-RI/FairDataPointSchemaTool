@@ -64,6 +64,7 @@ public class SchemaTools implements Runnable {
                     mergeShapesForValidation(properties, fileHandler);
                 }
                 case BOTH -> {
+                    // TODO: create Constructor with fdp dependency injector
                     createOrUpdateSchemas(fdp, properties, force, fileHandler);
                     addResourceDescriptions(fdp, properties);
                 }

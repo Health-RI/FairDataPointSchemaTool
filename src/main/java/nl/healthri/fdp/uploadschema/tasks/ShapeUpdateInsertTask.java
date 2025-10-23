@@ -11,6 +11,7 @@ import org.eclipse.rdf4j.model.util.Models;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -36,7 +37,7 @@ public class ShapeUpdateInsertTask {
         this.shape = shape;
     }
 
-    public static List<ShapeUpdateInsertTask> createTasks(Properties p, FDP fdp, FileHandler fileHandler) {
+    public static List<ShapeUpdateInsertTask> createTasks(Properties p, FDP fdp, FileHandler fileHandler){
         final List<String> Shapes = p.schemasToPublish;
         final var files = p.getFiles();
         var shapesOnFdp = fdp.fetchSchemaFromFDP();

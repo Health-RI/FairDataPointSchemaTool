@@ -47,7 +47,7 @@ public class FileHandler {
     }
 
 
-    public Model readFiles(List<URI> files) {
+    public Model readFiles(List<URI> files){
         logger.info("reading and parsing Shacl from {}", files.getFirst().toString());
 
         try {
@@ -60,7 +60,10 @@ public class FileHandler {
             validateNamespaces(model);
             return model;
         } catch (IOException e) {
-            throw new RuntimeException("Failed to read SHACL files: " + files, e);
+            String fileList = files.stream()
+                    .map(URI::toString)
+                    .collect(Collectors.joining(", "));
+            throw new RuntimeException("Failed to read files: " + fileList, e);
         }
     }
 
@@ -70,7 +73,7 @@ public class FileHandler {
             InputStream fis = getInputStream(uri);
             parser.parse(fis);
         } catch (IOException e) {
-            throw new IOException("I/O error while reading the file: " + uri, e);
+            throw new IOException("Error while reading file: " + uri, e);
         } catch (RDFParseException e) {
             throw new IOException("Error parsing RDF file - invalid Turtle syntax: " + uri, e);
         } catch (RDFHandlerException e) {
