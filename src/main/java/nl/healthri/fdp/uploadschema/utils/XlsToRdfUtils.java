@@ -1,4 +1,4 @@
-package nl.healthri.fdp.uploadschema;
+package nl.healthri.fdp.uploadschema.utils;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;

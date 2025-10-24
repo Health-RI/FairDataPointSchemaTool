@@ -1,8 +1,8 @@
 package nl.healthri.fdp.uploadschema.tasks;
 
-import nl.healthri.fdp.uploadschema.FDP;
+import nl.healthri.fdp.uploadschema.integration.FDP;
 import nl.healthri.fdp.uploadschema.Version;
-import nl.healthri.fdp.uploadschema.requestresponses.SchemaDataResponse;
+import nl.healthri.fdp.uploadschema.dto.response.SchemaDataResponse;
 import nl.healthri.fdp.uploadschema.utils.FileHandler;
 import nl.healthri.fdp.uploadschema.utils.Properties;
 import nl.healthri.fdp.uploadschema.utils.RdfUtils;
@@ -43,7 +43,7 @@ class ShapeUpdateInsertTaskTest {
                 createFdpResponse("TestShape", "", "1.0.0", "uuid"));
 
         FDP fdp = Mockito.mock(FDP.class);
-        Mockito.when(fdp.fetchSchemaFromFDP()).thenReturn(shapesOnFdp);
+        Mockito.when(fdp.fetchSchemas()).thenReturn(shapesOnFdp);
 
         // Mock FileHandler
         FileHandler fileHandler = Mockito.mock(FileHandler.class);
@@ -84,7 +84,7 @@ class ShapeUpdateInsertTaskTest {
                 createFdpResponse("TestShape", getShapeModel1(), "1.0.0", "uuid"));
 
         FDP fdp = Mockito.mock(FDP.class);
-        Mockito.when(fdp.fetchSchemaFromFDP()).thenReturn(shapesOnFdp);
+        Mockito.when(fdp.fetchSchemas()).thenReturn(shapesOnFdp);
 
         // Mock FileHandler
         FileHandler fileHandler = Mockito.mock(FileHandler.class);
@@ -125,7 +125,7 @@ class ShapeUpdateInsertTaskTest {
                 createFdpResponse("JustAnotherShape", "", "1.0.0", "uuid"));
 
         FDP fdp = Mockito.mock(FDP.class);
-        Mockito.when(fdp.fetchSchemaFromFDP()).thenReturn(shapesOnFdp);
+        Mockito.when(fdp.fetchSchemas()).thenReturn(shapesOnFdp);
 
         // Mock FileHandler
         FileHandler fileHandler = Mockito.mock(FileHandler.class);

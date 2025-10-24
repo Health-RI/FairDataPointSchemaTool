@@ -1,8 +1,8 @@
-package nl.healthri.fdp.uploadschema.requestresponses;
+package nl.healthri.fdp.uploadschema.dto.response;
 
 import java.util.HashSet;
 
-public record SchemaEdit(
+public record UpdateSchemaResponse(
         String uuid,
         String name,
         String description,

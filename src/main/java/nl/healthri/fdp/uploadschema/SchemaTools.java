@@ -1,10 +1,13 @@
 package nl.healthri.fdp.uploadschema;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import nl.healthri.fdp.uploadschema.integration.FDP;
 import nl.healthri.fdp.uploadschema.tasks.ResourceUpdateInsertTask;
 import nl.healthri.fdp.uploadschema.tasks.ShapeUpdateInsertTask;
 import nl.healthri.fdp.uploadschema.utils.FileHandler;
 import nl.healthri.fdp.uploadschema.utils.Properties;
 import nl.healthri.fdp.uploadschema.utils.RdfUtils;
+import nl.healthri.fdp.uploadschema.utils.XlsToRdfUtils;
 import org.eclipse.rdf4j.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,8 +57,9 @@ public class SchemaTools implements Runnable {
     public void run() {
         try {
             final Properties properties = Properties.load(propertyFile);
-            final FDP fdp = FDP.connectToFdp(hostname, username, password);
+            final FDP fdp = new FDP(hostname, username, password);
             final FileHandler fileHandler = new FileHandler();
+
 
             switch (command) {
                 case TEMPLATE -> {

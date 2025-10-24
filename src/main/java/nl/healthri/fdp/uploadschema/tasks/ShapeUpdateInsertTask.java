@@ -1,6 +1,6 @@
 package nl.healthri.fdp.uploadschema.tasks;
 
-import nl.healthri.fdp.uploadschema.FDP;
+import nl.healthri.fdp.uploadschema.integration.FDP;
 import nl.healthri.fdp.uploadschema.Version;
 import nl.healthri.fdp.uploadschema.utils.FileHandler;
 import nl.healthri.fdp.uploadschema.utils.Properties;
@@ -11,12 +11,8 @@ import org.eclipse.rdf4j.model.util.Models;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.URI;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ShapeUpdateInsertTask {
@@ -40,7 +36,7 @@ public class ShapeUpdateInsertTask {
     public static List<ShapeUpdateInsertTask> createTasks(Properties p, FDP fdp, FileHandler fileHandler){
         final List<String> Shapes = p.schemasToPublish;
         final var files = p.getFiles();
-        var shapesOnFdp = fdp.fetchSchemaFromFDP();
+        var shapesOnFdp = fdp.fetchSchemas();
         logger.info("found following shapes on fdp: {}", shapesOnFdp.keySet());
 
         //list of the task we have to do for insert/updating shacls
@@ -81,3 +77,4 @@ public class ShapeUpdateInsertTask {
         return status;
     }
 }
+

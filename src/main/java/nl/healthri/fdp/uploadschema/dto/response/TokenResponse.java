@@ -1,4 +1,4 @@
-package nl.healthri.fdp.uploadschema.requestresponses;
+package nl.healthri.fdp.uploadschema.dto.response;
 
 public record TokenResponse(String token) {
     public String asHeaderString() {
