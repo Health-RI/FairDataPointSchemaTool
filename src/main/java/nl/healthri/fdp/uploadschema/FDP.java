@@ -1,6 +1,7 @@
 package nl.healthri.fdp.uploadschema;
 
 import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.healthri.fdp.uploadschema.requestbodies.*;
 import nl.healthri.fdp.uploadschema.requestresponses.*;
@@ -9,12 +10,16 @@ import nl.healthri.fdp.uploadschema.tasks.ShapeUpdateInsertTask;
 import nl.healthri.fdp.uploadschema.utils.RequestBuilder;
 import nl.healthri.fdp.uploadschema.utils.ResourceMap;
 import nl.healthri.fdp.uploadschema.utils.ShapesMap;
+import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -38,6 +43,8 @@ public class FDP implements AutoCloseable {
     }
 
     public static FDP connectToFdp(URI url, String username, String password) {
+        logger.info("Connecting to FDP at {} as {} ", url, username);
+
         FDP fdp = new FDP(url);
         var info = fdp.request().setUri(fdp.url("actuator/info")).get(FDPInfoResponse.class);
         logger.info("FDP info: {}", info.toString());
@@ -161,7 +168,7 @@ public class FDP implements AutoCloseable {
                 t.shape,
                 t.url());
 
-        //result of request is not needed.
+        //result of request is not needed
         request().setUri(url + "/metadata-schemas/" + t.uuid + "/draft")
                 .setBody(esp)
                 .setToken(token)
@@ -177,6 +184,52 @@ public class FDP implements AutoCloseable {
                 .setBody(rsp)
                 .setToken(token)
                 .post(SchemaDataResponse.class);
+    }
+
+
+    public List<SchemaDataResponse> GetAllSchemas(){
+        logger.info("Getting all metadata schemas");
+        try {
+            HttpClient client = HttpClient.newBuilder()
+                    .build();
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .GET()
+                    .uri(new URI(url + "/metadata-schemas/"))
+                    .header("accept", "application/json")
+                    .header("Content-Type", "application/json")
+                    .header("Authorization", String.valueOf(token))
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            // Handle each response based on Fair Data Point (FDP) Swagger documentation.
+            switch (response.statusCode()) {
+                case 200 -> logger.info("Successfully received all schemas from FDP");
+                case 400 ->
+                        throw new IllegalArgumentException(String.valueOf(HttpStatus.SC_BAD_REQUEST));
+                case 401 ->
+                        throw new SecurityException(String.valueOf(HttpStatus.SC_UNAUTHORIZED));
+                case 403 ->
+                        throw new SecurityException(String.valueOf(HttpStatus.SC_FORBIDDEN));
+                case 404 ->
+                        throw new IOException(String.valueOf(HttpStatus.SC_NOT_FOUND));
+                case 500 ->
+                        throw new IOException(String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR));
+                default -> {
+                    throw new RuntimeException("Unexpected HTTP status: " + response.statusCode());
+                }
+            }
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            TypeReference<List<SchemaDataResponse>> schemaDataTypeReference = new TypeReference<List<SchemaDataResponse>>(){};
+            List<SchemaDataResponse> schemaDataResponseList = objectMapper.readValue(response.body(), schemaDataTypeReference);
+
+            return schemaDataResponseList;
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

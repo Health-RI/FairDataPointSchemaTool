@@ -2,11 +2,16 @@ package nl.healthri.fdp.uploadschema.tasks;
 
 import nl.healthri.fdp.uploadschema.FDP;
 import nl.healthri.fdp.uploadschema.Version;
+import nl.healthri.fdp.uploadschema.utils.FileHandler;
 import nl.healthri.fdp.uploadschema.utils.Properties;
 import nl.healthri.fdp.uploadschema.utils.RdfUtils;
+import org.eclipse.rdf4j.model.Model;
+import org.eclipse.rdf4j.model.impl.LinkedHashModel;
+import org.eclipse.rdf4j.model.util.Models;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -20,16 +25,19 @@ public class ShapeUpdateInsertTask {
     public final String shape;
     public Version version;
     public String uuid;
-    //name of parents for this schema.
-    public Set<String> parents;
+    public Set<String> parents; //name of parents for this schema.
     public String model;
-    public boolean exists = false;
+    public ShapeStatus status;
+
+    public enum ShapeStatus {
+        INSERT, UPDATE, SAME
+    }
 
     public ShapeUpdateInsertTask(String shape) {
         this.shape = shape;
     }
 
-    public static List<ShapeUpdateInsertTask> createTasks(Properties p, FDP fdp) {
+    public static List<ShapeUpdateInsertTask> createTasks(Properties p, FDP fdp, FileHandler fileHandler){
         final List<String> Shapes = p.schemasToPublish;
         final var files = p.getFiles();
         var shapesOnFdp = fdp.fetchSchemaFromFDP();
@@ -43,15 +51,18 @@ public class ShapeUpdateInsertTask {
 
             logger.debug("loading model {} using turtle files: {} ", r, ttlFiles.stream().map(URI::toString).collect(Collectors.joining(", ")));
 
-            ShapeUpdateInsertTask.model = RdfUtils.modelAsTurtleString(RdfUtils.readFiles(ttlFiles));
+            Model newModel = fileHandler.readFiles(ttlFiles);
+            ShapeUpdateInsertTask.model = RdfUtils.modelAsTurtleString(newModel);
             if (shapesOnFdp.isPresent(r)) {
-                ShapeUpdateInsertTask.version = shapesOnFdp.getVersion(r).get().next(requestedVersion); //next patch version
-                ShapeUpdateInsertTask.uuid = shapesOnFdp.getUUID(r).get();
-                ShapeUpdateInsertTask.exists = true;
+                // todo: add current compare ttl schemas here
+                Model onFdp = shapesOnFdp.getDefinition(r).map(RdfUtils::fromTurtleString).orElse(new LinkedHashModel());
+                ShapeUpdateInsertTask.version = shapesOnFdp.getVersion(r).map(v -> v.next(requestedVersion)).orElseThrow(); //next patch version
+                ShapeUpdateInsertTask.uuid = shapesOnFdp.getUUID(r).orElseThrow();
+                ShapeUpdateInsertTask.status = Models.isomorphic(onFdp, newModel) ? ShapeStatus.SAME : ShapeStatus.UPDATE;
             } else {
                 ShapeUpdateInsertTask.version = requestedVersion;
                 ShapeUpdateInsertTask.uuid = "";
-                ShapeUpdateInsertTask.exists = false;
+                ShapeUpdateInsertTask.status = ShapeStatus.INSERT;
             }
             ShapeUpdateInsertTask.parents = p.getParents(r);
             return ShapeUpdateInsertTask;
@@ -66,7 +77,7 @@ public class ShapeUpdateInsertTask {
         return shape.toLowerCase().replaceAll(" ", "");
     }
 
-    public boolean isInsert() {
-        return !exists;
+    public ShapeStatus status() {
+        return status;
     }
 }
