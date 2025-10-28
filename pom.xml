@@ -140,6 +140,12 @@
             <version>5.20.0</version>
             <scope>test</scope>
         </dependency>
+        <!-- Spring Boot starter (includes @Service, @Autowired, etc.) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+            <version>3.5.0</version>
+        </dependency>
 
     </dependencies>
     <build>

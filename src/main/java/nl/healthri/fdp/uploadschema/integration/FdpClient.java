@@ -15,6 +15,7 @@ import nl.healthri.fdp.uploadschema.utils.ResourceMap;
 import nl.healthri.fdp.uploadschema.utils.ShapesMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.net.URL;
@@ -25,6 +26,7 @@ import java.net.http.HttpResponse;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Component
 public class FdpClient implements IFdpClient {
     private final HttpClient client;
     private final URI hostname;
