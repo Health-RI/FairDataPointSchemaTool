@@ -1,9 +1,13 @@
 package nl.healthri.fdp.uploadschema.integration;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import nl.healthri.fdp.uploadschema.dto.request.*;
-import nl.healthri.fdp.uploadschema.dto.response.*;
+import nl.healthri.fdp.uploadschema.dto.request.Resource.ResourceRequest;
+import nl.healthri.fdp.uploadschema.dto.request.Schema.ReleaseSchemaRequest;
+import nl.healthri.fdp.uploadschema.dto.request.Schema.UpdateSchemaRequest;
+import nl.healthri.fdp.uploadschema.dto.request.auth.LoginRequest;
+import nl.healthri.fdp.uploadschema.dto.response.Resource.ResourceResponse;
+import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
+import nl.healthri.fdp.uploadschema.dto.response.auth.LoginResponse;
 import nl.healthri.fdp.uploadschema.tasks.ResourceUpdateInsertTask;
 import nl.healthri.fdp.uploadschema.tasks.ShapeUpdateInsertTask;
 import nl.healthri.fdp.uploadschema.utils.HttpRequestUtils;
@@ -12,60 +16,45 @@ import nl.healthri.fdp.uploadschema.utils.ShapesMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.URI;
+import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class FDP  {
+public class FdpClient implements IFdpClient {
     private final HttpClient client;
-    private final String url;
+    private final URI hostname;
     private final String authToken;
     private final ObjectMapper objectMapper;
+    private static final Logger logger = LoggerFactory.getLogger(FdpClient.class);
 
-    private static final Logger logger = LoggerFactory.getLogger(FDP.class);
+    public FdpClient(HttpClient client, URI hostname, String authToken, ObjectMapper objectMapper) {
+        this.client = Objects.requireNonNull(client, "HttpClient must not be null");
+        this.hostname = Objects.requireNonNull(hostname, "URL must not be null");
+        this.objectMapper = Objects.requireNonNull(objectMapper, "ObjectMapper must not be null");
 
-    // TODO: parameters as objects for dependency injection and easy mocking
-    public FDP(URI url, String username, String password) {
-        this.objectMapper = new ObjectMapper();
-
-        this.client = HttpClient.newBuilder()
-                .followRedirects(HttpClient.Redirect.NORMAL)
-                .connectTimeout(Duration.of(30000, ChronoUnit.MILLIS))
-                .build();
-        if (this.client == null) {
-            throw new NullPointerException("HttpClient is null");
+        if (authToken == null || authToken.isBlank()) {
+            throw new IllegalArgumentException("authToken must not be null or empty");
         }
-
-        this.url = url.toString();
-        if (this.url == null || this.url.isEmpty()) {
-            throw new IllegalArgumentException("URL is null or empty");
-        }
-
-        this.authToken = getAuthorizationToken(username, password);
-        if (this.authToken == null || this.authToken.isEmpty()) {
-            throw new IllegalArgumentException("AuthToken is null or empty");
-        }
+        this.authToken = authToken;
     }
 
-    public String getAuthorizationToken(String username, String password) {
-        logger.info("Connecting to FDP at {} as {} ", url, username);
+    public static String getAuthorizationToken(HttpClient client, URI hostname, String username, String password, ObjectMapper objectMapper) {
+        logger.info("Connecting to FDP at {} as {} ", hostname, username);
 
         try {
-            URI uri = new URI(this.url + "/tokens");
+            URI uri = new URI(hostname + "/tokens");
 
             // Creates DTO for LoginRequest
             LoginRequest loginRequest = new LoginRequest(username, password);
 
             // Creates payload from LoginRequest DTO
             BodyPublisher requestBody = HttpRequest.BodyPublishers.ofString(
-                    this.objectMapper.writeValueAsString(loginRequest)
+                    objectMapper.writeValueAsString(loginRequest)
             );
 
             HttpRequest request = HttpRequest.newBuilder()
@@ -77,15 +66,15 @@ public class FDP  {
 
 
             // Sends request
-            HttpResponse<String> response = this.client.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             // Handle each response based on Fair Data Point (FDP) Swagger documentation.
             HttpRequestUtils.handleResponseStatus(response);
 
             // Maps response body to object
-            TokenResponse tokenResponse = objectMapper.readValue(response.body(), TokenResponse.class);
+            LoginResponse loginResponse = objectMapper.readValue(response.body(), LoginResponse.class);
 
-            return tokenResponse.asHeaderString();
+            return loginResponse.asHeaderString();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -95,7 +84,7 @@ public class FDP  {
         logger.info("Fetching metadata schemas from FDP");
 
         try {
-            URI uri = new URI(this.url + "/metadata-schemas");
+            URI uri = new URI(this.hostname + "/metadata-schemas");
 
             HttpRequest request = HttpRequest.newBuilder()
                     .GET()
@@ -125,7 +114,7 @@ public class FDP  {
         logger.info("Fetching resources from fdp");
 
         try {
-            URI uri = new URI(this.url + "/resource-definitions");
+            URI uri = new URI(this.hostname + "/resource-definitions");
 
             HttpRequest request = HttpRequest.newBuilder()
                     .GET()
@@ -155,7 +144,7 @@ public class FDP  {
         logger.info("Inserting {} resources into FDP", task.resource);
 
         try {
-            URI uri = new URI(this.url + "/resource-definitions");
+            URI uri = new URI(this.hostname + "/resource-definitions");
 
             // Creates DTO for resourceRequest
             ResourceRequest resourceRequest = new ResourceRequest(
@@ -200,7 +189,7 @@ public class FDP  {
         logger.info("fetching resource {} from FDP", resourceId);
 
         try {
-            URI uri = new URI(this.url + "/resource-definitions/" + resourceId);
+            URI uri = new URI(this.hostname + "/resource-definitions/" + resourceId);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .GET()
@@ -237,7 +226,7 @@ public class FDP  {
                 resourceResponse.children().add(child);
             }
 
-            URI uri = new URI(this.url + "/resource-definitions/" + task.UUID);
+            URI uri = new URI(this.hostname + "/resource-definitions/" + task.UUID);
 
             BodyPublisher requestBody = HttpRequest.BodyPublishers.ofString(
                     this.objectMapper.writeValueAsString(resourceResponse)
@@ -269,7 +258,7 @@ public class FDP  {
         logger.info("Inserting {} schema into FDP", task.shape);
 
         try {
-            URI uri = new URI(this.url + "/metadata-schemas");
+            URI uri = new URI(this.hostname + "/metadata-schemas");
 
             UpdateSchemaRequest updateSchemaRequest = new UpdateSchemaRequest(
                     task.shape,
@@ -311,7 +300,7 @@ public class FDP  {
         logger.info("Updating shape {} in FDP", task.shape);
 
         try {
-            URI uri = new URI(this.url + "/metadata-schemas/" + task.uuid + "/draft");
+            URI uri = new URI(this.hostname + "/metadata-schemas/" + task.uuid + "/draft");
 
             UpdateSchemaRequest updateSchemaRequest = new UpdateSchemaRequest(
                     task.shape,
@@ -347,7 +336,7 @@ public class FDP  {
         logger.info("Releasing {} into FDP", task.shape);
 
         try {
-            URI uri = new URI(this.url + "/metadata-schemas/" + task.uuid + "/versions");
+            URI uri = new URI(this.hostname + "/metadata-schemas/" + task.uuid + "/versions");
 
             ReleaseSchemaRequest releaseSchemaRequest =  ReleaseSchemaRequest.of(task.shape, false, task.version);
             BodyPublisher requestBody = HttpRequest.BodyPublishers.ofString(
@@ -372,7 +361,6 @@ public class FDP  {
             throw new RuntimeException(e);
         }
     }
-
 
     private Set<String> getParentUID(Set<String> shapes) {
         if (shapes.isEmpty()) {

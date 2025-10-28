@@ -1,6 +1,6 @@
-package nl.healthri.fdp.uploadschema.dto.response;
+package nl.healthri.fdp.uploadschema.dto.response.Resource;
 
-import nl.healthri.fdp.uploadschema.dto.request.ResourceRequest;
+import nl.healthri.fdp.uploadschema.dto.request.Resource.ResourceRequest;
 
 import java.util.ArrayList;
 

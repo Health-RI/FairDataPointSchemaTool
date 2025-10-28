@@ -1,7 +1,7 @@
 package nl.healthri.fdp.uploadschema;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import nl.healthri.fdp.uploadschema.integration.FDP;
+import nl.healthri.fdp.uploadschema.integration.FdpClient;
 import nl.healthri.fdp.uploadschema.tasks.ResourceUpdateInsertTask;
 import nl.healthri.fdp.uploadschema.tasks.ShapeUpdateInsertTask;
 import nl.healthri.fdp.uploadschema.utils.FileHandler;
@@ -17,11 +17,14 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.http.HttpClient;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.ArrayList;
 
 import static java.util.function.Predicate.not;
+import static nl.healthri.fdp.uploadschema.integration.FdpClient.getAuthorizationToken;
 
 @CommandLine.Command(name = "SchemaTools utility that create FDP ready Shacls and upload them the the FDP.",
         mixinStandardHelpOptions = true, version = "SchemaTool v1.0")
@@ -57,7 +60,18 @@ public class SchemaTools implements Runnable {
     public void run() {
         try {
             final Properties properties = Properties.load(propertyFile);
-            final FDP fdp = new FDP(hostname, username, password);
+
+
+            // Create FDP client
+            HttpClient httpClient = HttpClient.newBuilder()
+                    .connectTimeout(Duration.ofSeconds(10))
+                    .build();
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            String authToken = FdpClient.getAuthorizationToken(httpClient, this.hostname, this.username, this.password, objectMapper);
+
+            final FdpClient fdpClient = new FdpClient(httpClient, hostname, authToken, objectMapper);
+
             final FileHandler fileHandler = new FileHandler();
 
 
@@ -69,11 +83,11 @@ public class SchemaTools implements Runnable {
                 }
                 case BOTH -> {
                     // TODO: create Constructor with fdp dependency injector
-                    createOrUpdateSchemas(fdp, properties, force, fileHandler);
-                    addResourceDescriptions(fdp, properties);
+                    createOrUpdateSchemas(fdpClient, properties, force, fileHandler);
+                    addResourceDescriptions(fdpClient, properties);
                 }
-                case SCHEMA -> createOrUpdateSchemas(fdp, properties, force, fileHandler);
-                case RESOURCE -> addResourceDescriptions(fdp, properties);
+                case SCHEMA -> createOrUpdateSchemas(fdpClient, properties, force, fileHandler);
+                case RESOURCE -> addResourceDescriptions(fdpClient, properties);
             }
         } catch (IOException io) {
             throw new RuntimeException(io);
@@ -110,46 +124,46 @@ public class SchemaTools implements Runnable {
         rdfUtils.safeModel(path, m);
     }
 
-    public void createOrUpdateSchemas(FDP fdp, Properties properties, boolean force, FileHandler fileHandler) throws IOException {
+    public void createOrUpdateSchemas(FdpClient fdpClient, Properties properties, boolean force, FileHandler fileHandler) throws IOException {
         logger.info("Creating/updating schemas from tasks to FDP");
 
-        var shapeTasks = ShapeUpdateInsertTask.createTasks(properties, fdp, fileHandler);
+        var shapeTasks = ShapeUpdateInsertTask.createTasks(properties, fdpClient, fileHandler);
         shapeTasks.forEach(task -> {
             switch (task.status()) {
                 case INSERT -> {
-                    fdp.insertSchema(task);
-                    fdp.releaseSchema(task);
+                    fdpClient.insertSchema(task);
+                    fdpClient.releaseSchema(task);
                 }
                 case SAME -> {
                     if (force) {
-                        fdp.updateSchema(task);
-                        fdp.releaseSchema(task);
+                        fdpClient.updateSchema(task);
+                        fdpClient.releaseSchema(task);
                         logger.info("Schema {} is updated, it was the same but force was set", task.shape);
                     } else {
                         logger.warn("Schema {} is not updated because it's still the same", task.shape);
                     }
                 }
                 case UPDATE -> {
-                    fdp.updateSchema(task);
-                    fdp.releaseSchema(task);
+                    fdpClient.updateSchema(task);
+                    fdpClient.releaseSchema(task);
                 }
             }
         });
     }
 
-    public void addResourceDescriptions(FDP fdp, Properties properties) {
+    public void addResourceDescriptions(FdpClient fdpClient, Properties properties) {
         logger.info("Adding resource descriptions from resource tasks to FDP");
 
-        var resourceTasks = ResourceUpdateInsertTask.createTask(properties, fdp);
-        resourceTasks.stream().filter(ResourceUpdateInsertTask::isInsert).forEach(fdp::insertResource);
+        var resourceTasks = ResourceUpdateInsertTask.createTask(properties, fdpClient);
+        resourceTasks.stream().filter(ResourceUpdateInsertTask::isInsert).forEach(fdpClient::insertResource);
 
         if (resourceTasks.stream().noneMatch(not(ResourceUpdateInsertTask::isInsert))) {
             logger.warn("Updating resources is not supported yet, but will try to add children if needed)");
         }
 
         //add the previous resources as child to parent.
-        var resourceTasksParents = ResourceUpdateInsertTask.createParentTask(properties, fdp);
-        resourceTasksParents.stream().filter(ResourceUpdateInsertTask::hasChild).forEach(fdp::updateResource);
+        var resourceTasksParents = ResourceUpdateInsertTask.createParentTask(properties, fdpClient);
+        resourceTasksParents.stream().filter(ResourceUpdateInsertTask::hasChild).forEach(fdpClient::updateResource);
     }
 
     public enum CommandEnum {

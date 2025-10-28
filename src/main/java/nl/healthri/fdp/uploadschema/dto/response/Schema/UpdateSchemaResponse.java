@@ -1,4 +1,4 @@
-package nl.healthri.fdp.uploadschema.dto.response;
+package nl.healthri.fdp.uploadschema.dto.response.Schema;
 
 import java.util.HashSet;
 

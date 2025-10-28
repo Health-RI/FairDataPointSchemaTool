@@ -1,6 +1,6 @@
 package nl.healthri.fdp.uploadschema.tasks;
 
-import nl.healthri.fdp.uploadschema.integration.FDP;
+import nl.healthri.fdp.uploadschema.integration.FdpClient;
 import nl.healthri.fdp.uploadschema.utils.Properties;
 import nl.healthri.fdp.uploadschema.utils.ResourceMap;
 import nl.healthri.fdp.uploadschema.utils.ShapesMap;
@@ -26,8 +26,8 @@ public class ResourceUpdateInsertTask {
         this.resource = resource;
     }
 
-    public static List<ResourceUpdateInsertTask> createParentTask(Properties p, FDP fdp) {
-        var resourcesOnFdp = fdp.fetchResources();
+    public static List<ResourceUpdateInsertTask> createParentTask(Properties p, FdpClient fdpClient) {
+        var resourcesOnFdp = fdpClient.fetchResources();
 
         return p.resources.entrySet().stream().map(r -> {
             //now we to update the parent not the resource itself!
@@ -40,9 +40,9 @@ public class ResourceUpdateInsertTask {
         }).toList();
     }
 
-    public static List<ResourceUpdateInsertTask> createTask(Properties p, FDP fdp) {
-        var resourcesOnFdp = fdp.fetchResources();
-        var shapesOnFdp = fdp.fetchSchemas();
+    public static List<ResourceUpdateInsertTask> createTask(Properties p, FdpClient fdpClient) {
+        var resourcesOnFdp = fdpClient.fetchResources();
+        var shapesOnFdp = fdpClient.fetchSchemas();
         return p.resources.entrySet().stream().map(r -> new ResourceUpdateInsertTask(r.getKey())
                 .addExistingInfo(resourcesOnFdp)
                 .addShapeUUID(shapesOnFdp, r.getValue().schema())).toList();

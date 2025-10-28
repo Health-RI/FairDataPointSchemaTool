@@ -1,6 +1,6 @@
 package nl.healthri.fdp.uploadschema.tasks;
 
-import nl.healthri.fdp.uploadschema.integration.FDP;
+import nl.healthri.fdp.uploadschema.integration.FdpClient;
 import nl.healthri.fdp.uploadschema.Version;
 import nl.healthri.fdp.uploadschema.utils.FileHandler;
 import nl.healthri.fdp.uploadschema.utils.Properties;
@@ -33,10 +33,10 @@ public class ShapeUpdateInsertTask {
         this.shape = shape;
     }
 
-    public static List<ShapeUpdateInsertTask> createTasks(Properties p, FDP fdp, FileHandler fileHandler){
+    public static List<ShapeUpdateInsertTask> createTasks(Properties p, FdpClient fdpClient, FileHandler fileHandler){
         final List<String> Shapes = p.schemasToPublish;
         final var files = p.getFiles();
-        var shapesOnFdp = fdp.fetchSchemas();
+        var shapesOnFdp = fdpClient.fetchSchemas();
         logger.info("found following shapes on fdp: {}", shapesOnFdp.keySet());
 
         //list of the task we have to do for insert/updating shacls

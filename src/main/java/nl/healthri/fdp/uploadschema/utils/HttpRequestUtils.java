@@ -15,13 +15,13 @@ public class HttpRequestUtils {
         URI uri = response.uri();
 
         switch (statusCode) {
-            case 200 -> logger.info("[" + statusCode + "]" + " successfull request: " + method + " - " + uri);
-            case 400 -> throw new IllegalArgumentException("[" + statusCode + "]" + " bad request: " + method + " - " + uri);
-            case 401 -> throw new SecurityException("[" + statusCode + "]" + "Unauthorized: " + method + " - "  + uri);
-            case 403 -> throw new SecurityException("[" + statusCode + "]" + "Forbidden: " + method + " - "  + uri);
-            case 404 -> throw new IOException("[" + statusCode + "]" + "Resource Not Found: " + method + " - "  + uri);
-            case 500 -> throw new IOException("[" + statusCode + "]" + "Internal Server Error: " + method + " - "  + uri);
-            default -> throw new RuntimeException("[" + statusCode + "]" + "Unexpected HTTP status: " + method + " - "  + uri);
+            case 200 -> logger.info("[" + statusCode + "]" + " successfull request: " + method + " " + uri);
+            case 400 -> throw new IllegalArgumentException("[" + statusCode + "]" + " bad request: " + method + " " + uri);
+            case 401 -> throw new SecurityException("[" + statusCode + "]" + "Unauthorized: " + method + " "  + uri);
+            case 403 -> throw new SecurityException("[" + statusCode + "]" + "Forbidden: " + method + " "  + uri);
+            case 404 -> throw new IOException("[" + statusCode + "]" + "Resource Not Found: " + method + " "  + uri);
+            case 500 -> throw new IOException("[" + statusCode + "]" + "Internal Server Error: " + method + " "  + uri);
+            default -> throw new RuntimeException("[" + statusCode + "]" + "Unexpected HTTP status: " + method + " "  + uri);
         }
     }
 }

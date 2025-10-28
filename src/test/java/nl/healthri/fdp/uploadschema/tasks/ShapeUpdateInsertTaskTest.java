@@ -1,8 +1,8 @@
 package nl.healthri.fdp.uploadschema.tasks;
 
-import nl.healthri.fdp.uploadschema.integration.FDP;
+import nl.healthri.fdp.uploadschema.integration.FdpClient;
 import nl.healthri.fdp.uploadschema.Version;
-import nl.healthri.fdp.uploadschema.dto.response.SchemaDataResponse;
+import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
 import nl.healthri.fdp.uploadschema.utils.FileHandler;
 import nl.healthri.fdp.uploadschema.utils.Properties;
 import nl.healthri.fdp.uploadschema.utils.RdfUtils;
@@ -42,15 +42,15 @@ class ShapeUpdateInsertTaskTest {
         ShapesMap shapesOnFdp = createFdpShapeMap(
                 createFdpResponse("TestShape", "", "1.0.0", "uuid"));
 
-        FDP fdp = Mockito.mock(FDP.class);
-        Mockito.when(fdp.fetchSchemas()).thenReturn(shapesOnFdp);
+        FdpClient fdpClient = Mockito.mock(FdpClient.class);
+        Mockito.when(fdpClient.fetchSchemas()).thenReturn(shapesOnFdp);
 
         // Mock FileHandler
         FileHandler fileHandler = Mockito.mock(FileHandler.class);
         Mockito.when(fileHandler.readFiles(Mockito.anyList())).thenReturn(RdfUtils.fromTurtleString(getShapeModel2()));
 
         // Run createTasks
-        List<ShapeUpdateInsertTask> tasks = ShapeUpdateInsertTask.createTasks(props, fdp, fileHandler);
+        List<ShapeUpdateInsertTask> tasks = ShapeUpdateInsertTask.createTasks(props, fdpClient, fileHandler);
 
         // Assert
         assertEquals(1, tasks.size());
@@ -83,15 +83,15 @@ class ShapeUpdateInsertTaskTest {
         ShapesMap shapesOnFdp = createFdpShapeMap(
                 createFdpResponse("TestShape", getShapeModel1(), "1.0.0", "uuid"));
 
-        FDP fdp = Mockito.mock(FDP.class);
-        Mockito.when(fdp.fetchSchemas()).thenReturn(shapesOnFdp);
+        FdpClient fdpClient = Mockito.mock(FdpClient.class);
+        Mockito.when(fdpClient.fetchSchemas()).thenReturn(shapesOnFdp);
 
         // Mock FileHandler
         FileHandler fileHandler = Mockito.mock(FileHandler.class);
         Mockito.when(fileHandler.readFiles(Mockito.anyList())).thenReturn(RdfUtils.fromTurtleString(getShapeModel1()));
 
         // Run createTasks
-        List<ShapeUpdateInsertTask> tasks = ShapeUpdateInsertTask.createTasks(props, fdp, fileHandler);
+        List<ShapeUpdateInsertTask> tasks = ShapeUpdateInsertTask.createTasks(props, fdpClient, fileHandler);
 
         // Assert
         assertEquals(1, tasks.size());
@@ -124,15 +124,15 @@ class ShapeUpdateInsertTaskTest {
         ShapesMap shapesOnFdp = createFdpShapeMap(
                 createFdpResponse("JustAnotherShape", "", "1.0.0", "uuid"));
 
-        FDP fdp = Mockito.mock(FDP.class);
-        Mockito.when(fdp.fetchSchemas()).thenReturn(shapesOnFdp);
+        FdpClient fdpClient = Mockito.mock(FdpClient.class);
+        Mockito.when(fdpClient.fetchSchemas()).thenReturn(shapesOnFdp);
 
         // Mock FileHandler
         FileHandler fileHandler = Mockito.mock(FileHandler.class);
         Mockito.when(fileHandler.readFiles(Mockito.anyList())).thenReturn(RdfUtils.fromTurtleString(getShapeModel2()));
 
         // Run createTasks
-        List<ShapeUpdateInsertTask> tasks = ShapeUpdateInsertTask.createTasks(props, fdp, fileHandler);
+        List<ShapeUpdateInsertTask> tasks = ShapeUpdateInsertTask.createTasks(props, fdpClient, fileHandler);
 
         // Assert
         assertEquals(1, tasks.size());
