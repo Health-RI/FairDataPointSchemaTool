@@ -2,6 +2,9 @@ package nl.healthri.fdp.uploadschema.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import nl.healthri.fdp.uploadschema.dto.request.Resource.ResourceRequest;
+import nl.healthri.fdp.uploadschema.dto.request.Schema.ReleaseSchemaRequest;
+import nl.healthri.fdp.uploadschema.dto.request.Schema.UpdateSchemaRequest;
 import nl.healthri.fdp.uploadschema.dto.request.auth.LoginRequest;
 import nl.healthri.fdp.uploadschema.dto.response.Resource.ResourceResponse;
 import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
@@ -10,6 +13,7 @@ import nl.healthri.fdp.uploadschema.tasks.ResourceUpdateInsertTask;
 import nl.healthri.fdp.uploadschema.tasks.ShapeUpdateInsertTask;
 import nl.healthri.fdp.uploadschema.utils.HttpRequestUtils;
 
+import org.eclipse.rdf4j.query.Update;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -20,7 +24,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 // TODO: Throw client exception instead of Runtimeexception (otherwise you hide the error encountered)
@@ -31,37 +34,39 @@ import java.util.stream.Collectors;
 public class FdpClient implements IFdpClient {
     private final HttpClient client;
     private final URI hostname;
-    private final String authToken;
     private final ObjectMapper objectMapper;
+    private String authToken;
+
     private static final Logger logger = LoggerFactory.getLogger(FdpClient.class);
 
-    public FdpClient(HttpClient client, URI hostname, String authToken, ObjectMapper objectMapper) {
+    public FdpClient(HttpClient client, URI hostname, ObjectMapper objectMapper) {
         this.client = Objects.requireNonNull(client, "HttpClient must not be null");
         this.hostname = Objects.requireNonNull(hostname, "URL must not be null");
         this.objectMapper = Objects.requireNonNull(objectMapper, "ObjectMapper must not be null");
-
-        if (authToken == null || authToken.isBlank()) {
-            throw new IllegalArgumentException("authToken must not be null or empty");
-        }
-        this.authToken = authToken;
     }
 
-    public static String getAuthorizationToken(HttpClient client, URI hostname, String username, String password, ObjectMapper objectMapper) {
-        logger.info("Connecting to FDP at {} as {} ", hostname, username);
+    public void setAuthToken(LoginResponse loginResponse) {
+        this.authToken = loginResponse.asHeaderString();
+    }
+
+    private void isAuthenticated() {
+        if (this.authToken == null || this.authToken.isBlank()) {
+            throw new IllegalStateException("FdpClient is not authenticated, authorization token is null or empty.");
+        }
+    }
+
+    public LoginResponse getAuthToken(LoginRequest loginRequest) {
+        logger.info("Connecting to FDP at {} as {} ", hostname, loginRequest.email());
 
         try {
-            URI uri = new URI(hostname + "/tokens");
+            URI uri = new URI(this.hostname + "/tokens");
 
-            // Creates DTO for LoginRequest
-            LoginRequest loginRequest = new LoginRequest(username, password);
-
-            // Creates payload from LoginRequest DTO
-            BodyPublisher requestBody = HttpRequest.BodyPublishers.ofString(
-                    objectMapper.writeValueAsString(loginRequest)
+            HttpRequest.BodyPublisher body = HttpRequest.BodyPublishers.ofString(
+                    this.objectMapper.writeValueAsString(loginRequest)
             );
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .POST(requestBody)
+                    .POST(body)
                     .uri(uri)
                     .header("accept", "application/json")
                     .header("Content-Type", "application/json")
@@ -69,15 +74,14 @@ public class FdpClient implements IFdpClient {
 
 
             // Sends request
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = this.client.send(request, HttpResponse.BodyHandlers.ofString());
 
             // Handle each response based on Fair Data Point (FDP) Swagger documentation.
             HttpRequestUtils.handleResponseStatus(response);
 
             // Maps response body to object
-            LoginResponse loginResponse = objectMapper.readValue(response.body(), LoginResponse.class);
+            return this.objectMapper.readValue(response.body(), LoginResponse.class);
 
-            return loginResponse.asHeaderString();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -87,6 +91,8 @@ public class FdpClient implements IFdpClient {
         logger.info("Fetching metadata schemas from FDP");
 
         try {
+            isAuthenticated();
+
             URI uri = new URI(this.hostname + "/metadata-schemas");
 
             HttpRequest request = HttpRequest.newBuilder()
@@ -114,11 +120,17 @@ public class FdpClient implements IFdpClient {
      * @param task task, with info about the shape to create,
      *          when the shapes are created it will update this parameter by setting the UUID!
      */
-    public ResourceResponse insertSchema(ShapeUpdateInsertTask task, BodyPublisher body) {
+    public ResourceResponse insertSchema(ShapeUpdateInsertTask task, UpdateSchemaRequest updateSchemaRequest) {
         logger.info("Inserting {} schema into FDP", task.shape);
 
         try {
+            isAuthenticated();
+
             URI uri = new URI(this.hostname + "/metadata-schemas");
+
+            HttpRequest.BodyPublisher body = HttpRequest.BodyPublishers.ofString(
+                    this.objectMapper.writeValueAsString(updateSchemaRequest)
+            );
 
             HttpRequest request = HttpRequest.newBuilder()
                     .POST(body)
@@ -144,11 +156,17 @@ public class FdpClient implements IFdpClient {
 
 
 
-    public void updateSchema(ShapeUpdateInsertTask task, BodyPublisher body) {
+    public void updateSchema(ShapeUpdateInsertTask task, UpdateSchemaRequest updateSchemaRequest) {
         logger.info("Updating shape {} in FDP", task.shape);
 
         try {
+            isAuthenticated();
+
             URI uri = new URI(this.hostname + "/metadata-schemas/" + task.uuid + "/draft");
+
+            HttpRequest.BodyPublisher body = HttpRequest.BodyPublishers.ofString(
+                    this.objectMapper.writeValueAsString(updateSchemaRequest)
+            );
 
             HttpRequest request = HttpRequest.newBuilder()
                     .PUT(body)
@@ -168,11 +186,17 @@ public class FdpClient implements IFdpClient {
         }
     }
 
-    public void releaseSchema(ShapeUpdateInsertTask task, BodyPublisher body) {
+    public void releaseSchema(ShapeUpdateInsertTask task, ReleaseSchemaRequest releaseSchemaRequest) {
         logger.info("Releasing {} into FDP", task.shape);
 
         try {
+            isAuthenticated();
+
             URI uri = new URI(this.hostname + "/metadata-schemas/" + task.uuid + "/versions");
+
+            HttpRequest.BodyPublisher body = HttpRequest.BodyPublishers.ofString(
+                    this.objectMapper.writeValueAsString(releaseSchemaRequest)
+            );
 
             HttpRequest request = HttpRequest.newBuilder()
                     .POST(body)
@@ -197,6 +221,8 @@ public class FdpClient implements IFdpClient {
         logger.info("Fetching resources from fdp");
 
         try {
+            isAuthenticated();
+
             URI uri = new URI(this.hostname + "/resource-definitions");
 
             HttpRequest request = HttpRequest.newBuilder()
@@ -224,6 +250,8 @@ public class FdpClient implements IFdpClient {
         logger.info("fetching resource {} from FDP", resourceId);
 
         try {
+            isAuthenticated();
+
             URI uri = new URI(this.hostname + "/resource-definitions/" + resourceId);
 
             HttpRequest request = HttpRequest.newBuilder()
@@ -247,11 +275,18 @@ public class FdpClient implements IFdpClient {
         }
     }
 
-    public ResourceResponse insertResource(ResourceUpdateInsertTask task, BodyPublisher body) {
+    public ResourceResponse insertResource(ResourceUpdateInsertTask task, ResourceRequest resourceRequest) {
         logger.info("Inserting {} resources into FDP", task.resource);
 
         try {
+            isAuthenticated();
+
             URI uri = new URI(this.hostname + "/resource-definitions");
+
+            HttpRequest.BodyPublisher body = HttpRequest.BodyPublishers.ofString(
+                    this.objectMapper.writeValueAsString(resourceRequest)
+            );
+
 
             // Creates request
             HttpRequest request = HttpRequest.newBuilder()
@@ -275,11 +310,17 @@ public class FdpClient implements IFdpClient {
         }
     }
 
-    public void updateResource(ResourceUpdateInsertTask task, HttpRequest.BodyPublisher body) {
+    public void updateResource(ResourceUpdateInsertTask task, ResourceResponse resourceResponse) {
         logger.info("updating resource {} in FDP", task.resource);
 
         try {
+            isAuthenticated();
+
             URI uri = new URI(this.hostname + "/resource-definitions/" + task.UUID);
+
+            HttpRequest.BodyPublisher body = HttpRequest.BodyPublishers.ofString(
+                    this.objectMapper.writeValueAsString(resourceResponse)
+            );
 
             HttpRequest request = HttpRequest.newBuilder()
                     .PUT(body)

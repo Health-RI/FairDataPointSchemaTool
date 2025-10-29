@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.healthri.fdp.uploadschema.dto.request.Resource.ResourceRequest;
 import nl.healthri.fdp.uploadschema.dto.request.Schema.ReleaseSchemaRequest;
 import nl.healthri.fdp.uploadschema.dto.request.Schema.UpdateSchemaRequest;
+import nl.healthri.fdp.uploadschema.dto.request.auth.LoginRequest;
 import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
+import nl.healthri.fdp.uploadschema.dto.response.auth.LoginResponse;
 import nl.healthri.fdp.uploadschema.tasks.ResourceUpdateInsertTask;
 import nl.healthri.fdp.uploadschema.tasks.ShapeUpdateInsertTask;
 import nl.healthri.fdp.uploadschema.utils.ResourceMap;
@@ -18,24 +20,24 @@ import org.springframework.stereotype.Service;
 
 import java.net.http.HttpRequest;
 import java.util.*;
-import java.util.stream.Collectors;
 
-import static nl.healthri.fdp.uploadschema.integration.FdpClient.getAuthorizationToken;
 
 @Service
 public class FdpService {
     private final IFdpClient fdpClient;
-    private ObjectMapper objectMapper;
+
     private static final Logger logger = LoggerFactory.getLogger(FdpService.class);
 
     @Autowired
-    public FdpService(IFdpClient fdpClient, ObjectMapper objectMapper) {
+    public FdpService(IFdpClient fdpClient) {
         this.fdpClient = fdpClient;
-        this.objectMapper = objectMapper;
     }
 
-    public static String GetAuthorizationToken(){
+    public void authenticate(String username, String password){
+        LoginRequest loginRequest = new LoginRequest(username, password);
+        LoginResponse loginResponse = fdpClient.getAuthToken(loginRequest);
 
+        fdpClient.setAuthToken(loginResponse);
     }
 
     public ShapesMap getAllSchemas() {
@@ -43,7 +45,7 @@ public class FdpService {
         return new ShapesMap(schemaDataResponseList);
     }
 
-    public void createSchema(ShapeUpdateInsertTask task) throws JsonProcessingException {
+    public void createSchema(ShapeUpdateInsertTask task){
         ShapesMap shapesMap = getAllSchemas();
 
         UpdateSchemaRequest updateSchemaRequest = new UpdateSchemaRequest(
@@ -54,16 +56,12 @@ public class FdpService {
                 task.shape,
                 task.url());
 
-        HttpRequest.BodyPublisher requestBody = HttpRequest.BodyPublishers.ofString(
-                this.objectMapper.writeValueAsString(updateSchemaRequest)
-        );
-
-        ResourceResponse resourceResponse = fdpClient.insertSchema(task, requestBody);
+        ResourceResponse resourceResponse = fdpClient.insertSchema(task, updateSchemaRequest);
         task.uuid = resourceResponse.uuid();
     }
 
 
-    public void updateSchema(ShapeUpdateInsertTask task) throws JsonProcessingException {
+    public void updateSchema(ShapeUpdateInsertTask task){
         ShapesMap shapesMap = getAllSchemas();
 
         UpdateSchemaRequest updateSchemaRequest = new UpdateSchemaRequest(
@@ -74,20 +72,13 @@ public class FdpService {
                 task.shape,
                 task.url());
 
-        HttpRequest.BodyPublisher requestBody = HttpRequest.BodyPublishers.ofString(
-                this.objectMapper.writeValueAsString(updateSchemaRequest)
-        );
-
-        fdpClient.updateSchema(task, requestBody);
+        fdpClient.updateSchema(task, updateSchemaRequest);
     }
 
-    public void releaseSchema(ShapeUpdateInsertTask task) throws JsonProcessingException {
+    public void releaseSchema(ShapeUpdateInsertTask task){
         ReleaseSchemaRequest releaseSchemaRequest =  ReleaseSchemaRequest.of(task.shape, false, task.version);
-        HttpRequest.BodyPublisher requestBody = HttpRequest.BodyPublishers.ofString(
-                this.objectMapper.writeValueAsString(releaseSchemaRequest)
-        );
 
-        fdpClient.releaseSchema(task, requestBody);
+        fdpClient.releaseSchema(task, releaseSchemaRequest);
     }
 
     public ResourceMap getAllResources() {
@@ -99,7 +90,7 @@ public class FdpService {
         return fdpClient.fetchResource(resourceId);
     }
 
-    public void createResource(ResourceUpdateInsertTask task) throws JsonProcessingException {
+    public void createResource(ResourceUpdateInsertTask task){
         ResourceRequest resourceRequest = new ResourceRequest(
                 task.resource,
                 task.url(),
@@ -108,17 +99,11 @@ public class FdpService {
                 new ArrayList<>(),
                 new ArrayList<>());
 
-
-        // Creates payload from DTO
-        HttpRequest.BodyPublisher requestBody = HttpRequest.BodyPublishers.ofString(
-                this.objectMapper.writeValueAsString(resourceRequest)
-        );
-
-        ResourceResponse resourceResponse = fdpClient.insertResource(task, requestBody);
+        ResourceResponse resourceResponse = fdpClient.insertResource(task, resourceRequest);
         task.UUID = resourceResponse.uuid();
     }
 
-    public void updateResource(ResourceUpdateInsertTask task) throws JsonProcessingException {
+    public void updateResource(ResourceUpdateInsertTask task){
         ResourceResponse resourceResponse = fdpClient.fetchResource(task.UUID);
 
         if (resourceResponse.children().stream().anyMatch(c -> c.resourceDefinitionUuid().equals(task.childUUuid))) {
@@ -130,10 +115,6 @@ public class FdpService {
             resourceResponse.children().add(child);
         }
 
-        HttpRequest.BodyPublisher requestBody = HttpRequest.BodyPublishers.ofString(
-                this.objectMapper.writeValueAsString(resourceResponse)
-        );
-
-        fdpClient.updateResource(task, requestBody);
+        fdpClient.updateResource(task, resourceResponse);
     }
 }

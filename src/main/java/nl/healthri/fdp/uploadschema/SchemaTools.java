@@ -1,6 +1,7 @@
 package nl.healthri.fdp.uploadschema;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import nl.healthri.fdp.uploadschema.dto.request.auth.LoginRequest;
 import nl.healthri.fdp.uploadschema.integration.FdpClient;
 import nl.healthri.fdp.uploadschema.tasks.ResourceUpdateInsertTask;
 import nl.healthri.fdp.uploadschema.tasks.ShapeUpdateInsertTask;
@@ -63,12 +64,16 @@ public class SchemaTools implements Runnable {
 
 
             // Create FDP client
-            HttpClient httpClient = HttpClient.newBuilder()
+            HttpClient client = HttpClient.newBuilder()
                     .connectTimeout(Duration.ofSeconds(10))
                     .build();
 
             ObjectMapper objectMapper = new ObjectMapper();
-            String authToken = FdpClient.getAuthorizationToken(httpClient, this.hostname, this.username, this.password, objectMapper);
+            LoginRequest loginRequest = new LoginRequest(this.username, this.password);
+
+            FdpClient fdpClient = new FdpClient(client, this.hostname, objectMapper);
+            fdpClient.authenticate(loginRequest);
+            String authToken = FdpClient.getAuthToken(httpClient, this.hostname, this.username, this.password, objectMapper);
 
             final FdpClient fdpClient = new FdpClient(httpClient, hostname, authToken, objectMapper);
 
@@ -82,7 +87,6 @@ public class SchemaTools implements Runnable {
                     mergeShapesForValidation(properties, fileHandler);
                 }
                 case BOTH -> {
-                    // TODO: create Constructor with fdp dependency injector
                     createOrUpdateSchemas(fdpClient, properties, force, fileHandler);
                     addResourceDescriptions(fdpClient, properties);
                 }
