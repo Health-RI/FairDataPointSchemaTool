@@ -1,9 +1,7 @@
 package nl.healthri.fdp.uploadschema.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import nl.healthri.fdp.uploadschema.dto.request.Resource.ResourceRequest;
-import nl.healthri.fdp.uploadschema.dto.request.Schema.ReleaseSchemaRequest;
-import nl.healthri.fdp.uploadschema.dto.request.Schema.UpdateSchemaRequest;
+
 import nl.healthri.fdp.uploadschema.dto.request.auth.LoginRequest;
 import nl.healthri.fdp.uploadschema.dto.response.Resource.ResourceResponse;
 import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
@@ -11,20 +9,23 @@ import nl.healthri.fdp.uploadschema.dto.response.auth.LoginResponse;
 import nl.healthri.fdp.uploadschema.tasks.ResourceUpdateInsertTask;
 import nl.healthri.fdp.uploadschema.tasks.ShapeUpdateInsertTask;
 import nl.healthri.fdp.uploadschema.utils.HttpRequestUtils;
-import nl.healthri.fdp.uploadschema.utils.ResourceMap;
-import nl.healthri.fdp.uploadschema.utils.ShapesMap;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
-import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
 import java.util.*;
 import java.util.stream.Collectors;
+
+
+// TODO: Throw client exception instead of Runtimeexception (otherwise you hide the error encountered)
+// TODO: Split Fdp Client and Service into FdpSchemaClient, FdpResourceClient, etc.
+// TODO:
 
 @Component
 public class FdpClient implements IFdpClient {
@@ -82,7 +83,7 @@ public class FdpClient implements IFdpClient {
         }
     }
 
-    public ShapesMap fetchSchemas() {
+    public SchemaDataResponse[] fetchSchemas() {
         logger.info("Fetching metadata schemas from FDP");
 
         try {
@@ -103,16 +104,96 @@ public class FdpClient implements IFdpClient {
             HttpRequestUtils.handleResponseStatus(response);
 
             // Maps response body to object
-            SchemaDataResponse[] schemaDataResponseList = objectMapper.readValue(response.body(), SchemaDataResponse[].class);
+            return objectMapper.readValue(response.body(), SchemaDataResponse[].class);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-            return new ShapesMap(schemaDataResponseList);
+    /**
+     * @param task task, with info about the shape to create,
+     *          when the shapes are created it will update this parameter by setting the UUID!
+     */
+    public ResourceResponse insertSchema(ShapeUpdateInsertTask task, BodyPublisher body) {
+        logger.info("Inserting {} schema into FDP", task.shape);
+
+        try {
+            URI uri = new URI(this.hostname + "/metadata-schemas");
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .POST(body)
+                    .uri(uri)
+                    .header("accept", "application/json")
+                    .header("Content-Type", "application/json")
+                    .header("Authorization", this.authToken)
+                    .build();
+
+            // Sends request
+            HttpResponse<String> response = this.client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            // Handle each response based on Fair Data Point (FDP) Swagger documentation.
+            HttpRequestUtils.handleResponseStatus(response);
+
+            // Maps response body to object
+            return objectMapper.readValue(response.body(), ResourceResponse.class);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+
+
+    public void updateSchema(ShapeUpdateInsertTask task, BodyPublisher body) {
+        logger.info("Updating shape {} in FDP", task.shape);
+
+        try {
+            URI uri = new URI(this.hostname + "/metadata-schemas/" + task.uuid + "/draft");
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .PUT(body)
+                    .uri(uri)
+                    .header("Accept", "application/json")
+                    .header("Content-Type", "application/json")
+                    .header("Authorization", this.authToken)
+                    .build();
+
+            // Sends request
+            HttpResponse<String> response = this.client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            // Handle each response based on Fair Data Point (FDP) Swagger documentation.
+            HttpRequestUtils.handleResponseStatus(response);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void releaseSchema(ShapeUpdateInsertTask task, BodyPublisher body) {
+        logger.info("Releasing {} into FDP", task.shape);
+
+        try {
+            URI uri = new URI(this.hostname + "/metadata-schemas/" + task.uuid + "/versions");
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .POST(body)
+                    .uri(uri)
+                    .header("Accept", "application/json")
+                    .header("Content-Type", "application/json")
+                    .header("Authorization", this.authToken)
+                    .build();
+
+            // Sends request
+            HttpResponse<String> response = this.client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            // Handle each response based on Fair Data Point (FDP) Swagger documentation.
+            HttpRequestUtils.handleResponseStatus(response);
 
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public ResourceMap fetchResources() {
+    public ResourceResponse[] fetchResources() {
         logger.info("Fetching resources from fdp");
 
         try {
@@ -133,55 +214,7 @@ public class FdpClient implements IFdpClient {
             HttpRequestUtils.handleResponseStatus(response);
 
             // Map response to body
-            ResourceResponse[] resourceResponseList = objectMapper.readValue(response.body(), ResourceResponse[].class);
-
-            return new ResourceMap(resourceResponseList);
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void insertResource(ResourceUpdateInsertTask task) {
-        logger.info("Inserting {} resources into FDP", task.resource);
-
-        try {
-            URI uri = new URI(this.hostname + "/resource-definitions");
-
-            // Creates DTO for resourceRequest
-            ResourceRequest resourceRequest = new ResourceRequest(
-                    task.resource,
-                    task.url(),
-                    new ArrayList<>(List.of(task.shapeUUUID)),
-                    new ArrayList<>(),
-                    new ArrayList<>(),
-                    new ArrayList<>());
-
-
-            // Creates payload from DTO
-            BodyPublisher requestBody = HttpRequest.BodyPublishers.ofString(
-                    this.objectMapper.writeValueAsString(resourceRequest)
-            );
-
-            // Creates request
-            HttpRequest request = HttpRequest.newBuilder()
-                    .POST(requestBody)
-                    .uri(uri)
-                    .header("accept", "application/json")
-                    .header("content-type", "application/json")
-                    .header("authorization", this.authToken)
-                    .build();
-
-            // Sends request
-            HttpResponse<String> response = this.client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            // Handle each response based on Fair Data Point (FDP) Swagger documentation.
-            HttpRequestUtils.handleResponseStatus(response);
-
-            // Maps response body to object
-            ResourceResponse resourceResponse = objectMapper.readValue(response.body(), ResourceResponse.class);
-
-            task.UUID = resourceResponse.uuid();
+            return objectMapper.readValue(response.body(), ResourceResponse[].class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -213,73 +246,20 @@ public class FdpClient implements IFdpClient {
             throw new RuntimeException(e);
         }
     }
-    public void updateResource(ResourceUpdateInsertTask task) {
-        logger.info("updating resource {} in FDP", task.resource);
+
+    public ResourceResponse insertResource(ResourceUpdateInsertTask task, BodyPublisher body) {
+        logger.info("Inserting {} resources into FDP", task.resource);
 
         try {
-            ResourceResponse resourceResponse = fetchResource(task.UUID);
+            URI uri = new URI(this.hostname + "/resource-definitions");
 
-            if (resourceResponse.children().stream().anyMatch(c -> c.resourceDefinitionUuid().equals(task.childUUuid))) {
-                logger.info("resource {} already has link to child {}", resourceResponse.name(), task.childName);
-            } else {
-                //FIXME TagsURI is hardcoded..
-                ResourceResponse.ListView listView =  new ResourceResponse.ListView(task.pluralName(), "http://www.w3.org/ns/dcat#themeTaxonomy", new ArrayList<>());
-                ResourceResponse.Child child = new ResourceResponse.Child(task.childUUuid, task.childRelationIri, listView);
-                resourceResponse.children().add(child);
-            }
-
-            URI uri = new URI(this.hostname + "/resource-definitions/" + task.UUID);
-
-            BodyPublisher requestBody = HttpRequest.BodyPublishers.ofString(
-                    this.objectMapper.writeValueAsString(resourceResponse)
-            );
-
+            // Creates request
             HttpRequest request = HttpRequest.newBuilder()
-                    .PUT(requestBody)
+                    .POST(body)
                     .uri(uri)
                     .header("accept", "application/json")
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", this.authToken)
-                    .build();
-
-            // Sends request
-            HttpResponse<String> response = this.client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            // Handle each response based on Fair Data Point (FDP) Swagger documentation.
-            HttpRequestUtils.handleResponseStatus(response);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * @param task task, with info about the shape to create,
-     *          when the shapes are created it will update this parameter by setting the UUID!
-     */
-    public void insertSchema(ShapeUpdateInsertTask task) {
-        logger.info("Inserting {} schema into FDP", task.shape);
-
-        try {
-            URI uri = new URI(this.hostname + "/metadata-schemas");
-
-            UpdateSchemaRequest updateSchemaRequest = new UpdateSchemaRequest(
-                    task.shape,
-                    task.description(), false,
-                    task.model,
-                    getParentUID(task.parents),
-                    task.shape,
-                    task.url());
-
-            BodyPublisher requestBody = HttpRequest.BodyPublishers.ofString(
-                    this.objectMapper.writeValueAsString(updateSchemaRequest)
-            );
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .POST(requestBody)
-                    .uri(uri)
-                    .header("accept", "application/json")
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", this.authToken)
+                    .header("content-type", "application/json")
+                    .header("authorization", this.authToken)
                     .build();
 
             // Sends request
@@ -289,37 +269,22 @@ public class FdpClient implements IFdpClient {
             HttpRequestUtils.handleResponseStatus(response);
 
             // Maps response body to object
-            ResourceResponse resourceResponse = objectMapper.readValue(response.body(), ResourceResponse.class);
-
-            task.uuid = resourceResponse.uuid();
+            return objectMapper.readValue(response.body(), ResourceResponse.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-
-    public void updateSchema(ShapeUpdateInsertTask task) {
-        logger.info("Updating shape {} in FDP", task.shape);
+    public void updateResource(ResourceUpdateInsertTask task, HttpRequest.BodyPublisher body) {
+        logger.info("updating resource {} in FDP", task.resource);
 
         try {
-            URI uri = new URI(this.hostname + "/metadata-schemas/" + task.uuid + "/draft");
-
-            UpdateSchemaRequest updateSchemaRequest = new UpdateSchemaRequest(
-                    task.shape,
-                    task.description(), false,
-                    task.model,
-                    getParentUID(task.parents),
-                    task.shape,
-                    task.url());
-
-            BodyPublisher requestBody = HttpRequest.BodyPublishers.ofString(
-                    this.objectMapper.writeValueAsString(updateSchemaRequest)
-            );
+            URI uri = new URI(this.hostname + "/resource-definitions/" + task.UUID);
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .PUT(requestBody)
+                    .PUT(body)
                     .uri(uri)
-                    .header("Accept", "application/json")
+                    .header("accept", "application/json")
                     .header("Content-Type", "application/json")
                     .header("Authorization", this.authToken)
                     .build();
@@ -332,45 +297,5 @@ public class FdpClient implements IFdpClient {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public void releaseSchema(ShapeUpdateInsertTask task) {
-        logger.info("Releasing {} into FDP", task.shape);
-
-        try {
-            URI uri = new URI(this.hostname + "/metadata-schemas/" + task.uuid + "/versions");
-
-            ReleaseSchemaRequest releaseSchemaRequest =  ReleaseSchemaRequest.of(task.shape, false, task.version);
-            BodyPublisher requestBody = HttpRequest.BodyPublishers.ofString(
-                    this.objectMapper.writeValueAsString(releaseSchemaRequest)
-            );
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .POST(requestBody)
-                    .uri(uri)
-                    .header("Accept", "application/json")
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", this.authToken)
-                    .build();
-
-            // Sends request
-            HttpResponse<String> response = this.client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            // Handle each response based on Fair Data Point (FDP) Swagger documentation.
-            HttpRequestUtils.handleResponseStatus(response);
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private Set<String> getParentUID(Set<String> shapes) {
-        if (shapes.isEmpty()) {
-            return Collections.emptySet();
-        }
-        var shapesOnFdp = fetchSchemas();
-        return shapes.stream()
-                .map(shapesOnFdp::getUUID).flatMap(Optional::stream)
-                .collect(Collectors.toSet());
     }
 }

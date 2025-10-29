@@ -1,10 +1,12 @@
 package nl.healthri.fdp.uploadschema.tasks;
 
+import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
 import nl.healthri.fdp.uploadschema.integration.FdpClient;
 import nl.healthri.fdp.uploadschema.Version;
 import nl.healthri.fdp.uploadschema.utils.FileHandler;
 import nl.healthri.fdp.uploadschema.utils.Properties;
 import nl.healthri.fdp.uploadschema.utils.RdfUtils;
+import nl.healthri.fdp.uploadschema.utils.ShapesMap;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.impl.LinkedHashModel;
 import org.eclipse.rdf4j.model.util.Models;
@@ -63,6 +65,16 @@ public class ShapeUpdateInsertTask {
             ShapeUpdateInsertTask.parents = p.getParents(r);
             return ShapeUpdateInsertTask;
         }).toList();
+    }
+
+    public Set<String> getParentUID(ShapesMap shapesMap) {
+        if (this.parents.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        return this.parents.stream()
+                .map(shapesMap::getUUID).flatMap(Optional::stream)
+                .collect(Collectors.toSet());
     }
 
     public String description() {
