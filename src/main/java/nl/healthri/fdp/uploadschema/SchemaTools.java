@@ -3,6 +3,7 @@ package nl.healthri.fdp.uploadschema;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.healthri.fdp.uploadschema.dto.request.auth.LoginRequest;
 import nl.healthri.fdp.uploadschema.integration.FdpClient;
+import nl.healthri.fdp.uploadschema.integration.FdpService;
 import nl.healthri.fdp.uploadschema.tasks.ResourceUpdateInsertTask;
 import nl.healthri.fdp.uploadschema.tasks.ShapeUpdateInsertTask;
 import nl.healthri.fdp.uploadschema.utils.FileHandler;
@@ -25,7 +26,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 
 import static java.util.function.Predicate.not;
-import static nl.healthri.fdp.uploadschema.integration.FdpClient.getAuthorizationToken;
 
 @CommandLine.Command(name = "SchemaTools utility that create FDP ready Shacls and upload them the the FDP.",
         mixinStandardHelpOptions = true, version = "SchemaTool v1.0")
@@ -60,26 +60,20 @@ public class SchemaTools implements Runnable {
     @Override
     public void run() {
         try {
-            final Properties properties = Properties.load(propertyFile);
-
-
-            // Create FDP client
             HttpClient client = HttpClient.newBuilder()
                     .connectTimeout(Duration.ofSeconds(10))
                     .build();
 
             ObjectMapper objectMapper = new ObjectMapper();
-            LoginRequest loginRequest = new LoginRequest(this.username, this.password);
 
             FdpClient fdpClient = new FdpClient(client, this.hostname, objectMapper);
-            fdpClient.authenticate(loginRequest);
-            String authToken = FdpClient.getAuthToken(httpClient, this.hostname, this.username, this.password, objectMapper);
 
-            final FdpClient fdpClient = new FdpClient(httpClient, hostname, authToken, objectMapper);
-
+            final FdpService fdpService = new FdpService(fdpClient);
+            final Properties properties = Properties.load(propertyFile);
             final FileHandler fileHandler = new FileHandler();
 
 
+            fdpService.authenticate(this.username, this.password);
             switch (command) {
                 case TEMPLATE -> {
                     convertTemplatesToShaclShapes(properties);
@@ -87,11 +81,11 @@ public class SchemaTools implements Runnable {
                     mergeShapesForValidation(properties, fileHandler);
                 }
                 case BOTH -> {
-                    createOrUpdateSchemas(fdpClient, properties, force, fileHandler);
-                    addResourceDescriptions(fdpClient, properties);
+                    createOrUpdateSchemas(fdpService, properties, force, fileHandler);
+                    addResourceDescriptions(fdpService, properties);
                 }
-                case SCHEMA -> createOrUpdateSchemas(fdpClient, properties, force, fileHandler);
-                case RESOURCE -> addResourceDescriptions(fdpClient, properties);
+                case SCHEMA -> createOrUpdateSchemas(fdpService, properties, force, fileHandler);
+                case RESOURCE -> addResourceDescriptions(fdpService, properties);
             }
         } catch (IOException io) {
             throw new RuntimeException(io);
@@ -128,46 +122,46 @@ public class SchemaTools implements Runnable {
         rdfUtils.safeModel(path, m);
     }
 
-    public void createOrUpdateSchemas(FdpClient fdpClient, Properties properties, boolean force, FileHandler fileHandler) throws IOException {
+    public void createOrUpdateSchemas(FdpService fdpService, Properties properties, boolean force, FileHandler fileHandler) throws IOException {
         logger.info("Creating/updating schemas from tasks to FDP");
 
-        var shapeTasks = ShapeUpdateInsertTask.createTasks(properties, fdpClient, fileHandler);
+        var shapeTasks = ShapeUpdateInsertTask.createTasks(fdpService, properties, fileHandler);
         shapeTasks.forEach(task -> {
             switch (task.status()) {
                 case INSERT -> {
-                    fdpClient.insertSchema(task);
-                    fdpClient.releaseSchema(task);
+                    fdpService.createSchema(task);
+                    fdpService.releaseSchema(task);
                 }
                 case SAME -> {
                     if (force) {
-                        fdpClient.updateSchema(task);
-                        fdpClient.releaseSchema(task);
+                        fdpService.updateSchema(task);
+                        fdpService.releaseSchema(task);
                         logger.info("Schema {} is updated, it was the same but force was set", task.shape);
                     } else {
                         logger.warn("Schema {} is not updated because it's still the same", task.shape);
                     }
                 }
                 case UPDATE -> {
-                    fdpClient.updateSchema(task);
-                    fdpClient.releaseSchema(task);
+                    fdpService.updateSchema(task);
+                    fdpService.releaseSchema(task);
                 }
             }
         });
     }
 
-    public void addResourceDescriptions(FdpClient fdpClient, Properties properties) {
+    public void addResourceDescriptions(FdpService fdpService, Properties properties) {
         logger.info("Adding resource descriptions from resource tasks to FDP");
 
-        var resourceTasks = ResourceUpdateInsertTask.createTask(properties, fdpClient);
-        resourceTasks.stream().filter(ResourceUpdateInsertTask::isInsert).forEach(fdpClient::insertResource);
+        var resourceTasks = ResourceUpdateInsertTask.createTask(properties, fdpService);
+        resourceTasks.stream().filter(ResourceUpdateInsertTask::isInsert).forEach(fdpService::createResource);
 
         if (resourceTasks.stream().noneMatch(not(ResourceUpdateInsertTask::isInsert))) {
             logger.warn("Updating resources is not supported yet, but will try to add children if needed)");
         }
 
         //add the previous resources as child to parent.
-        var resourceTasksParents = ResourceUpdateInsertTask.createParentTask(properties, fdpClient);
-        resourceTasksParents.stream().filter(ResourceUpdateInsertTask::hasChild).forEach(fdpClient::updateResource);
+        var resourceTasksParents = ResourceUpdateInsertTask.createParentTask(properties, fdpService);
+        resourceTasksParents.stream().filter(ResourceUpdateInsertTask::hasChild).forEach(fdpService::updateResource);
     }
 
     public enum CommandEnum {

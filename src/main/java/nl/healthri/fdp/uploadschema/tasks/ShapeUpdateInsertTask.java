@@ -3,6 +3,7 @@ package nl.healthri.fdp.uploadschema.tasks;
 import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
 import nl.healthri.fdp.uploadschema.integration.FdpClient;
 import nl.healthri.fdp.uploadschema.Version;
+import nl.healthri.fdp.uploadschema.integration.FdpService;
 import nl.healthri.fdp.uploadschema.utils.FileHandler;
 import nl.healthri.fdp.uploadschema.utils.Properties;
 import nl.healthri.fdp.uploadschema.utils.RdfUtils;
@@ -35,10 +36,11 @@ public class ShapeUpdateInsertTask {
         this.shape = shape;
     }
 
-    public static List<ShapeUpdateInsertTask> createTasks(Properties p, FdpClient fdpClient, FileHandler fileHandler){
+    public static List<ShapeUpdateInsertTask> createTasks(FdpService fdpService, Properties p, FileHandler fileHandler){
         final List<String> Shapes = p.schemasToPublish;
         final var files = p.getFiles();
-        var shapesOnFdp = fdpClient.fetchSchemas();
+        var shapesOnFdp = fdpService.getAllSchemas();
+
         logger.info("found following shapes on fdp: {}", shapesOnFdp.keySet());
 
         //list of the task we have to do for insert/updating shacls
@@ -52,7 +54,6 @@ public class ShapeUpdateInsertTask {
             Model newModel = fileHandler.readFiles(ttlFiles);
             ShapeUpdateInsertTask.model = RdfUtils.modelAsTurtleString(newModel);
             if (shapesOnFdp.isPresent(r)) {
-                // todo: add current compare ttl schemas here
                 Model onFdp = shapesOnFdp.getDefinition(r).map(RdfUtils::fromTurtleString).orElse(new LinkedHashModel());
                 ShapeUpdateInsertTask.version = shapesOnFdp.getVersion(r).map(v -> v.next(requestedVersion)).orElseThrow(); //next patch version
                 ShapeUpdateInsertTask.uuid = shapesOnFdp.getUUID(r).orElseThrow();

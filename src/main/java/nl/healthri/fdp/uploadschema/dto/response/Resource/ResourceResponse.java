@@ -1,7 +1,10 @@
 package nl.healthri.fdp.uploadschema.dto.response.Resource;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.ArrayList;
 
+@JsonIgnoreProperties(ignoreUnknown = true) // Description, abstractschema, definition are ignored.
 public record ResourceResponse(
         String uuid,
         String name,
