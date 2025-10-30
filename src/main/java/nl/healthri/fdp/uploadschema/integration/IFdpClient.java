@@ -11,17 +11,18 @@ import nl.healthri.fdp.uploadschema.tasks.ShapeUpdateInsertTask;
 import nl.healthri.fdp.uploadschema.dto.response.Resource.ResourceResponse;
 
 import java.net.http.HttpRequest;
+import java.util.List;
 
 public interface IFdpClient {
     void setAuthToken(LoginResponse loginResponse);
     LoginResponse getAuthToken(LoginRequest loginRequest);
 
-    SchemaDataResponse[] fetchSchemas();
+    List<SchemaDataResponse> fetchSchemas();
     ResourceResponse insertSchema(ShapeUpdateInsertTask task, UpdateSchemaRequest updateSchemaRequest);
     void updateSchema(ShapeUpdateInsertTask task, UpdateSchemaRequest updateSchemaRequest);
     void releaseSchema(ShapeUpdateInsertTask task, ReleaseSchemaRequest releaseSchemaRequest);
 
-    ResourceResponse[] fetchResources();
+    List<ResourceResponse> fetchResources();
     ResourceResponse fetchResource(String resourceId);
     ResourceResponse insertResource(ResourceUpdateInsertTask task, ResourceRequest resourceRequest );
     void updateResource(ResourceUpdateInsertTask task, ResourceResponse resourceResponse);

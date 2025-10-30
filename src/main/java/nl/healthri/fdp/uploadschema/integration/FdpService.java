@@ -1,7 +1,6 @@
 package nl.healthri.fdp.uploadschema.integration;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import nl.healthri.fdp.uploadschema.Version;
 import nl.healthri.fdp.uploadschema.dto.request.Resource.ResourceRequest;
 import nl.healthri.fdp.uploadschema.dto.request.Schema.ReleaseSchemaRequest;
 import nl.healthri.fdp.uploadschema.dto.request.Schema.UpdateSchemaRequest;
@@ -10,15 +9,16 @@ import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
 import nl.healthri.fdp.uploadschema.dto.response.auth.LoginResponse;
 import nl.healthri.fdp.uploadschema.tasks.ResourceUpdateInsertTask;
 import nl.healthri.fdp.uploadschema.tasks.ShapeUpdateInsertTask;
+import nl.healthri.fdp.uploadschema.utils.ResourceInfo;
 import nl.healthri.fdp.uploadschema.utils.ResourceMap;
-import nl.healthri.fdp.uploadschema.utils.ShapesMap;
+import nl.healthri.fdp.uploadschema.utils.SchemaInfo;
 import nl.healthri.fdp.uploadschema.dto.response.Resource.ResourceResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.net.http.HttpRequest;
+import javax.xml.validation.Schema;
 import java.util.*;
 
 
@@ -40,13 +40,12 @@ public class FdpService {
         fdpClient.setAuthToken(loginResponse);
     }
 
-    public ShapesMap getAllSchemas() {
-        SchemaDataResponse[] schemaDataResponseList = fdpClient.fetchSchemas();
-        return new ShapesMap(schemaDataResponseList);
+    public List<SchemaDataResponse> getAllSchemas() {
+        return fdpClient.fetchSchemas();
     }
 
     public void createSchema(ShapeUpdateInsertTask task){
-        ShapesMap shapesMap = getAllSchemas();
+        SchemaInfo shapesMap = getAllSchemas();
 
         UpdateSchemaRequest updateSchemaRequest = new UpdateSchemaRequest(
                 task.shape,
@@ -62,7 +61,7 @@ public class FdpService {
 
 
     public void updateSchema(ShapeUpdateInsertTask task){
-        ShapesMap shapesMap = getAllSchemas();
+        SchemaInfo shapesMap = getAllSchemas();
 
         UpdateSchemaRequest updateSchemaRequest = new UpdateSchemaRequest(
                 task.shape,
@@ -81,13 +80,8 @@ public class FdpService {
         fdpClient.releaseSchema(task, releaseSchemaRequest);
     }
 
-    public ResourceMap getAllResources() {
-        ResourceResponse[] resourceResponseList = fdpClient.fetchResources();
-        return new ResourceMap(resourceResponseList);
-    }
-
-    public ResourceResponse getResourceById(String resourceId) {
-        return fdpClient.fetchResource(resourceId);
+    public List<ResourceResponse> getAllResources() {
+        return fdpClient.fetchResources();
     }
 
     public void createResource(ResourceUpdateInsertTask task){

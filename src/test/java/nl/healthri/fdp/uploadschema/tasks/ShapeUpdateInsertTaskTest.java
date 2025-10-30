@@ -6,7 +6,7 @@ import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
 import nl.healthri.fdp.uploadschema.utils.FileHandler;
 import nl.healthri.fdp.uploadschema.utils.Properties;
 import nl.healthri.fdp.uploadschema.utils.RdfUtils;
-import nl.healthri.fdp.uploadschema.utils.ShapesMap;
+import nl.healthri.fdp.uploadschema.utils.SchemaInfo;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -39,7 +39,7 @@ class ShapeUpdateInsertTaskTest {
         Mockito.when(props.getParents("TestShape")).thenReturn(Set.of("ParentShape"));
 
         // Mock FDP and its fetchSchemaFromFDP result
-        ShapesMap shapesOnFdp = createFdpShapeMap(
+        SchemaInfo shapesOnFdp = createFdpShapeMap(
                 createFdpResponse("TestShape", "", "1.0.0", "uuid"));
 
         FdpClient fdpClient = Mockito.mock(FdpClient.class);
@@ -80,7 +80,7 @@ class ShapeUpdateInsertTaskTest {
         Mockito.when(props.getParents("TestShape")).thenReturn(Set.of("ParentShape"));
 
         // Mock FDP and its fetchSchemaFromFDP result
-        ShapesMap shapesOnFdp = createFdpShapeMap(
+        SchemaInfo shapesOnFdp = createFdpShapeMap(
                 createFdpResponse("TestShape", getShapeModel1(), "1.0.0", "uuid"));
 
         FdpClient fdpClient = Mockito.mock(FdpClient.class);
@@ -121,7 +121,7 @@ class ShapeUpdateInsertTaskTest {
         Mockito.when(props.getParents("TestShape")).thenReturn(Set.of("ParentShape"));
 
         // Mock FDP and its fetchSchemaFromFDP result
-        ShapesMap shapesOnFdp = createFdpShapeMap(
+        SchemaInfo shapesOnFdp = createFdpShapeMap(
                 createFdpResponse("JustAnotherShape", "", "1.0.0", "uuid"));
 
         FdpClient fdpClient = Mockito.mock(FdpClient.class);
@@ -143,8 +143,8 @@ class ShapeUpdateInsertTaskTest {
         assertEquals(ShapeUpdateInsertTask.ShapeStatus.INSERT, task.status);
     }
 
-    private ShapesMap createFdpShapeMap(SchemaDataResponse... responses) {
-        return new ShapesMap(responses);
+    private SchemaInfo createFdpShapeMap(SchemaDataResponse... responses) {
+        return new SchemaInfo(responses);
     }
 
     private SchemaDataResponse createFdpResponse(String name, String definition, String version, String uuid) {

@@ -1,13 +1,11 @@
 package nl.healthri.fdp.uploadschema.tasks;
 
-import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
-import nl.healthri.fdp.uploadschema.integration.FdpClient;
 import nl.healthri.fdp.uploadschema.Version;
+import nl.healthri.fdp.uploadschema.dto.response.Resource.ResourceResponse;
+import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
 import nl.healthri.fdp.uploadschema.integration.FdpService;
-import nl.healthri.fdp.uploadschema.utils.FileHandler;
+import nl.healthri.fdp.uploadschema.utils.*;
 import nl.healthri.fdp.uploadschema.utils.Properties;
-import nl.healthri.fdp.uploadschema.utils.RdfUtils;
-import nl.healthri.fdp.uploadschema.utils.ShapesMap;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.impl.LinkedHashModel;
 import org.eclipse.rdf4j.model.util.Models;
@@ -15,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
+import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -37,38 +36,48 @@ public class ShapeUpdateInsertTask {
     }
 
     public static List<ShapeUpdateInsertTask> createTasks(FdpService fdpService, Properties p, FileHandler fileHandler){
-        final List<String> Shapes = p.schemasToPublish;
-        final var files = p.getFiles();
-        var shapesOnFdp = fdpService.getAllSchemas();
+        final List<String> schemaList = p.schemasToPublish;
+        final Map<String, List<URI>> files = p.getFiles();
+        final List<SchemaDataResponse> schemaDataResponseList = fdpService.getAllSchemas();
 
-        logger.info("found following shapes on fdp: {}", shapesOnFdp.keySet());
+        Map<String, SchemaInfo> schemaMap = new HashMap<>();
+        for(SchemaDataResponse schemaDataResponse : schemaDataResponseList) {
+            Version version = new Version(schemaDataResponse.latest().version());
+            SchemaInfo schemaInfo = new SchemaInfo(version, schemaDataResponse.uuid());
+            schemaMap.put(schemaDataResponse.name(), schemaInfo);
+        }
+
+
+
+        logger.info("found following shapes on fdp: {}", fdpSchemaMap.keySet());
 
         //list of the task we have to do for insert/updating shacls
-        return Shapes.stream().map(r -> {
-            var ShapeUpdateInsertTask = new ShapeUpdateInsertTask(r);
-            var requestedVersion = p.getVersion();
-            var ttlFiles = Optional.ofNullable(files.get(r)).orElseThrow(() -> new NoSuchElementException(r + " not present in schema section of yaml-file"));
+        return schemaList.stream().map(schema -> {
+            ShapeUpdateInsertTask shapeUpdateInsertTask = new ShapeUpdateInsertTask(schema);
+
+            Version requestedVersion = p.getVersion();
+            var ttlFiles = Optional.ofNullable(files.get(schema)).orElseThrow(() -> new NoSuchElementException(r + " not present in schema section of yaml-file"));
 
             logger.debug("loading model {} using turtle files: {} ", r, ttlFiles.stream().map(URI::toString).collect(Collectors.joining(", ")));
 
             Model newModel = fileHandler.readFiles(ttlFiles);
-            ShapeUpdateInsertTask.model = RdfUtils.modelAsTurtleString(newModel);
-            if (shapesOnFdp.isPresent(r)) {
-                Model onFdp = shapesOnFdp.getDefinition(r).map(RdfUtils::fromTurtleString).orElse(new LinkedHashModel());
-                ShapeUpdateInsertTask.version = shapesOnFdp.getVersion(r).map(v -> v.next(requestedVersion)).orElseThrow(); //next patch version
-                ShapeUpdateInsertTask.uuid = shapesOnFdp.getUUID(r).orElseThrow();
-                ShapeUpdateInsertTask.status = Models.isomorphic(onFdp, newModel) ? ShapeStatus.SAME : ShapeStatus.UPDATE;
+            shapeUpdateInsertTask.model = RdfUtils.modelAsTurtleString(newModel);
+            if (fdpSchemaMap.containsKey(r)) {
+                Model onFdp = shapesMapFdp.getDefinition(r).map(RdfUtils::fromTurtleString).orElse(new LinkedHashModel());
+                shapeUpdateInsertTask.version = shapesMapFdp.getVersion(r).map(v -> v.next(requestedVersion)).orElseThrow(); //next patch version
+                shapeUpdateInsertTask.uuid = shapesMapFdp.getUUID(r).orElseThrow();
+                shapeUpdateInsertTask.status = Models.isomorphic(onFdp, newModel) ? ShapeStatus.SAME : ShapeStatus.UPDATE;
             } else {
-                ShapeUpdateInsertTask.version = requestedVersion;
-                ShapeUpdateInsertTask.uuid = "";
-                ShapeUpdateInsertTask.status = ShapeStatus.INSERT;
+                shapeUpdateInsertTask.version = requestedVersion;
+                shapeUpdateInsertTask.uuid = "";
+                shapeUpdateInsertTask.status = ShapeStatus.INSERT;
             }
-            ShapeUpdateInsertTask.parents = p.getParents(r);
-            return ShapeUpdateInsertTask;
+            shapeUpdateInsertTask.parents = p.getParents(r);
+            return shapeUpdateInsertTask;
         }).toList();
     }
 
-    public Set<String> getParentUID(ShapesMap shapesMap) {
+    public Set<String> getParentUID(SchemaInfo shapesMap) {
         if (this.parents.isEmpty()) {
             return Collections.emptySet();
         }

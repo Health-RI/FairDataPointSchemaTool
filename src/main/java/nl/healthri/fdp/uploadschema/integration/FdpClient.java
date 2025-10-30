@@ -27,8 +27,6 @@ import java.util.*;
 
 
 // TODO: Throw client exception instead of Runtimeexception (otherwise you hide the error encountered)
-// TODO: Split Fdp Client and Service into FdpSchemaClient, FdpResourceClient, etc.
-// TODO:
 
 @Component
 public class FdpClient implements IFdpClient {
@@ -87,7 +85,7 @@ public class FdpClient implements IFdpClient {
         }
     }
 
-    public SchemaDataResponse[] fetchSchemas() {
+    public List<SchemaDataResponse> fetchSchemas() {
         logger.info("Fetching metadata schemas from FDP");
 
         try {
@@ -110,7 +108,7 @@ public class FdpClient implements IFdpClient {
             HttpRequestUtils.handleResponseStatus(response);
 
             // Maps response body to object
-            return objectMapper.readValue(response.body(), SchemaDataResponse[].class);
+            return List.of(objectMapper.readValue(response.body(), SchemaDataResponse[].class));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -217,7 +215,7 @@ public class FdpClient implements IFdpClient {
         }
     }
 
-    public ResourceResponse[] fetchResources() {
+    public List<ResourceResponse> fetchResources() {
         logger.info("Fetching resources from fdp");
 
         try {
@@ -240,7 +238,7 @@ public class FdpClient implements IFdpClient {
             HttpRequestUtils.handleResponseStatus(response);
 
             // Map response to body
-            return objectMapper.readValue(response.body(), ResourceResponse[].class);
+            return List.of(objectMapper.readValue(response.body(), ResourceResponse.class));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

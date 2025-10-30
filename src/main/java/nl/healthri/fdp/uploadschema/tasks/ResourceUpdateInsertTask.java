@@ -1,14 +1,17 @@
 package nl.healthri.fdp.uploadschema.tasks;
 
-import nl.healthri.fdp.uploadschema.integration.FdpClient;
+import nl.healthri.fdp.uploadschema.dto.response.Resource.ResourceResponse;
 import nl.healthri.fdp.uploadschema.integration.FdpService;
 import nl.healthri.fdp.uploadschema.utils.Properties;
+import nl.healthri.fdp.uploadschema.utils.ResourceInfo;
 import nl.healthri.fdp.uploadschema.utils.ResourceMap;
-import nl.healthri.fdp.uploadschema.utils.ShapesMap;
+import nl.healthri.fdp.uploadschema.utils.SchemaInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 public class ResourceUpdateInsertTask {
@@ -27,8 +30,18 @@ public class ResourceUpdateInsertTask {
         this.resource = resource;
     }
 
+    // todo: Map<Name, ResourceInfo>
+    // todo: Map<Name, SchemaInfo>
     public static List<ResourceUpdateInsertTask> createParentTask(Properties p, FdpService fdpService) {
-        var resourcesOnFdp = fdpService.getAllResources();
+
+        List<ResourceResponse> resourceResponseList = fdpService.getAllResources();
+
+        Map<String, ResourceInfo> resourceMap = new HashMap<>();
+        for(ResourceResponse resourceResponse : resourceResponseList) {
+            ResourceInfo resourceInfo = new ResourceInfo(resourceResponse.name(), resourceResponse.uuid());
+            resourceMap.put(resourceResponse.name(), resourceInfo);
+        }
+
 
         return p.resources.entrySet().stream().map(r -> {
             //now we to update the parent not the resource itself!
@@ -68,7 +81,7 @@ public class ResourceUpdateInsertTask {
         }
     }
 
-    public ResourceUpdateInsertTask addShapeUUID(ShapesMap shapes, String schema) {
+    public ResourceUpdateInsertTask addShapeUUID(SchemaInfo shapes, String schema) {
         String name = schema.isBlank() ? resource : schema;
         var shape = shapes.getUUID(name);
         shape.ifPresentOrElse(s -> shapeUUUID = s,

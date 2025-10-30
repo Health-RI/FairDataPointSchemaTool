@@ -10,22 +10,17 @@ import java.io.StringWriter;
 
 public class RdfUtils {
 
-    private RdfUtils() {
-        //prevent instantiation.
-    }
-
     public static Model fromTurtleString(String s) {
         try {
             return Rio.parse(new StringReader(s), RDFFormat.TURTLE);
         } catch (IOException ioe) {
-            //will not happen because we are reading from string.
             throw new RuntimeException(ioe);
         }
     }
 
-    public static String modelAsTurtleString(Model m) {
+    public static String modelAsTurtleString(Model model) {
         StringWriter sw = new StringWriter();
-        Rio.write(m, sw, RDFFormat.TURTLE);
+        Rio.write(model, sw, RDFFormat.TURTLE);
         return sw.toString();
     }
 
