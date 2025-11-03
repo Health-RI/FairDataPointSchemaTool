@@ -1,10 +1,11 @@
 package nl.healthri.fdp.uploadschema.tasks;
 
+import nl.healthri.fdp.uploadschema.Version;
 import nl.healthri.fdp.uploadschema.dto.response.Resource.ResourceResponse;
+import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
 import nl.healthri.fdp.uploadschema.integration.FdpService;
 import nl.healthri.fdp.uploadschema.utils.Properties;
 import nl.healthri.fdp.uploadschema.utils.ResourceInfo;
-import nl.healthri.fdp.uploadschema.utils.ResourceMap;
 import nl.healthri.fdp.uploadschema.utils.SchemaInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,10 +37,10 @@ public class ResourceUpdateInsertTask {
 
         List<ResourceResponse> resourceResponseList = fdpService.getAllResources();
 
-        Map<String, ResourceInfo> resourceMap = new HashMap<>();
+        Map<String, ResourceInfo> fdpResourceMap = new HashMap<>();
         for(ResourceResponse resourceResponse : resourceResponseList) {
             ResourceInfo resourceInfo = new ResourceInfo(resourceResponse.name(), resourceResponse.uuid());
-            resourceMap.put(resourceResponse.name(), resourceInfo);
+            fdpResourceMap.put(resourceResponse.name(), resourceInfo);
         }
 
 
@@ -48,19 +49,39 @@ public class ResourceUpdateInsertTask {
             var parentName = r.getValue().parentResource();
             var childName = r.getKey();
             var childIri = r.getValue().parentRelationIri();
+
             return new ResourceUpdateInsertTask(parentName)
-                    .addExistingInfo(resourcesOnFdp) //adds uuid
-                    .addChildInfo(childName, childIri, resourcesOnFdp);
+                    .addExistingInfo(fdpResourceMap) //adds uuid
+                    .addChildInfo(childName, childIri, fdpResourceMap);
         }).toList();
     }
 
     public static List<ResourceUpdateInsertTask> createTask(Properties p, FdpService fdpService) {
-        var resourcesOnFdp = fdpService.getAllResources();
-        var shapesOnFdp = fdpService.getAllSchemas();
+        List<ResourceResponse> resourceResponseList = fdpService.getAllResources();
+        List<SchemaDataResponse> schemaDataResponseList = fdpService.getAllSchemas();
+
+        Map<String, ResourceInfo> fdpResourceMap = new HashMap<>();
+        for(ResourceResponse resourceResponse : resourceResponseList) {
+            ResourceInfo resourceInfo = new ResourceInfo(resourceResponse.name(), resourceResponse.uuid());
+            fdpResourceMap.put(resourceResponse.name(), resourceInfo);
+        }
+
+        Map<String, SchemaInfo> schemaInfoMap = new HashMap<>();
+        for(SchemaDataResponse schemaDataResponse : schemaDataResponseList) {
+            Version version = new Version(schemaDataResponse.latest().version());
+
+            SchemaInfo schemaInfo = new SchemaInfo(
+                    version,
+                    schemaDataResponse.uuid(),
+                    schemaDataResponse.latest().definition());
+
+            schemaInfoMap.put(schemaDataResponse.name(), schemaInfo);
+        }
+
 
         return p.resources.entrySet().stream().map(r -> new ResourceUpdateInsertTask(r.getKey())
-                .addExistingInfo(resourcesOnFdp)
-                .addShapeUUID(shapesOnFdp, r.getValue().schema())).toList();
+                .addExistingInfo(fdpResourceMap)
+                .addShapeUUID(schemaInfoMap, r.getValue().schema())).toList();
     }
 
     public String pluralName() {
@@ -81,11 +102,16 @@ public class ResourceUpdateInsertTask {
         }
     }
 
-    public ResourceUpdateInsertTask addShapeUUID(SchemaInfo shapes, String schema) {
-        String name = schema.isBlank() ? resource : schema;
-        var shape = shapes.getUUID(name);
-        shape.ifPresentOrElse(s -> shapeUUUID = s,
-                () -> logger.error("Can't find shape: {} ", resource));
+    public ResourceUpdateInsertTask addShapeUUID(Map<String, SchemaInfo> fdpSchemaInfoMap, String schema) {
+        String name = schema.isBlank() ? this.resource : schema;
+        String fdpSchemaUUID = fdpSchemaInfoMap.get(name).uuid();
+
+        if (fdpSchemaUUID == null || fdpSchemaUUID.isEmpty()) {
+            logger.error("Can't find shape: {} ", resource);
+            return this;
+        }
+
+        this.shapeUUUID = fdpSchemaUUID;
         return this;
     }
 
@@ -101,23 +127,29 @@ public class ResourceUpdateInsertTask {
         return childUUuid != null;
     }
 
-    public ResourceUpdateInsertTask addExistingInfo(ResourceMap resourceOnFdp) {
-        var uuid = resourceOnFdp.getUUID(resource);
-        exists = uuid.isPresent();
-        uuid.ifPresentOrElse(u -> this.UUID = u,
-                () -> logger.warn("update of resource is not supported yet"));
+    public ResourceUpdateInsertTask addExistingInfo(Map<String, ResourceInfo> fdpResourcesMap) {
+        String uuid = fdpResourcesMap.get(this.resource).uuid();
+        if(uuid == null || uuid.isEmpty()) {
+            logger.warn("Can't find existing info for resource: {} ", this.resource);
+        }
+
+        this.exists = true;
+        this.UUID = uuid;
+        return this;
+}
+
+    public ResourceUpdateInsertTask addChildInfo(String name, String relationIri, Map<String, ResourceInfo> fdpResourcesMap) {
+        String uuid = fdpResourcesMap.get(this.resource).uuid();
+        if(uuid == null || uuid.isEmpty()) {
+            logger.error("Child resource is not found {} ", name);
+            return this;
+        }
+
+        this.childUUuid = uuid;
+        this.childRelationIri = relationIri;
+        this.childName = name;
         return this;
     }
 
-    public ResourceUpdateInsertTask addChildInfo(String name, String relationIri, ResourceMap resourceOnFdp) {
-        var uuid = resourceOnFdp.getUUID(name);
-        if (uuid.isPresent()) {
-            childName = name;
-            childRelationIri = relationIri;
-            childUUuid = uuid.get();
-        } else {
-            logger.error("Child resource is not found {} ", name);
-        }
-        return this;
-    }
+
 }

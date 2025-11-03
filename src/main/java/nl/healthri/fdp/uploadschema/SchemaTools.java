@@ -65,15 +65,14 @@ public class SchemaTools implements Runnable {
                     .build();
 
             ObjectMapper objectMapper = new ObjectMapper();
-
             FdpClient fdpClient = new FdpClient(client, this.hostname, objectMapper);
 
             final FdpService fdpService = new FdpService(fdpClient);
             final Properties properties = Properties.load(propertyFile);
             final FileHandler fileHandler = new FileHandler();
 
-
             fdpService.authenticate(this.username, this.password);
+
             switch (command) {
                 case TEMPLATE -> {
                     convertTemplatesToShaclShapes(properties);

@@ -7,5 +7,5 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public record SchemaInfo(Version version, String uuid) {
+public record SchemaInfo(Version version, String uuid, String definition) {
 }

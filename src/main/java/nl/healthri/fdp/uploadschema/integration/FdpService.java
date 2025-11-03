@@ -9,8 +9,6 @@ import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
 import nl.healthri.fdp.uploadschema.dto.response.auth.LoginResponse;
 import nl.healthri.fdp.uploadschema.tasks.ResourceUpdateInsertTask;
 import nl.healthri.fdp.uploadschema.tasks.ShapeUpdateInsertTask;
-import nl.healthri.fdp.uploadschema.utils.ResourceInfo;
-import nl.healthri.fdp.uploadschema.utils.ResourceMap;
 import nl.healthri.fdp.uploadschema.utils.SchemaInfo;
 import nl.healthri.fdp.uploadschema.dto.response.Resource.ResourceResponse;
 import org.slf4j.Logger;
@@ -45,13 +43,21 @@ public class FdpService {
     }
 
     public void createSchema(ShapeUpdateInsertTask task){
-        SchemaInfo shapesMap = getAllSchemas();
+        List<SchemaDataResponse> schemaDataResponseList = getAllSchemas();
+
+        Map<String, SchemaInfo> schemaInfoMap = new HashMap<>();
+        for(SchemaDataResponse schemaDataResponse : schemaDataResponseList) {
+            Version version = new Version(schemaDataResponse.latest().version());
+            SchemaInfo schemaInfo = new SchemaInfo(version, schemaDataResponse.uuid(), schemaDataResponse.latest().definition());
+            schemaInfoMap.put(schemaDataResponse.name(), schemaInfo);
+        }
+
 
         UpdateSchemaRequest updateSchemaRequest = new UpdateSchemaRequest(
                 task.shape,
                 task.description(), false,
                 task.model,
-                task.getParentUID(shapesMap),
+                task.getParentUID(schemaInfoMap),
                 task.shape,
                 task.url());
 
@@ -61,13 +67,20 @@ public class FdpService {
 
 
     public void updateSchema(ShapeUpdateInsertTask task){
-        SchemaInfo shapesMap = getAllSchemas();
+        List<SchemaDataResponse> schemaDataResponseList = getAllSchemas();
+
+        Map<String, SchemaInfo> schemaInfoMap = new HashMap<>();
+        for(SchemaDataResponse schemaDataResponse : schemaDataResponseList) {
+            Version version = new Version(schemaDataResponse.latest().version());
+            SchemaInfo schemaInfo = new SchemaInfo(version, schemaDataResponse.uuid(), schemaDataResponse.latest().definition());
+            schemaInfoMap.put(schemaDataResponse.name(), schemaInfo);
+        }
 
         UpdateSchemaRequest updateSchemaRequest = new UpdateSchemaRequest(
                 task.shape,
                 task.description(), false,
                 task.model,
-                task.getParentUID(shapesMap),
+                task.getParentUID(schemaInfoMap),
                 task.shape,
                 task.url());
 
