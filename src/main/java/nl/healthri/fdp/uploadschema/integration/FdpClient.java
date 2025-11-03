@@ -9,11 +9,8 @@ import nl.healthri.fdp.uploadschema.dto.request.auth.LoginRequest;
 import nl.healthri.fdp.uploadschema.dto.response.Resource.ResourceResponse;
 import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
 import nl.healthri.fdp.uploadschema.dto.response.auth.LoginResponse;
-import nl.healthri.fdp.uploadschema.tasks.ResourceUpdateInsertTask;
-import nl.healthri.fdp.uploadschema.tasks.ShapeUpdateInsertTask;
 import nl.healthri.fdp.uploadschema.utils.HttpRequestUtils;
 
-import org.eclipse.rdf4j.query.Update;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -21,7 +18,6 @@ import org.springframework.stereotype.Component;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
 import java.util.*;
 

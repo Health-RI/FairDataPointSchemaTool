@@ -2,9 +2,15 @@ package nl.healthri.fdp.uploadschema.domain;
 
 import nl.healthri.fdp.uploadschema.Version;
 import nl.healthri.fdp.uploadschema.domain.enums.ShapeStatus;
+import nl.healthri.fdp.uploadschema.utils.SchemaInfo;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ShapeTask {
     public final String shape;
@@ -23,33 +29,28 @@ public class ShapeTask {
         this.parents = parents;
         this.model = model;
         this.status = status;
-
-        this.validate();
     }
 
-    public void validate() {
-        if (shape == null || shape.isEmpty()) {
-            logger.error("Invalid: shape is required");
-            return;
+    public Set<String> getParentUID(Map<String, SchemaInfo> schemaMap) {
+        if (this.parents.isEmpty()) {
+            return Collections.emptySet();
         }
-        if (version == null) {
-            logger.error("Invalid: version is required");
-            return;
-        }
-        if (uuid == null || uuid.isEmpty()) {
-            logger.error("Invalid: uuid is required");
-            return;
-        }
-        if (model == null || model.isEmpty()) {
-            logger.error("Invalid: model is required");
-            return;
-        }
-        if (status == null) {
-            logger.error("Invalid: status is required");
-            return;
-        }
-        if (parents == null || parents.isEmpty()) {
-            logger.error("Invalid: no parents defined for shape '{}'", shape);
-        }
+
+        return this.parents.stream()
+                .map(schemaMap::get) // SchemaInfo
+                .map(SchemaInfo::uuid) // SchemaInfo.UUID
+                .collect(Collectors.toSet());
+    }
+
+    public String description() {
+        return shape;
+    }
+
+    public String url() {
+        return shape.toLowerCase().replaceAll(" ", "");
+    }
+
+    public ShapeStatus status() {
+        return status;
     }
 }

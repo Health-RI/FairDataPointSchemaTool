@@ -1,16 +1,15 @@
 package nl.healthri.fdp.uploadschema.integration;
 
+import nl.healthri.fdp.uploadschema.domain.ResourceTask;
+import nl.healthri.fdp.uploadschema.domain.ShapeTask;
 import nl.healthri.fdp.uploadschema.dto.request.Resource.ResourceRequest;
 import nl.healthri.fdp.uploadschema.dto.request.Schema.ReleaseSchemaRequest;
 import nl.healthri.fdp.uploadschema.dto.request.Schema.UpdateSchemaRequest;
 import nl.healthri.fdp.uploadschema.dto.request.auth.LoginRequest;
 import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
 import nl.healthri.fdp.uploadschema.dto.response.auth.LoginResponse;
-import nl.healthri.fdp.uploadschema.tasks.ResourceUpdateInsertTask;
-import nl.healthri.fdp.uploadschema.tasks.ShapeUpdateInsertTask;
 import nl.healthri.fdp.uploadschema.dto.response.Resource.ResourceResponse;
 
-import java.net.http.HttpRequest;
 import java.util.List;
 
 public interface IFdpClient {
@@ -18,12 +17,12 @@ public interface IFdpClient {
     LoginResponse getAuthToken(LoginRequest loginRequest);
 
     List<SchemaDataResponse> fetchSchemas();
-    ResourceResponse insertSchema(ShapeUpdateInsertTask task, UpdateSchemaRequest updateSchemaRequest);
-    void updateSchema(ShapeUpdateInsertTask task, UpdateSchemaRequest updateSchemaRequest);
-    void releaseSchema(ShapeUpdateInsertTask task, ReleaseSchemaRequest releaseSchemaRequest);
+    ResourceResponse insertSchema(ShapeTask task, UpdateSchemaRequest updateSchemaRequest);
+    void updateSchema(ShapeTask task, UpdateSchemaRequest updateSchemaRequest);
+    void releaseSchema(ShapeTask task, ReleaseSchemaRequest releaseSchemaRequest);
 
     List<ResourceResponse> fetchResources();
     ResourceResponse fetchResource(String resourceId);
-    ResourceResponse insertResource(ResourceUpdateInsertTask task, ResourceRequest resourceRequest );
-    void updateResource(ResourceUpdateInsertTask task, ResourceResponse resourceResponse);
+    ResourceResponse insertResource(ResourceTask task, ResourceRequest resourceRequest );
+    void updateResource(ResourceTask task, ResourceResponse resourceResponse);
 }

@@ -1,12 +1,8 @@
 package nl.healthri.fdp.uploadschema.domain;
 
-import nl.healthri.fdp.uploadschema.tasks.ResourceUpdateInsertTask;
-import nl.healthri.fdp.uploadschema.utils.ResourceInfo;
-import nl.healthri.fdp.uploadschema.utils.SchemaInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
 import java.util.regex.Pattern;
 
 public class ResourceTask {
@@ -83,17 +79,6 @@ public class ResourceTask {
         }
     }
 
-    public void addShapeUUID(Map<String, SchemaInfo> fdpSchemaInfoMap, String schema) {
-        String name = schema.isBlank() ? this.resource : schema;
-        String fdpSchemaUUID = fdpSchemaInfoMap.get(name).uuid();
-
-        if (fdpSchemaUUID == null || fdpSchemaUUID.isEmpty()) {
-            logger.error("Can't find shape: {} ", this.resource);
-        }
-
-        this.shapeUUUID = fdpSchemaUUID;
-    }
-
     public String url() {
         return this.resource.toLowerCase().replaceAll(" ", "");
     }
@@ -105,16 +90,4 @@ public class ResourceTask {
     public boolean hasChild() {
         return this.childUUuid != null;
     }
-
-    public void addExistingInfo(Map<String, ResourceInfo> fdpResourcesMap) {
-        String uuid = fdpResourcesMap.get(this.resource).uuid();
-        if(uuid == null || uuid.isEmpty()) {
-            logger.warn("Can't find existing info for resource: {} ", this.resource);
-        }
-
-        this.exists = true;
-        this.UUID = uuid;
-    }
-
-
 }
