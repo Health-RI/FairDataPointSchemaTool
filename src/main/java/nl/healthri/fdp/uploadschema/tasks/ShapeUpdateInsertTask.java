@@ -21,16 +21,7 @@ import java.util.stream.Collectors;
 public class ShapeUpdateInsertTask {
     private static final Logger logger = LoggerFactory.getLogger(ShapeUpdateInsertTask.class);
 
-    public final String shape;
-    public Version version;
-    public String uuid;
-    public Set<String> parents; //name of parents for this schema.
-    public String model;
-    public ShapeStatus status;
 
-    public enum ShapeStatus {
-        INSERT, UPDATE, SAME
-    }
 
     public ShapeUpdateInsertTask(String shape) {
         this.shape = shape;

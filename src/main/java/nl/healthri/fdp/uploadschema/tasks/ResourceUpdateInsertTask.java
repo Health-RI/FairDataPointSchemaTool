@@ -56,77 +56,6 @@ public class ResourceUpdateInsertTask {
         }).toList();
     }
 
-    public static List<ResourceUpdateInsertTask> createTask(Properties p, FdpService fdpService) {
-        List<ResourceResponse> resourceResponseList = fdpService.getAllResources();
-        List<SchemaDataResponse> schemaDataResponseList = fdpService.getAllSchemas();
-
-        Map<String, ResourceInfo> fdpResourceMap = new HashMap<>();
-        for(ResourceResponse resourceResponse : resourceResponseList) {
-            ResourceInfo resourceInfo = new ResourceInfo(resourceResponse.name(), resourceResponse.uuid());
-            fdpResourceMap.put(resourceResponse.name(), resourceInfo);
-        }
-
-        Map<String, SchemaInfo> schemaInfoMap = new HashMap<>();
-        for(SchemaDataResponse schemaDataResponse : schemaDataResponseList) {
-            Version version = new Version(schemaDataResponse.latest().version());
-
-            SchemaInfo schemaInfo = new SchemaInfo(
-                    version,
-                    schemaDataResponse.uuid(),
-                    schemaDataResponse.latest().definition());
-
-            schemaInfoMap.put(schemaDataResponse.name(), schemaInfo);
-        }
-
-
-        return p.resources.entrySet().stream().map(r -> new ResourceUpdateInsertTask(r.getKey())
-                .addExistingInfo(fdpResourceMap)
-                .addShapeUUID(schemaInfoMap, r.getValue().schema())).toList();
-    }
-
-    public String pluralName() {
-        //FIXME shape datasetSeries is already plural form.
-        if (childName.toLowerCase().endsWith("ies")) return childName;
-
-        // Rule 1: Words ending in consonant + "y" -> replace "y" with "ies"
-        if (Pattern.matches(".*[^aeiou]y$", childName)) {
-            return childName.replaceAll("y$", "ies");
-        }
-        // Rule 2: Words ending in "s", "x", "z", "ch", or "sh" -> add "es"
-        else if (Pattern.matches(".*(s|x|z|ch|sh)$", childName)) {
-            return childName + "es";
-        }
-        // Default rule: Just add "s"
-        else {
-            return childName + "s";
-        }
-    }
-
-    public ResourceUpdateInsertTask addShapeUUID(Map<String, SchemaInfo> fdpSchemaInfoMap, String schema) {
-        String name = schema.isBlank() ? this.resource : schema;
-        String fdpSchemaUUID = fdpSchemaInfoMap.get(name).uuid();
-
-        if (fdpSchemaUUID == null || fdpSchemaUUID.isEmpty()) {
-            logger.error("Can't find shape: {} ", resource);
-            return this;
-        }
-
-        this.shapeUUUID = fdpSchemaUUID;
-        return this;
-    }
-
-    public String url() {
-        return resource.toLowerCase().replaceAll(" ", "");
-    }
-
-    public boolean isInsert() {
-        return !exists;
-    }
-
-    public boolean hasChild() {
-        return childUUuid != null;
-    }
-
     public ResourceUpdateInsertTask addExistingInfo(Map<String, ResourceInfo> fdpResourcesMap) {
         String uuid = fdpResourcesMap.get(this.resource).uuid();
         if(uuid == null || uuid.isEmpty()) {
@@ -151,5 +80,39 @@ public class ResourceUpdateInsertTask {
         return this;
     }
 
+
+
+
+    public String pluralName() {
+        //FIXME shape datasetSeries is already plural form.
+        if (childName.toLowerCase().endsWith("ies")) return childName;
+
+        // Rule 1: Words ending in consonant + "y" -> replace "y" with "ies"
+        if (Pattern.matches(".*[^aeiou]y$", childName)) {
+            return childName.replaceAll("y$", "ies");
+        }
+        // Rule 2: Words ending in "s", "x", "z", "ch", or "sh" -> add "es"
+        else if (Pattern.matches(".*(s|x|z|ch|sh)$", childName)) {
+            return childName + "es";
+        }
+        // Default rule: Just add "s"
+        else {
+            return childName + "s";
+        }
+    }
+
+
+
+    public String url() {
+        return resource.toLowerCase().replaceAll(" ", "");
+    }
+
+    public boolean isInsert() {
+        return !exists;
+    }
+
+    public boolean hasChild() {
+        return childUUuid != null;
+    }
 
 }
