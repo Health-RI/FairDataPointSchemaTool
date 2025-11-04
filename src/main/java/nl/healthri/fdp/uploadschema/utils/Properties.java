@@ -183,5 +183,9 @@ public class Properties {
                 .filter(e -> e.getValue().contains(child))
                 .map(Map.Entry::getKey).collect(Collectors.toSet());
     }
+
+    public Map<String, ResourceProperties> getResourceProperties() {
+        return this.resources;
+    }
 }
 

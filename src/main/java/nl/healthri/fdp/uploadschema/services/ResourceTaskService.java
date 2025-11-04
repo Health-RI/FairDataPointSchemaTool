@@ -68,9 +68,9 @@ public class ResourceTaskService implements  ResourceTaskServiceInterface {
         return this.properties.resources.entrySet().stream().map(entry -> {
             String parentResourceName = entry.getValue().parentResource();
             String parentResourceUuid = "";
-            String childName = "";
-            String childIri = "";
-            String childUuid = "";
+            String childName = null;
+            String childIri = null;
+            String childUuid = null;
             boolean exists = false;
 
             ResourceInfo fdpResourceInfo = resourceInfoMap.get(parentResourceName);
