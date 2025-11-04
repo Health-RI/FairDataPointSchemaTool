@@ -21,12 +21,12 @@ import java.util.*;
 
 @Service
 public class FdpService {
-    private final IFdpClient fdpClient;
+    private final FdpClientInterface fdpClient;
 
     private static final Logger logger = LoggerFactory.getLogger(FdpService.class);
 
     @Autowired
-    public FdpService(IFdpClient fdpClient) {
+    public FdpService(FdpClientInterface fdpClient) {
         this.fdpClient = fdpClient;
     }
 

@@ -12,7 +12,7 @@ import nl.healthri.fdp.uploadschema.dto.response.Resource.ResourceResponse;
 
 import java.util.List;
 
-public interface IFdpClient {
+public interface FdpClientInterface {
     void setAuthToken(LoginResponse loginResponse);
     LoginResponse getAuthToken(LoginRequest loginRequest);
 

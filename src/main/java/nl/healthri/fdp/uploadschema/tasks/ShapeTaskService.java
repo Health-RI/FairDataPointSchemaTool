@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 import static nl.healthri.fdp.uploadschema.utils.ResourceInfo.createResourceInfoMap;
 import static nl.healthri.fdp.uploadschema.utils.SchemaInfo.createSchemaInfoMap;
 
-public class ShapeTaskService {
+public class ShapeTaskService implements  ShapeTaskServiceInterface {
     public FdpService fdpService;
     public FileHandler fileHandler;
     public Properties properties;

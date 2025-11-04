@@ -19,14 +19,15 @@ import static java.util.stream.Collectors.toList;
 import static nl.healthri.fdp.uploadschema.utils.ResourceInfo.createResourceInfoMap;
 import static nl.healthri.fdp.uploadschema.utils.SchemaInfo.createSchemaInfoMap;
 
-public class ResourceTaskService {
+public class ResourceTaskService implements  ResourceTaskServiceInterface {
     public FdpService fdpService;
     public Properties properties;
 
     private static final Logger logger = LoggerFactory.getLogger(ResourceTaskService.class);
 
-    public ResourceTaskService(FdpService fdpService) {
+    public ResourceTaskService(FdpService fdpService, Properties properties) {
         this.fdpService = fdpService;
+        this.properties = properties;
     }
 
     public List<ResourceTask> createTasks() {

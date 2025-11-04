@@ -2,6 +2,8 @@ package nl.healthri.fdp.uploadschema.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import nl.healthri.fdp.uploadschema.domain.ResourceTask;
+import nl.healthri.fdp.uploadschema.domain.ShapeTask;
 import nl.healthri.fdp.uploadschema.dto.request.Resource.ResourceRequest;
 import nl.healthri.fdp.uploadschema.dto.request.Schema.ReleaseSchemaRequest;
 import nl.healthri.fdp.uploadschema.dto.request.Schema.UpdateSchemaRequest;
@@ -25,7 +27,7 @@ import java.util.*;
 // TODO: Throw client exception instead of Runtimeexception (otherwise you hide the error encountered)
 
 @Component
-public class FdpClient implements IFdpClient {
+public class FdpClient implements FdpClientInterface {
     private final HttpClient client;
     private final URI hostname;
     private final ObjectMapper objectMapper;
@@ -114,7 +116,7 @@ public class FdpClient implements IFdpClient {
      * @param task task, with info about the shape to create,
      *          when the shapes are created it will update this parameter by setting the UUID!
      */
-    public ResourceResponse insertSchema(ShapeUpdateInsertTask task, UpdateSchemaRequest updateSchemaRequest) {
+    public ResourceResponse insertSchema(ShapeTask task, UpdateSchemaRequest updateSchemaRequest) {
         logger.info("Inserting {} schema into FDP", task.shape);
 
         try {
@@ -150,7 +152,7 @@ public class FdpClient implements IFdpClient {
 
 
 
-    public void updateSchema(ShapeUpdateInsertTask task, UpdateSchemaRequest updateSchemaRequest) {
+    public void updateSchema(ShapeTask task, UpdateSchemaRequest updateSchemaRequest) {
         logger.info("Updating shape {} in FDP", task.shape);
 
         try {
@@ -180,7 +182,7 @@ public class FdpClient implements IFdpClient {
         }
     }
 
-    public void releaseSchema(ShapeUpdateInsertTask task, ReleaseSchemaRequest releaseSchemaRequest) {
+    public void releaseSchema(ShapeTask task, ReleaseSchemaRequest releaseSchemaRequest) {
         logger.info("Releasing {} into FDP", task.shape);
 
         try {
@@ -234,7 +236,7 @@ public class FdpClient implements IFdpClient {
             HttpRequestUtils.handleResponseStatus(response);
 
             // Map response to body
-            return List.of(objectMapper.readValue(response.body(), ResourceResponse.class));
+            return List.of(objectMapper.readValue(response.body(), ResourceResponse[].class));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -269,7 +271,7 @@ public class FdpClient implements IFdpClient {
         }
     }
 
-    public ResourceResponse insertResource(ResourceUpdateInsertTask task, ResourceRequest resourceRequest) {
+    public ResourceResponse insertResource(ResourceTask task, ResourceRequest resourceRequest) {
         logger.info("Inserting {} resources into FDP", task.resource);
 
         try {
@@ -304,7 +306,7 @@ public class FdpClient implements IFdpClient {
         }
     }
 
-    public void updateResource(ResourceUpdateInsertTask task, ResourceResponse resourceResponse) {
+    public void updateResource(ResourceTask task, ResourceResponse resourceResponse) {
         logger.info("updating resource {} in FDP", task.resource);
 
         try {

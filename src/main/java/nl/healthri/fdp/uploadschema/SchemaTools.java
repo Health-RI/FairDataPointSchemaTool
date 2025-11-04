@@ -61,7 +61,7 @@ public class SchemaTools implements Runnable {
             final FdpService fdpService = new FdpService(fdpClient);
             final Properties properties = Properties.load(propertyFile);
             final FileHandler fileHandler = new FileHandler();
-            final ResourceTaskService resourceTaskService = new ResourceTaskService(fdpService);
+            final ResourceTaskService resourceTaskService = new ResourceTaskService(fdpService, properties);
             final ShapeTaskService shapeTaskService = new ShapeTaskService(fdpService, fileHandler, properties);
             final SchemaToolService schemaToolService = new SchemaToolService(fdpService, resourceTaskService, shapeTaskService, properties, fileHandler);
 

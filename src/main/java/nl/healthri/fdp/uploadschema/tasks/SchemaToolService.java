@@ -21,16 +21,16 @@ import java.util.List;
 import static java.util.function.Predicate.not;
 import static nl.healthri.fdp.uploadschema.domain.enums.ShapeStatus.*;
 
-public class SchemaToolService {
+public class SchemaToolService implements SchemaToolServiceInterface {
     public FdpService fdpService;
-    public ResourceTaskService resourceTaskService;
-    public ShapeTaskService shapeTaskService;
+    public ResourceTaskServiceInterface resourceTaskService;
+    public ShapeTaskServiceInterface shapeTaskService;
     public Properties properties;
     public FileHandler fileHandler;
 
     private static final Logger logger = LoggerFactory.getLogger(SchemaToolService.class);
 
-    public SchemaToolService(FdpService fdpService, ResourceTaskService resourceTaskService, ShapeTaskService shapeTaskService, Properties properties, FileHandler fileHandler) {
+    public SchemaToolService(FdpService fdpService, ResourceTaskServiceInterface resourceTaskService, ShapeTaskServiceInterface shapeTaskService, Properties properties, FileHandler fileHandler) {
         this.fdpService = fdpService;
         this.resourceTaskService = resourceTaskService;
         this.shapeTaskService = shapeTaskService;
