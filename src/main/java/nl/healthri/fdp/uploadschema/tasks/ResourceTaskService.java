@@ -40,20 +40,25 @@ public class ResourceTaskService implements  ResourceTaskServiceInterface {
 
         // Build and validate ResourceTasks
         return properties.resources.entrySet().stream().map(entry -> {
-            String resource = entry.getKey();
+            String resourceName = entry.getKey();
+            String resourceUuid = "";
+            boolean exists = false;
 
-            // Gets resource id
-            String resourceUuid = resourceInfoMap.get(resource).uuid();
+            ResourceInfo fdpResourceInfo = resourceInfoMap.get(resourceName);
+            if(fdpResourceInfo != null){
+                resourceUuid = fdpResourceInfo.uuid();
+                exists = true;
+            }
 
-            // Get schema id
             String schema = entry.getValue().schema();
-            String name = schema.isBlank() ? resource : schema;
+            String name = schema.isBlank() ? resourceName : schema;
             String schemaUUID = schemaInfoMap.get(name).uuid();
 
             return new ResourceTask(
-                    resource,
+                    resourceName,
                     resourceUuid,
-                    schemaUUID
+                    schemaUUID,
+                    exists
             );
         }).toList();
     }
@@ -63,24 +68,29 @@ public class ResourceTaskService implements  ResourceTaskServiceInterface {
         Map<String, ResourceInfo> resourceInfoMap = createResourceInfoMap(resourceResponseList);
 
         return this.properties.resources.entrySet().stream().map(entry -> {
-            String parentName = entry.getValue().parentResource();
+            String parentResourceName = entry.getValue().parentResource();
+            String parentResourceUuid = "";
+            String childName = "";
+            String childIri = "";
+            String childUuid = "";
+            boolean exists = false;
 
-            // Gets resource id
-            String resourceUuid = resourceInfoMap.get(parentName).uuid();
+            ResourceInfo fdpResourceInfo = resourceInfoMap.get(parentResourceName);
+            if(fdpResourceInfo != null){
+                parentResourceUuid = fdpResourceInfo.uuid();
+                childName = entry.getKey();
+                childIri = entry.getValue().parentRelationIri();
+                childUuid = resourceInfoMap.get(parentResourceName).uuid();
+            }
 
-            // Get child attributes
-            String childName = entry.getKey();
-            String childIri = entry.getValue().parentRelationIri();
-            String childUuid = resourceInfoMap.get(parentName).uuid();
-
-            return new ResourceTask(
-                    parentName,
-                    resourceUuid,
+            ResourceTask resourceTask =  new ResourceTask(
+                    parentResourceName,
+                    parentResourceUuid,
                     null,
-                    childUuid,
-                    childIri,
-                    childName
+                    exists
             );
+            resourceTask.addChildInfo(childUuid, childIri, childName);
+            return resourceTask;
         }).toList();
     }
 }

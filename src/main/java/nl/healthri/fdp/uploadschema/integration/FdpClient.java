@@ -283,7 +283,6 @@ public class FdpClient implements FdpClientInterface {
                     this.objectMapper.writeValueAsString(resourceRequest)
             );
 
-
             // Creates request
             HttpRequest request = HttpRequest.newBuilder()
                     .POST(body)

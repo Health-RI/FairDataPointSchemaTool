@@ -1,18 +1,14 @@
 package nl.healthri.fdp.uploadschema.tasks;
 
 import nl.healthri.fdp.uploadschema.Version;
-import nl.healthri.fdp.uploadschema.domain.ResourceTask;
 import nl.healthri.fdp.uploadschema.domain.ShapeTask;
 import nl.healthri.fdp.uploadschema.domain.enums.ShapeStatus;
-import nl.healthri.fdp.uploadschema.dto.response.Resource.ResourceResponse;
 import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
-import nl.healthri.fdp.uploadschema.integration.FdpClient;
 import nl.healthri.fdp.uploadschema.integration.FdpService;
 import nl.healthri.fdp.uploadschema.utils.*;
 import nl.healthri.fdp.uploadschema.utils.Properties;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.util.Models;
-import org.eclipse.rdf4j.query.algebra.Str;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,9 +16,7 @@ import java.awt.*;
 import java.net.URI;
 import java.util.*;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import static nl.healthri.fdp.uploadschema.utils.ResourceInfo.createResourceInfoMap;
 import static nl.healthri.fdp.uploadschema.utils.SchemaInfo.createSchemaInfoMap;
 
 public class ShapeTaskService implements  ShapeTaskServiceInterface {
