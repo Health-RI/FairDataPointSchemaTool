@@ -1,6 +1,5 @@
 package nl.healthri.fdp.uploadschema.domain;
 
-import nl.healthri.fdp.uploadschema.Version;
 import nl.healthri.fdp.uploadschema.domain.enums.ShapeStatus;
 import nl.healthri.fdp.uploadschema.utils.SchemaInfo;
 

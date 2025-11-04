@@ -1,6 +1,6 @@
 package nl.healthri.fdp.uploadschema.integration;
 
-import nl.healthri.fdp.uploadschema.Version;
+import nl.healthri.fdp.uploadschema.domain.Version;
 import nl.healthri.fdp.uploadschema.domain.ResourceTask;
 import nl.healthri.fdp.uploadschema.domain.ShapeTask;
 import nl.healthri.fdp.uploadschema.dto.request.Resource.ResourceRequest;

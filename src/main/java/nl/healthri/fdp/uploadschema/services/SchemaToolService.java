@@ -1,4 +1,4 @@
-package nl.healthri.fdp.uploadschema.tasks;
+package nl.healthri.fdp.uploadschema.services;
 
 import nl.healthri.fdp.uploadschema.domain.ResourceTask;
 import nl.healthri.fdp.uploadschema.domain.ShapeTask;
@@ -11,7 +11,6 @@ import org.eclipse.rdf4j.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,7 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.function.Predicate.not;
-import static nl.healthri.fdp.uploadschema.domain.enums.ShapeStatus.*;
 
 public class SchemaToolService implements SchemaToolServiceInterface {
     public FdpService fdpService;

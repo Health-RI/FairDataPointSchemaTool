@@ -82,7 +82,6 @@ public class FileHandler {
     }
 
     private InputStream getInputStream(URI uri) throws IOException {
-
         if (List.of("http", "https").contains(uri.getScheme().toLowerCase())) {
             logger.trace("Fetch from github: {}", uri);
             try (HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).followRedirects(HttpClient.Redirect.NORMAL).build()) {
@@ -124,6 +123,4 @@ public class FileHandler {
             logger.warn("Duplicate namespace found.");
         }
     }
-
-
 }

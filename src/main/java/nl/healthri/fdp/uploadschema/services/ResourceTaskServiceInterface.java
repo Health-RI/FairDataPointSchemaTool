@@ -1,4 +1,4 @@
-package nl.healthri.fdp.uploadschema.tasks;
+package nl.healthri.fdp.uploadschema.services;
 
 import nl.healthri.fdp.uploadschema.domain.ResourceTask;
 

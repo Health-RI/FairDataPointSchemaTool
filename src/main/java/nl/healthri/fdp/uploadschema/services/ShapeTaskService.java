@@ -1,6 +1,6 @@
-package nl.healthri.fdp.uploadschema.tasks;
+package nl.healthri.fdp.uploadschema.services;
 
-import nl.healthri.fdp.uploadschema.Version;
+import nl.healthri.fdp.uploadschema.domain.Version;
 import nl.healthri.fdp.uploadschema.domain.ShapeTask;
 import nl.healthri.fdp.uploadschema.domain.enums.ShapeStatus;
 import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
@@ -12,7 +12,6 @@ import org.eclipse.rdf4j.model.util.Models;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.*;
 import java.net.URI;
 import java.util.*;
 import java.util.List;

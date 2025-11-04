@@ -9,7 +9,6 @@ import java.io.StringReader;
 import java.io.StringWriter;
 
 public class RdfUtils {
-
     public static Model fromTurtleString(String s) {
         try {
             return Rio.parse(new StringReader(s), RDFFormat.TURTLE);

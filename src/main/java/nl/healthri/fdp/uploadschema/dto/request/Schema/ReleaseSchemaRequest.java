@@ -2,7 +2,7 @@ package nl.healthri.fdp.uploadschema.dto.request.Schema;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import nl.healthri.fdp.uploadschema.Version;
+import nl.healthri.fdp.uploadschema.domain.Version;
 
 public record ReleaseSchemaRequest(
         @JsonProperty("description")

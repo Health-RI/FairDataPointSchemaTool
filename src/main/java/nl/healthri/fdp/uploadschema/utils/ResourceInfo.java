@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 
 public record ResourceInfo(String name, String uuid) {
-
     public static Map<String, ResourceInfo> createResourceInfoMap(List<ResourceResponse> resourceResponseList){
         Map<String, ResourceInfo> fdpResourceMap = new HashMap<>();
         for(ResourceResponse resourceResponse : resourceResponseList) {

@@ -1,7 +1,7 @@
-package nl.healthri.fdp.uploadschema.tasks;
+package nl.healthri.fdp.uploadschema.services;
 
 import nl.healthri.fdp.uploadschema.integration.FdpClient;
-import nl.healthri.fdp.uploadschema.Version;
+import nl.healthri.fdp.uploadschema.domain.Version;
 import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
 import nl.healthri.fdp.uploadschema.utils.FileHandler;
 import nl.healthri.fdp.uploadschema.utils.Properties;

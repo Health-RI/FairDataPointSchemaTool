@@ -1,4 +1,4 @@
-package nl.healthri.fdp.uploadschema;
+package nl.healthri.fdp.uploadschema.domain;
 
 import java.util.Comparator;
 import java.util.Objects;

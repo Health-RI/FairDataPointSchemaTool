@@ -1,6 +1,5 @@
-package nl.healthri.fdp.uploadschema.tasks;
+package nl.healthri.fdp.uploadschema.services;
 
-import nl.healthri.fdp.uploadschema.Version;
 import nl.healthri.fdp.uploadschema.domain.ResourceTask;
 import nl.healthri.fdp.uploadschema.dto.response.Resource.ResourceResponse;
 import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
@@ -11,11 +10,9 @@ import nl.healthri.fdp.uploadschema.utils.SchemaInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.stream.Collectors.toList;
 import static nl.healthri.fdp.uploadschema.utils.ResourceInfo.createResourceInfoMap;
 import static nl.healthri.fdp.uploadschema.utils.SchemaInfo.createSchemaInfoMap;
 

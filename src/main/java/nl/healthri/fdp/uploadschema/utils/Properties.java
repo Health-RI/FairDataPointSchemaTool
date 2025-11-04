@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import nl.healthri.fdp.uploadschema.Version;
+import nl.healthri.fdp.uploadschema.domain.Version;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -183,6 +183,5 @@ public class Properties {
                 .filter(e -> e.getValue().contains(child))
                 .map(Map.Entry::getKey).collect(Collectors.toSet());
     }
-
 }
 
