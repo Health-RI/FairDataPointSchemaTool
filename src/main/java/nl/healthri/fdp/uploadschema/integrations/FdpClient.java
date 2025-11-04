@@ -1,4 +1,4 @@
-package nl.healthri.fdp.uploadschema.integration;
+package nl.healthri.fdp.uploadschema.integrations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 

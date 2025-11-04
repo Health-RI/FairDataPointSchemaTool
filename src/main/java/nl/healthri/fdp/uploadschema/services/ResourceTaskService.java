@@ -3,12 +3,12 @@ package nl.healthri.fdp.uploadschema.services;
 import nl.healthri.fdp.uploadschema.domain.ResourceTask;
 import nl.healthri.fdp.uploadschema.dto.response.Resource.ResourceResponse;
 import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
-import nl.healthri.fdp.uploadschema.integration.FdpService;
 import nl.healthri.fdp.uploadschema.utils.Properties;
 import nl.healthri.fdp.uploadschema.utils.ResourceInfo;
 import nl.healthri.fdp.uploadschema.utils.SchemaInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
@@ -16,6 +16,7 @@ import java.util.Map;
 import static nl.healthri.fdp.uploadschema.utils.ResourceInfo.createResourceInfoMap;
 import static nl.healthri.fdp.uploadschema.utils.SchemaInfo.createSchemaInfoMap;
 
+@Service
 public class ResourceTaskService implements  ResourceTaskServiceInterface {
     public FdpService fdpService;
     public Properties properties;

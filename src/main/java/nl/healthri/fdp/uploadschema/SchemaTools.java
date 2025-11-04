@@ -1,8 +1,8 @@
 package nl.healthri.fdp.uploadschema;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import nl.healthri.fdp.uploadschema.integration.FdpClient;
-import nl.healthri.fdp.uploadschema.integration.FdpService;
+import nl.healthri.fdp.uploadschema.integrations.FdpClient;
+import nl.healthri.fdp.uploadschema.services.FdpService;
 import nl.healthri.fdp.uploadschema.services.ResourceTaskService;
 import nl.healthri.fdp.uploadschema.services.SchemaToolService;
 import nl.healthri.fdp.uploadschema.services.ShapeTaskService;

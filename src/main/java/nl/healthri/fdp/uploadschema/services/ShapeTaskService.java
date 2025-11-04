@@ -4,13 +4,13 @@ import nl.healthri.fdp.uploadschema.domain.Version;
 import nl.healthri.fdp.uploadschema.domain.ShapeTask;
 import nl.healthri.fdp.uploadschema.domain.enums.ShapeStatus;
 import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
-import nl.healthri.fdp.uploadschema.integration.FdpService;
 import nl.healthri.fdp.uploadschema.utils.*;
 import nl.healthri.fdp.uploadschema.utils.Properties;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.util.Models;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import java.net.URI;
 import java.util.*;
@@ -18,6 +18,7 @@ import java.util.List;
 
 import static nl.healthri.fdp.uploadschema.utils.SchemaInfo.createSchemaInfoMap;
 
+@Service
 public class ShapeTaskService implements  ShapeTaskServiceInterface {
     public FdpService fdpService;
     public FileHandler fileHandler;

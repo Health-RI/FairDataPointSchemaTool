@@ -1,4 +1,4 @@
-package nl.healthri.fdp.uploadschema.integration;
+package nl.healthri.fdp.uploadschema.services;
 
 import nl.healthri.fdp.uploadschema.domain.Version;
 import nl.healthri.fdp.uploadschema.domain.ResourceTask;
@@ -9,6 +9,7 @@ import nl.healthri.fdp.uploadschema.dto.request.Schema.UpdateSchemaRequest;
 import nl.healthri.fdp.uploadschema.dto.request.auth.LoginRequest;
 import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
 import nl.healthri.fdp.uploadschema.dto.response.auth.LoginResponse;
+import nl.healthri.fdp.uploadschema.integrations.FdpClientInterface;
 import nl.healthri.fdp.uploadschema.utils.SchemaInfo;
 import nl.healthri.fdp.uploadschema.dto.response.Resource.ResourceResponse;
 import org.slf4j.Logger;
@@ -20,7 +21,7 @@ import java.util.*;
 
 
 @Service
-public class FdpService {
+public class FdpService implements FdpServiceInterface {
     private final FdpClientInterface fdpClient;
 
     private static final Logger logger = LoggerFactory.getLogger(FdpService.class);
