@@ -21,7 +21,7 @@ import static java.util.function.Predicate.not;
 
 @Service
 public class SchemaToolService implements SchemaToolServiceInterface {
-    public FdpService fdpService;
+    public FdpServiceInterface fdpService;
     public ResourceTaskServiceInterface resourceTaskService;
     public ShapeTaskServiceInterface shapeTaskService;
     public Properties properties;
@@ -29,7 +29,7 @@ public class SchemaToolService implements SchemaToolServiceInterface {
 
     private static final Logger logger = LoggerFactory.getLogger(SchemaToolService.class);
 
-    public SchemaToolService(FdpService fdpService, ResourceTaskServiceInterface resourceTaskService, ShapeTaskServiceInterface shapeTaskService, Properties properties, FileHandler fileHandler) {
+    public SchemaToolService(FdpServiceInterface fdpService, ResourceTaskServiceInterface resourceTaskService, ShapeTaskServiceInterface shapeTaskService, Properties properties, FileHandler fileHandler) {
         this.fdpService = fdpService;
         this.resourceTaskService = resourceTaskService;
         this.shapeTaskService = shapeTaskService;

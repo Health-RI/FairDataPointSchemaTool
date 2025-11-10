@@ -18,12 +18,12 @@ import static nl.healthri.fdp.uploadschema.utils.SchemaInfo.createSchemaInfoMap;
 
 @Service
 public class ResourceTaskService implements  ResourceTaskServiceInterface {
-    public FdpService fdpService;
+    public FdpServiceInterface fdpService;
     public Properties properties;
 
     private static final Logger logger = LoggerFactory.getLogger(ResourceTaskService.class);
 
-    public ResourceTaskService(FdpService fdpService, Properties properties) {
+    public ResourceTaskService(FdpServiceInterface fdpService, Properties properties) {
         this.fdpService = fdpService;
         this.properties = properties;
     }

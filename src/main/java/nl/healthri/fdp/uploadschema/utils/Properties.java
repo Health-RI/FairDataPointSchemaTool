@@ -111,7 +111,6 @@ public class Properties {
         return new Version(schemaVersion);
     }
 
-    @JsonIgnore
     public List<String> getSchemasToPublish() {
         return this.schemasToPublish;
     }
