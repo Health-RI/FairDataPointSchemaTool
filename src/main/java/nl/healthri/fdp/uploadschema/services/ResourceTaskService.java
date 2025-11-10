@@ -40,6 +40,7 @@ public class ResourceTaskService implements  ResourceTaskServiceInterface {
         return properties.resources.entrySet().stream().map(entry -> {
             String resourceName = entry.getKey();
             String resourceUuid = "";
+            String schemaUUID = "";
             boolean exists = false;
 
             ResourceInfo fdpResourceInfo = resourceInfoMap.get(resourceName);
@@ -50,7 +51,11 @@ public class ResourceTaskService implements  ResourceTaskServiceInterface {
 
             String schema = entry.getValue().schema();
             String name = schema.isBlank() ? resourceName : schema;
-            String schemaUUID = schemaInfoMap.get(name).uuid();
+
+            SchemaInfo schemaInfo = schemaInfoMap.get(name);
+            if(schemaInfo != null){
+                schemaUUID = schemaInfoMap.get(name).uuid();
+            }
 
             return new ResourceTask(
                     resourceName,

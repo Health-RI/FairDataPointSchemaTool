@@ -5,18 +5,23 @@ import nl.healthri.fdp.uploadschema.domain.Version;
 import nl.healthri.fdp.uploadschema.dto.response.Resource.ResourceResponse;
 import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
 import nl.healthri.fdp.uploadschema.utils.Properties;
+import nl.healthri.fdp.uploadschema.utils.ResourceInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import static nl.healthri.fdp.uploadschema.utils.ResourceInfo.createResourceInfoMap;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class ResourceTaskServiceTest {
 
+    @Mock
     private FdpService fdpServiceMock;
     private Properties properties;
     private ResourceTaskService resourceTaskService;
@@ -24,7 +29,6 @@ class ResourceTaskServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        fdpServiceMock = mock(FdpService.class);
         getProperties();
         resourceTaskService = new ResourceTaskService(fdpServiceMock, properties);
     }
@@ -51,8 +55,407 @@ class ResourceTaskServiceTest {
         this.properties = props;
     }
 
+
     @Test
     void ResourceNotInSchemaInfoMap_WhenCreatingTasks_ReturnResourceWithExistFalse() {
+        // given
+        List<ResourceResponse> resourceResponseList =  List.of(
+                new ResourceResponse(
+                        "1",
+                        "Resource",
+                        null, null, null, null, null
+                ),
+                new ResourceResponse(
+                        "2",
+                        "Distribution",
+                        null, null, null, null, null
+
+                ),
+                new ResourceResponse(
+                        "3",
+                        "Dataset",
+                        null, null, null, null, null
+
+                )
+        );
+
+        List<SchemaDataResponse> schemaDataResponseList =  List.of(
+                new SchemaDataResponse(
+                        "1",
+                        "test",
+                        new SchemaDataResponse.Latest(
+                                null,
+                                new Version(1,  0, 0).toString(),
+                                null,
+                                null,
+                                null,
+                                false,
+                                false,
+                                true,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null
+                        ),
+                        null,
+                        new ArrayList<>(List.of(new Version(1, 0, 0).toString())),
+                        null,
+                        null
+                ),
+                new SchemaDataResponse(
+                        "2",
+                        "test2",
+                        new SchemaDataResponse.Latest(
+                                null,
+                                new Version(1,  0, 0).toString(),
+                                null,
+                                null,
+                                null,
+                                false,
+                                false,
+                                true,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null
+                        ),
+                        null,
+                        new ArrayList<>(List.of(new Version(1, 0, 0).toString())),
+                        null,
+                        null
+                ),
+                new SchemaDataResponse(
+                        "3",
+                        "test3",
+                        new SchemaDataResponse.Latest(
+                                null,
+                                new Version(1,  0, 0).toString(),
+                                null,
+                                null,
+                                null,
+                                false,
+                                false,
+                                true,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null
+                        ),
+                        null,
+                        new ArrayList<>(List.of(new Version(1, 0, 0).toString())),
+                        null,
+                        null
+                )
+        );
+
+        when(fdpServiceMock.getAllResources()).thenReturn(resourceResponseList);
+
+        when(fdpServiceMock.getAllSchemas()).thenReturn(schemaDataResponseList);
+
+        // when
+        List<ResourceTask> result = resourceTaskService.createTasks();
+
+        // then
+        assertEquals(3, result.size());
+        for(ResourceTask task : result){
+            assertEquals(false, task.exists);
+        }
+    }
+
+    @Test
+    void ResourceInSchemaInfoMap_WhenCreatingTasks_ReturnResourceWithExistTrue() {
+        // given
+        List<ResourceResponse> resourceResponseList =  List.of(
+                new ResourceResponse(
+                        "1",
+                        "Resource",
+                        null, null, null, null, null
+                ),
+                new ResourceResponse(
+                        "2",
+                        "Distribution",
+                        null, null, null, null, null
+
+                ),
+                new ResourceResponse(
+                        "3",
+                        "Dataset",
+                        null, null, null, null, null
+
+                )
+        );
+
+        List<SchemaDataResponse> schemaDataResponseList =  List.of(
+                new SchemaDataResponse(
+                        "1",
+                        "Resource",
+                        new SchemaDataResponse.Latest(
+                                null,
+                                new Version(1,  0, 0).toString(),
+                                null,
+                                null,
+                                null,
+                                false,
+                                false,
+                                true,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null
+                        ),
+                        null,
+                        new ArrayList<>(List.of(new Version(1, 0, 0).toString())),
+                        null,
+                        null
+                ),
+                new SchemaDataResponse(
+                        "2",
+                        "Distribution",
+                        new SchemaDataResponse.Latest(
+                                null,
+                                new Version(1,  0, 0).toString(),
+                                null,
+                                null,
+                                null,
+                                false,
+                                false,
+                                true,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null
+                        ),
+                        null,
+                        new ArrayList<>(List.of(new Version(1, 0, 0).toString())),
+                        null,
+                        null
+                ),
+                new SchemaDataResponse(
+                        "3",
+                        "Dataset",
+                        new SchemaDataResponse.Latest(
+                                null,
+                                new Version(1,  0, 0).toString(),
+                                null,
+                                null,
+                                null,
+                                false,
+                                false,
+                                true,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null
+                        ),
+                        null,
+                        new ArrayList<>(List.of(new Version(1, 0, 0).toString())),
+                        null,
+                        null
+                )
+        );
+
+        when(fdpServiceMock.getAllResources()).thenReturn(resourceResponseList);
+
+        when(fdpServiceMock.getAllSchemas()).thenReturn(schemaDataResponseList);
+
+        // when
+        List<ResourceTask> result = resourceTaskService.createTasks();
+
+        // then
+        assertEquals(3, result.size());
+        for(ResourceTask task : result){
+            assertEquals(false, task.exists);
+        }
+    }
+
+    @Test
+    void ParentResourceNotInSchemaInfoMap_WhenCreatingParentTasks_ReturnResourceWithEmptyChildInfo() {
+        // given
+        List<ResourceResponse> resourceResponseList =  List.of(
+                new ResourceResponse(
+                        "1",
+                        "Resource",
+                        null, null, null, null, null
+                ),
+                new ResourceResponse(
+                        "2",
+                        "Distribution",
+                        null, null, null, null, null
+
+                ),
+                new ResourceResponse(
+                        "3",
+                        "Dataset",
+                        null, null, null, null, null
+
+                )
+        );
+
+        when(fdpServiceMock.getAllResources()).thenReturn(resourceResponseList);
+
+        // when
+        List<ResourceTask> result = resourceTaskService.createParentTasks();
+
+        // then
+        assertEquals(3, result.size());
+        for(ResourceTask task : result){
+            assertEquals(false, task.exists);
+        }
+    }
+
+    @Test
+    void ParentResourceInSchemaInfoMap_WhenCreatingParentTasks_ReturnResourceWithChildInfo(){
+        // given
+        List<ResourceResponse> resourceResponseList =  List.of(
+                new ResourceResponse(
+                        "1",
+                        "Resource",
+                        null, null, null, null, null
+                ),
+                new ResourceResponse(
+                        "2",
+                        "Distribution",
+                        null, null, null, null, null
+
+                ),
+                new ResourceResponse(
+                        "3",
+                        "Dataset",
+                        null, null, null, null, null
+
+                )
+        );
+
+        List<SchemaDataResponse> schemaDataResponseList =  List.of(
+                new SchemaDataResponse(
+                        "1",
+                        "Resource",
+                        new SchemaDataResponse.Latest(
+                                null,
+                                new Version(1,  0, 0).toString(),
+                                null,
+                                null,
+                                null,
+                                false,
+                                false,
+                                true,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null
+                        ),
+                        null,
+                        new ArrayList<>(List.of(new Version(1, 0, 0).toString())),
+                        null,
+                        null
+                ),
+                new SchemaDataResponse(
+                        "2",
+                        "Distribution",
+                        new SchemaDataResponse.Latest(
+                                null,
+                                new Version(1,  0, 0).toString(),
+                                null,
+                                null,
+                                null,
+                                false,
+                                false,
+                                true,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null
+                        ),
+                        null,
+                        new ArrayList<>(List.of(new Version(1, 0, 0).toString())),
+                        null,
+                        null
+                ),
+                new SchemaDataResponse(
+                        "3",
+                        "Dataset",
+                        new SchemaDataResponse.Latest(
+                                null,
+                                new Version(1,  0, 0).toString(),
+                                null,
+                                null,
+                                null,
+                                false,
+                                false,
+                                true,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null
+                        ),
+                        null,
+                        new ArrayList<>(List.of(new Version(1, 0, 0).toString())),
+                        null,
+                        null
+                )
+        );
+
+        when(fdpServiceMock.getAllResources()).thenReturn(resourceResponseList);
+
+        when(fdpServiceMock.getAllSchemas()).thenReturn(schemaDataResponseList);
+
+        // when
+        List<ResourceTask> result = resourceTaskService.createTasks();
+
+        // then
+        assertEquals(3, result.size());
+        for(ResourceTask task : result){
+            assertEquals(false, task.exists);
+        }
+    }
+
+    @Test
+    void TestResourceTaskService_RealScenario() {
         // given
         List<ResourceResponse> resourceResponseList =  List.of(
                 new ResourceResponse(
@@ -393,25 +796,8 @@ class ResourceTaskServiceTest {
 
         // then
         assertEquals(3, result.size()); // 3 resources defined in properties
-        ResourceTask sampleDist = result.stream()
-                .filter(r -> r.resource.equals("Sample Distribution"))
-                .findFirst()
-                .orElseThrow();
-    }
-
-    @Test
-    void ResourceInSchemaInfoMap_WhenCreatingTasks_ReturnResourceWithExistTrue() {
-
-    }
-
-    @Test
-    void ParentResourceNotInSchemaInfoMap_WhenCreatingParentTasks_ReturnResourceWithEmptyChildInfo() {
-
-
-    }
-
-    @Test
-    void ParentResourceInSchemaInfoMap_WhenCreatingParentTasks_ReturnResourceWithChildInfo(){
-
+        for(ResourceTask task : result){
+            assertEquals(true, task.exists);
+        }
     }
 }
