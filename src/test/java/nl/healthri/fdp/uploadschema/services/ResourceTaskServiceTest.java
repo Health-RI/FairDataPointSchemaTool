@@ -4,6 +4,7 @@ import nl.healthri.fdp.uploadschema.domain.ResourceTask;
 import nl.healthri.fdp.uploadschema.domain.Version;
 import nl.healthri.fdp.uploadschema.dto.response.Resource.ResourceResponse;
 import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
+import nl.healthri.fdp.uploadschema.utils.FileHandler;
 import nl.healthri.fdp.uploadschema.utils.Properties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,7 +26,7 @@ class ResourceTaskServiceTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        fdpServiceMock = mock(FdpService.class);
         getProperties();
         resourceTaskService = new ResourceTaskService(fdpServiceMock, properties);
     }
@@ -52,22 +53,22 @@ class ResourceTaskServiceTest {
         this.properties = properties;
     }
 
-    List<ResourceResponse> getResourceResponseList() {
+    List<ResourceResponse> getResourceResponseList(String name1, String name2, String name3) {
         return List.of(
                 new ResourceResponse(
                         "1",
-                        "Resource",
+                        name1,
                         null, null, null, null, null
                 ),
                 new ResourceResponse(
                         "2",
-                        "Distribution",
+                        name2,
                         null, null, null, null, null
 
                 ),
                 new ResourceResponse(
                         "3",
-                        "Dataset",
+                        name3,
                         null, null, null, null, null
 
                 )
@@ -163,8 +164,7 @@ class ResourceTaskServiceTest {
     @Test
     void ResourceNotInSchemaInfoMap_WhenCreatingTasks_ReturnResourceWithExistFalse() {
         // Arrange
-        List<ResourceResponse> fdpResourceResponseList = getResourceResponseList();
-
+        List<ResourceResponse> fdpResourceResponseList = getResourceResponseList("test1", "test2", "test3");
         List<SchemaDataResponse> schemaDataResponseList =  getSchemaDataResponseList("test1", "test2", "test3");
 
         when(fdpServiceMock.getAllResources()).thenReturn(fdpResourceResponseList);
@@ -183,27 +183,27 @@ class ResourceTaskServiceTest {
     @Test
     void ResourceInSchemaInfoMap_WhenCreatingTasks_ReturnResourceWithExistTrue() {
         // Arrange
-        List<ResourceResponse> fdpResourceResponseList = getResourceResponseList();
-        List<SchemaDataResponse> schemaDataResponseList =  getSchemaDataResponseList("Resource", "Distribution", "Dataset");
+        List<ResourceResponse> fdpResourceResponseList = getResourceResponseList("Sample Distribution", "Dataset Series", "Analytics Distribution");
+        List<SchemaDataResponse> fdpSchemaDataResponseList =  getSchemaDataResponseList("Resource", "Distribution", "Dataset");
 
 
         when(fdpServiceMock.getAllResources()).thenReturn(fdpResourceResponseList);
-        when(fdpServiceMock.getAllSchemas()).thenReturn(schemaDataResponseList);
+        when(fdpServiceMock.getAllSchemas()).thenReturn(fdpSchemaDataResponseList);
 
-        // when
+        // Act
         List<ResourceTask> result = resourceTaskService.createTasks();
 
-        // then
+        // Assert
         assertEquals(3, result.size());
         for(ResourceTask task : result){
-            assertFalse(task.exists);
+            assertTrue(task.exists);
         }
     }
 
     @Test
-    void ParentResourceNotInFdpSchemaInfoMap_WhenCreatingParentTasks_ReturnResourceWithEmptyChildInfo() {
+    void ParentResourceNotFoundInFdpSchemaInfoMap_WhenCreatingParentTasks_ReturnResourceWithEmptyChildInfo() {
         // Arrange
-        List<ResourceResponse> fdpResourceResponseList = getResourceResponseList();
+        List<ResourceResponse> fdpResourceResponseList = getResourceResponseList("Sample Distribution", "Dataset Series", "Analytics Distribution");
 
         when(fdpServiceMock.getAllResources()).thenReturn(fdpResourceResponseList);
 
@@ -218,9 +218,9 @@ class ResourceTaskServiceTest {
     }
 
     @Test
-    void ParentResourceInFdpSchemaInfoMap_WhenCreatingParentTasks_ReturnResourceWithChildInfo(){
+    void ParentResourceFoundInFdpSchemaInfoMap_WhenCreatingParentTasks_ReturnResourceWithChildInfo(){
         // Arrange
-        List<ResourceResponse> fdpResourceResponseList = getResourceResponseList();
+        List<ResourceResponse> fdpResourceResponseList = getResourceResponseList("Sample Distribution", "Dataset Series", "Analytics Distribution");
         List<SchemaDataResponse> schemaDataResponseList =  getSchemaDataResponseList("Resource", "Distribution", "Dataset");
 
         when(fdpServiceMock.getAllResources()).thenReturn(fdpResourceResponseList);
@@ -232,7 +232,7 @@ class ResourceTaskServiceTest {
         // Assert
         assertEquals(3, result.size());
         for(ResourceTask task : result){
-            assertFalse(task.exists);
+            assertTrue(task.exists);
         }
     }
 

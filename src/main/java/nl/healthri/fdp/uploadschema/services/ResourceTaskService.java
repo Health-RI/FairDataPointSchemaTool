@@ -29,11 +29,11 @@ public class ResourceTaskService implements  ResourceTaskServiceInterface {
     }
 
     public List<ResourceTask> createTasks() {
-        List<ResourceResponse> resourceResponseList = this.fdpService.getAllResources();
-        Map<String, ResourceInfo> resourceInfoMap = createResourceInfoMap(resourceResponseList);
+        List<ResourceResponse> fdpResourceResponseList = this.fdpService.getAllResources();
+        Map<String, ResourceInfo> fdpResourceInfoMap = createResourceInfoMap(fdpResourceResponseList);
 
-        List<SchemaDataResponse> schemaDataResponseList = this.fdpService.getAllSchemas();
-        Map<String, SchemaInfo> schemaInfoMap = createSchemaInfoMap(schemaDataResponseList);
+        List<SchemaDataResponse> fdpSchemaDataResponseList = this.fdpService.getAllSchemas();
+        Map<String, SchemaInfo> fdpSchemaInfoMap = createSchemaInfoMap(fdpSchemaDataResponseList);
 
 
         // Build and validate ResourceTasks
@@ -43,7 +43,7 @@ public class ResourceTaskService implements  ResourceTaskServiceInterface {
             String schemaUUID = "";
             boolean exists = false;
 
-            ResourceInfo fdpResourceInfo = resourceInfoMap.get(resourceName);
+            ResourceInfo fdpResourceInfo = fdpResourceInfoMap.get(resourceName);
             if(fdpResourceInfo != null){
                 resourceUuid = fdpResourceInfo.uuid();
                 exists = true;
@@ -52,9 +52,9 @@ public class ResourceTaskService implements  ResourceTaskServiceInterface {
             String schema = entry.getValue().schema();
             String name = schema.isBlank() ? resourceName : schema;
 
-            SchemaInfo schemaInfo = schemaInfoMap.get(name);
+            SchemaInfo schemaInfo = fdpSchemaInfoMap.get(name);
             if(schemaInfo != null){
-                schemaUUID = schemaInfoMap.get(name).uuid();
+                schemaUUID = fdpSchemaInfoMap.get(name).uuid();
             }
 
             return new ResourceTask(
@@ -67,8 +67,8 @@ public class ResourceTaskService implements  ResourceTaskServiceInterface {
     }
 
     public List<ResourceTask> createParentTasks() {
-        List<ResourceResponse> resourceResponseList = this.fdpService.getAllResources();
-        Map<String, ResourceInfo> resourceInfoMap = createResourceInfoMap(resourceResponseList);
+        List<ResourceResponse> fdpResourceResponseList = this.fdpService.getAllResources();
+        Map<String, ResourceInfo> fdpResourceInfoMap = createResourceInfoMap(fdpResourceResponseList);
 
         return this.properties.resources.entrySet().stream().map(entry -> {
             String parentResourceName = entry.getValue().parentResource();
@@ -78,12 +78,12 @@ public class ResourceTaskService implements  ResourceTaskServiceInterface {
             String childUuid = null;
             boolean exists = false;
 
-            ResourceInfo fdpResourceInfo = resourceInfoMap.get(parentResourceName);
+            ResourceInfo fdpResourceInfo = fdpResourceInfoMap.get(parentResourceName);
             if(fdpResourceInfo != null){
                 parentResourceUuid = fdpResourceInfo.uuid();
                 childName = entry.getKey();
                 childIri = entry.getValue().parentRelationIri();
-                childUuid = resourceInfoMap.get(parentResourceName).uuid();
+                childUuid = fdpResourceInfoMap.get(parentResourceName).uuid();
             }
 
             ResourceTask resourceTask =  new ResourceTask(
