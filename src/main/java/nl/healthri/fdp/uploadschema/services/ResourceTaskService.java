@@ -39,19 +39,20 @@ public class ResourceTaskService implements  ResourceTaskServiceInterface {
         // Build and validate ResourceTasks
         return properties.resources.entrySet().stream().map(entry -> {
             String resourceName = entry.getKey();
-            String resourceUuid = "";
+            String resourceUUID = "";
             String schemaUUID = "";
             boolean exists = false;
 
+            // Sets resourceUUID and exists from resource in FDP if exists in fdpResourceInfoMap
             ResourceInfo fdpResourceInfo = fdpResourceInfoMap.get(resourceName);
             if(fdpResourceInfo != null){
-                resourceUuid = fdpResourceInfo.uuid();
+                resourceUUID = fdpResourceInfo.uuid();
                 exists = true;
             }
 
+            // Sets schemaUUID from schema in FDP if property resource name exists in fdpSchemaInfoMap
             String schema = entry.getValue().schema();
             String name = schema.isBlank() ? resourceName : schema;
-
             SchemaInfo schemaInfo = fdpSchemaInfoMap.get(name);
             if(schemaInfo != null){
                 schemaUUID = fdpSchemaInfoMap.get(name).uuid();
@@ -59,7 +60,7 @@ public class ResourceTaskService implements  ResourceTaskServiceInterface {
 
             return new ResourceTask(
                     resourceName,
-                    resourceUuid,
+                    resourceUUID,
                     schemaUUID,
                     exists
             );
