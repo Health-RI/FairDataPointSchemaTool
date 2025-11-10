@@ -112,6 +112,11 @@ public class Properties {
     }
 
     @JsonIgnore
+    public List<String> getSchemasToPublish() {
+        return this.schemasToPublish;
+    }
+
+    @JsonIgnore
     public Path getPiecesDir() {
         return Path.of(outputRoot, piecesDir);
     }
