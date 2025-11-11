@@ -1,5 +1,6 @@
 package nl.healthri.fdp.uploadschema.services;
 
+import jakarta.annotation.Resource;
 import nl.healthri.fdp.uploadschema.domain.ResourceTask;
 import nl.healthri.fdp.uploadschema.dto.response.Resource.ResourceResponse;
 import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
@@ -21,6 +22,7 @@ public class ResourceTaskService implements  ResourceTaskServiceInterface {
     public FdpServiceInterface fdpService;
     public Properties properties;
 
+
     private static final Logger logger = LoggerFactory.getLogger(ResourceTaskService.class);
 
     public ResourceTaskService(FdpServiceInterface fdpService, Properties properties) {
@@ -39,30 +41,14 @@ public class ResourceTaskService implements  ResourceTaskServiceInterface {
         // Build and validate ResourceTasks
         return properties.resources.entrySet().stream().map(entry -> {
             String resourceName = entry.getKey();
-            String resourceUUID = "";
-            String schemaUUID = "";
-            boolean exists = false;
-
-            // Sets resourceUUID and exists from resource in FDP if exists in fdpResourceInfoMap
-            ResourceInfo fdpResourceInfo = fdpResourceInfoMap.get(resourceName);
-            if(fdpResourceInfo != null){
-                resourceUUID = fdpResourceInfo.uuid();
-                exists = true;
-            }
-
-            // Sets schemaUUID from schema in FDP if property resource name exists in fdpSchemaInfoMap
-            String schema = entry.getValue().schema();
-            String name = schema.isBlank() ? resourceName : schema;
-            SchemaInfo schemaInfo = fdpSchemaInfoMap.get(name);
-            if(schemaInfo != null){
-                schemaUUID = fdpSchemaInfoMap.get(name).uuid();
-            }
+            ResourceData resourceData = getResourceInfo(resourceName, fdpResourceInfoMap);
+            String schemaUUID = getSchemaUUID(resourceName, entry.getValue().schema(), fdpSchemaInfoMap);
 
             return new ResourceTask(
                     resourceName,
-                    resourceUUID,
+                    resourceData.resourceUUID,
                     schemaUUID,
-                    exists
+                    resourceData.exists
             );
         }).toList();
     }
@@ -96,5 +82,28 @@ public class ResourceTaskService implements  ResourceTaskServiceInterface {
             resourceTask.addChildInfo(childUuid, childIri, childName);
             return resourceTask;
         }).toList();
+    }
+
+    protected record ResourceData(String resourceUUID, boolean exists) {}
+
+    protected ResourceData getResourceInfo(String resourceName, Map<String, ResourceInfo> fdpResourceInfoMap) {
+        ResourceInfo fdpResourceInfo = fdpResourceInfoMap.get(resourceName);
+
+        if (fdpResourceInfo == null) {
+            return new ResourceData("", false);
+        }
+
+        return new ResourceData(fdpResourceInfo.uuid(), true);
+    }
+
+    protected String getSchemaUUID(String resourceName, String schema, Map<String, SchemaInfo> fdpSchemaInfoMap) {
+        String name = (schema == null || schema.isBlank()) ? resourceName : schema;
+
+        SchemaInfo schemaInfo = fdpSchemaInfoMap.get(name);
+        if (schemaInfo == null) {
+            return "";
+        }
+
+        return schemaInfo.uuid();
     }
 }
