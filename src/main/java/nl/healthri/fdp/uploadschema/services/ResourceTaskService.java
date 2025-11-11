@@ -39,10 +39,10 @@ public class ResourceTaskService implements  ResourceTaskServiceInterface {
 
 
         // Build and validate ResourceTasks
-        return properties.resources.entrySet().stream().map(entry -> {
-            String resourceName = entry.getKey();
+        return properties.resources.entrySet().stream().map(propertyResource -> {
+            String resourceName = propertyResource.getKey();
             ResourceData resourceData = getResourceInfo(resourceName, fdpResourceInfoMap);
-            String schemaUUID = getSchemaUUID(resourceName, entry.getValue().schema(), fdpSchemaInfoMap);
+            String schemaUUID = getSchemaUUID(resourceName, propertyResource.getValue().schema(), fdpSchemaInfoMap);
 
             return new ResourceTask(
                     resourceName,
@@ -57,32 +57,53 @@ public class ResourceTaskService implements  ResourceTaskServiceInterface {
         List<ResourceResponse> fdpResourceResponseList = this.fdpService.getAllResources();
         Map<String, ResourceInfo> fdpResourceInfoMap = createResourceInfoMap(fdpResourceResponseList);
 
-        return this.properties.resources.entrySet().stream().map(entry -> {
-            String parentResourceName = entry.getValue().parentResource();
-            String parentResourceUuid = "";
-            String childName = null;
-            String childIri = null;
-            String childUuid = null;
-            boolean exists = false;
+        return this.properties.resources.entrySet().stream().map(propertyResource -> {
+            ParentResourceData parentResourceData = getParentResourceInfo(propertyResource, fdpResourceInfoMap);
 
-            ResourceInfo fdpResourceInfo = fdpResourceInfoMap.get(parentResourceName);
-            if(fdpResourceInfo != null){
-                parentResourceUuid = fdpResourceInfo.uuid();
-                childName = entry.getKey();
-                childIri = entry.getValue().parentRelationIri();
-                childUuid = fdpResourceInfoMap.get(parentResourceName).uuid();
-            }
-
-            ResourceTask resourceTask =  new ResourceTask(
-                    parentResourceName,
-                    parentResourceUuid,
+            return new ResourceTask(
+                    parentResourceData.parentResourceName,
+                    parentResourceData.parentResourceUuid,
                     null,
-                    exists
+                    parentResourceData.childUuid,
+                    parentResourceData.childIri,
+                    parentResourceData.childName,
+                    parentResourceData.exists
             );
-            resourceTask.addChildInfo(childUuid, childIri, childName);
-            return resourceTask;
         }).toList();
     }
+
+    protected record ParentResourceData(
+            String parentResourceName,
+            String parentResourceUuid,
+            String childUuid,
+            String childIri,
+            String childName,
+            boolean exists
+    ) {}
+
+    protected ParentResourceData getParentResourceInfo(Map.Entry<String, Properties.ResourceProperties> entry, Map<String, ResourceInfo> fdpResourceInfoMap) {
+        String parentResourceName = entry.getValue().parentResource();
+
+        ResourceInfo fdpResourceInfo = fdpResourceInfoMap.get(parentResourceName);
+        if (fdpResourceInfo == null) {
+            return new ParentResourceData(parentResourceName, null, null, null, null, false);
+        }
+
+        String parentResourceUuid = fdpResourceInfo.uuid();
+        String childName = entry.getKey();
+        String childIri =  entry.getValue().parentRelationIri();
+        String childUuid = fdpResourceInfoMap.get(childName).uuid();
+        boolean exists = true;
+
+        return new ParentResourceData(
+                parentResourceName,
+                parentResourceUuid,
+                childUuid,
+                childIri,
+                childName,
+                exists);
+    }
+
 
     protected record ResourceData(String resourceUUID, boolean exists) {}
 

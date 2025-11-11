@@ -16,7 +16,6 @@ public class ResourceTask {
 
     private static final Logger logger = LoggerFactory.getLogger(ResourceTask.class);
 
-
     public ResourceTask(String resource, String uuid, String shapeUUUID, boolean exists) {
         this.resource = resource;
         this.UUID = uuid;
@@ -24,11 +23,14 @@ public class ResourceTask {
         this.exists = exists;
     }
 
-
-    public void addChildInfo(String childUUuid, String childRelationIri, String childName) {
+    public ResourceTask(String resource, String uuid, String shapeUUUID, String childUUuid, String childRelationIri, String childName, boolean exists) {
+        this.resource = resource;
+        this.UUID = uuid;
+        this.shapeUUUID = shapeUUUID;
         this.childUUuid = childUUuid;
         this.childRelationIri = childRelationIri;
         this.childName = childName;
+        this.exists = exists;
     }
 
     public void validate() {
