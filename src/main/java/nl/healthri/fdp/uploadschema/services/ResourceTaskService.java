@@ -30,6 +30,19 @@ public class ResourceTaskService implements  ResourceTaskServiceInterface {
         this.properties = properties;
     }
 
+    protected record ResourceData(
+            String resourceUUID,
+            boolean exists) {}
+
+    protected record ParentResourceData(
+            String parentResourceName,
+            String parentResourceUuid,
+            String childUuid,
+            String childIri,
+            String childName,
+            boolean exists) {}
+
+
     public List<ResourceTask> createTasks() {
         List<ResourceResponse> fdpResourceResponseList = this.fdpService.getAllResources();
         Map<String, ResourceInfo> fdpResourceInfoMap = createResourceInfoMap(fdpResourceResponseList);
@@ -72,15 +85,6 @@ public class ResourceTaskService implements  ResourceTaskServiceInterface {
         }).toList();
     }
 
-    protected record ParentResourceData(
-            String parentResourceName,
-            String parentResourceUuid,
-            String childUuid,
-            String childIri,
-            String childName,
-            boolean exists
-    ) {}
-
     protected ParentResourceData getParentResourceInfo(Map.Entry<String, Properties.ResourceProperties> entry, Map<String, ResourceInfo> fdpResourceInfoMap) {
         String parentResourceName = entry.getValue().parentResource();
 
@@ -103,9 +107,6 @@ public class ResourceTaskService implements  ResourceTaskServiceInterface {
                 childName,
                 exists);
     }
-
-
-    protected record ResourceData(String resourceUUID, boolean exists) {}
 
     protected ResourceData getResourceInfo(String resourceName, Map<String, ResourceInfo> fdpResourceInfoMap) {
         ResourceInfo fdpResourceInfo = fdpResourceInfoMap.get(resourceName);
