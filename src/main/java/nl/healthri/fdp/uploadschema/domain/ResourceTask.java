@@ -8,11 +8,11 @@ import java.util.regex.Pattern;
 public class ResourceTask {
     public final String resource;
     public String UUID;
-    public String shapeUUUID;
+    public final String shapeUUUID;
     public String childUUuid;
     public String childRelationIri;
     public String childName;
-    public boolean exists;
+    public final boolean exists;
 
     private static final Logger logger = LoggerFactory.getLogger(ResourceTask.class);
 

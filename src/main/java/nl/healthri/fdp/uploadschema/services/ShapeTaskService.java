@@ -45,6 +45,7 @@ public class ShapeTaskService implements  ShapeTaskServiceInterface {
             Version requestedVersion = this.properties.getVersion();
             Set<String> parents = this.properties.getParents(schemaTitle);
 
+            // Adds shape task are same or need to be updated
             if (shapesOnFdp.containsKey(schemaTitle)) {
                 SchemaInfo matchingFdpSchema = shapesOnFdp.get(schemaTitle);
                 Version version = matchingFdpSchema.version().next(requestedVersion);
@@ -60,16 +61,17 @@ public class ShapeTaskService implements  ShapeTaskServiceInterface {
                         model,
                         status
                 );
-            } else {
-                return new ShapeTask(
-                        schemaTitle,
-                        requestedVersion,
-                        "",
-                        parents,
-                        model,
-                        ShapeStatus.INSERT
-                );
             }
+
+            // Adds shape task to insert into FDP
+            return new ShapeTask(
+                    schemaTitle,
+                    requestedVersion,
+                    "",
+                    parents,
+                    model,
+                    ShapeStatus.INSERT
+            );
         }).toList();
     }
 }

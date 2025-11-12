@@ -50,10 +50,10 @@ public class ResourceTaskService implements  ResourceTaskServiceInterface {
         List<SchemaDataResponse> fdpSchemaDataResponseList = this.fdpService.getAllSchemas();
         Map<String, SchemaInfo> fdpSchemaInfoMap = createSchemaInfoMap(fdpSchemaDataResponseList);
 
-
-        // Build and validate ResourceTasks
         return properties.resources.entrySet().stream().map(propertyResource -> {
             String resourceName = propertyResource.getKey();
+
+            // Gets all needed resource information from fdpResourceInfoMap to set to new resourceTask
             ResourceData resourceData = getResourceInfo(resourceName, fdpResourceInfoMap);
             String schemaUUID = getSchemaUUID(resourceName, propertyResource.getValue().schema(), fdpSchemaInfoMap);
 
@@ -71,6 +71,7 @@ public class ResourceTaskService implements  ResourceTaskServiceInterface {
         Map<String, ResourceInfo> fdpResourceInfoMap = createResourceInfoMap(fdpResourceResponseList);
 
         return this.properties.resources.entrySet().stream().map(propertyResource -> {
+            // Gets all needed parent resource information from fdpResourceInfoMap to set to new resourceTask
             ParentResourceData parentResourceData = getParentResourceInfo(propertyResource, fdpResourceInfoMap);
 
             return new ResourceTask(
@@ -111,7 +112,6 @@ public class ResourceTaskService implements  ResourceTaskServiceInterface {
 
     protected ResourceData getResourceInfo(String resourceName, Map<String, ResourceInfo> fdpResourceInfoMap) {
         ResourceInfo fdpResourceInfo = fdpResourceInfoMap.get(resourceName);
-
         if (fdpResourceInfo == null) {
             return new ResourceData("", false);
         }
@@ -121,7 +121,6 @@ public class ResourceTaskService implements  ResourceTaskServiceInterface {
 
     protected String getSchemaUUID(String resourceName, String schema, Map<String, SchemaInfo> fdpSchemaInfoMap) {
         String name = (schema == null || schema.isBlank()) ? resourceName : schema;
-
         SchemaInfo schemaInfo = fdpSchemaInfoMap.get(name);
         if (schemaInfo == null) {
             return "";

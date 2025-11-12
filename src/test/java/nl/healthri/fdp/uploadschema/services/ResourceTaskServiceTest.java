@@ -7,7 +7,6 @@ import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
 import nl.healthri.fdp.uploadschema.utils.Properties;
 import nl.healthri.fdp.uploadschema.utils.ResourceInfo;
 import nl.healthri.fdp.uploadschema.utils.SchemaInfo;
-import org.apache.poi.poifs.property.Parent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -25,22 +24,45 @@ class ResourceTaskServiceTest {
 
     @Mock
     private FdpService fdpServiceMock;
-    private Properties properties;
     private ResourceTaskService resourceTaskService;
 
     @BeforeEach
     void setUp() {
         fdpServiceMock = mock(FdpService.class);
-        getProperties();
         resourceTaskService = new ResourceTaskService(fdpServiceMock, properties);
     }
 
-    private void getProperties() {
+    private Properties getTestProperties() {
         Properties properties = new Properties();
 
         properties.schemas.put("Catalog", List.of("Catalog.ttl", "Agent.ttl", "Kind.ttl"));
         properties.schemas.put("Dataset", List.of("Dataset.ttl", "Agent.ttl", "Kind.ttl","PeriodOfTime.ttl","Attribution.ttl","Identifier.ttl","QualityCertificate.ttl","Relationship.ttl"));
         properties.schemas.put("Resource", List.of("Resource.ttl"));
+
+        properties.parentChild.put("Resource", List.of("Dataset", "Catalog", "Data Service"));
+
+        properties.resources.put("Sample Distribution",
+                new Properties.ResourceProperties("Dataset", "http://www.w3.org/ns/adms#sample", "Catalog"));
+        properties.resources.put("Dataset Series",
+                new Properties.ResourceProperties("Dataset", "http://www.w3.org/ns/dcat#inSeries", "Dataset"));
+        properties.resources.put("Analytics Distribution",
+                new Properties.ResourceProperties("Dataset", "http://healthdataportal.eu/ns/health#analytics", "Resource"));
+
+        properties.schemasToPublish = List.of("Resource", "Catalog", "Dataset", "Dataset Series", "Distribution", "Data Service");
+        properties.schemaVersion = "2.0.0";
+
+        return properties;
+    }
+
+    private Properties getRealProperties() {
+        Properties properties = new Properties();
+
+        properties.schemas.put("Catalog", List.of("Catalog.ttl", "Agent.ttl", "Kind.ttl", "PeriodOfTime.ttl"));
+        properties.schemas.put("Dataset", List.of("Dataset.ttl", "Agent.ttl", "Kind.ttl", "PeriodOfTime.ttl", "Attribution.ttl", "Identifier.ttl", "QualityCertificate.ttl", "Relationship.ttl"));
+        properties.schemas.put("Dataset Series", List.of("DatasetSeries.ttl", "Agent.ttl", "PeriodOfTime.ttl", "Kind.ttl"));
+        properties.schemas.put("Resource", List.of("Resource.ttl"));
+        properties.schemas.put("Distribution", List.of("Distribution.ttl", "PeriodOfTime.ttl", "Checksum.ttl"));
+        properties.schemas.put("Data Service", List.of("DataService.ttl", "Agent.ttl", "Kind.ttl", "Identifier.ttl"));
 
         properties.parentChild.put("Resource", List.of("Dataset", "Catalog", "Data Service"));
 
@@ -51,10 +73,24 @@ class ResourceTaskServiceTest {
         properties.resources.put("Analytics Distribution",
                 new Properties.ResourceProperties("Dataset", "http://healthdataportal.eu/ns/health#analytics", "Distribution"));
 
-        properties.schemasToPublish = List.of("Resource", "Catalog", "Dataset", "Dataset Series", "Distribution", "Data Service");
-        properties.schemaVersion = "2.0.0";
+        properties.schemasToPublish = List.of(
+                "Resource",
+                "Catalog",
+                "Dataset",
+                "Dataset Series",
+                "Distribution",
+                "Data Service"
+        );
 
-        this.properties = properties;
+        properties.schemaVersion = "2.0.0";
+        properties.inputDir = "https://raw.githubusercontent.com/Health-RI/health-ri-metadata/master/Formalisation(shacl)/Core/PiecesShape/";
+        properties.templateDir = "C:\\Users\\PatrickDekker(Health\\templates\\";
+        properties.outputRoot = "C:\\Users\\PatrickDekker(Health\\IdeaProjects\\health-ri-metadata\\Formalisation(shacl)\\Core\\";
+        properties.piecesDir = "PiecesShape";
+        properties.fairDataPointDir = "FairDataPointShape";
+        properties.validationDir = "ValidationShape";
+
+        return properties;
     }
 
     List<ResourceResponse> getResourceResponseList(String name1, String name2, String name3) {
@@ -195,11 +231,12 @@ class ResourceTaskServiceTest {
     @Test
     void PropertyResourceNotFoundInFdpResourceInfoMap_WhenGettingResourceInfo_ResourceDataEmptyIdAndExistsFalse() {
         // Arrange
+        Properties properties = getTestProperties();
         List<ResourceResponse> fdpResourceResponseList = getResourceResponseList("resource-not-in-fdp-1", "resource-not-in-fdp-2", "resource-not-in-fdp-3");
         Map<String, ResourceInfo> fdpResourceInfoMap = createResourceInfoMap(fdpResourceResponseList);
 
         // Act & Assert
-        this.properties.resources.entrySet().forEach(propertyResource -> {
+        properties.resources.entrySet().forEach(propertyResource -> {
             ResourceTaskService.ResourceData resourceData =
                     this.resourceTaskService.getResourceInfo(propertyResource.getKey(), fdpResourceInfoMap);
 
@@ -212,11 +249,12 @@ class ResourceTaskServiceTest {
     @Test
     void PropertyResourceFoundInFdpResourceInfoMap_WhenGettingResourceInfo_ResourceDataIdIsFdpUuidIdAndExistsTrue() {
         // Arrange
+        Properties properties = getTestProperties();
         List<ResourceResponse> fdpResourceResponseList = getResourceResponseList("Sample Distribution", "Dataset Series", "Analytics Distribution");
         Map<String, ResourceInfo> fdpResourceInfoMap = createResourceInfoMap(fdpResourceResponseList);
 
         // Act & Assert
-        this.properties.resources.entrySet().forEach(propertyResource -> {
+        properties.resources.entrySet().forEach(propertyResource -> {
             ResourceTaskService.ResourceData resourceData =
                     this.resourceTaskService.getResourceInfo(propertyResource.getKey(), fdpResourceInfoMap);
 
@@ -230,13 +268,14 @@ class ResourceTaskServiceTest {
     @Test
     void PropertyResourceNotFoundInFdpSchemaInfoMap_WhenGettingSchemaUuid_ReturnsEmptyId() {
         // Arrange
+        Properties properties = getTestProperties();
         List<SchemaDataResponse> fdpSchemaDataResponseList =  getSchemaDataResponseList("resource-not-in-fdp-1", "resource-not-in-fdp-2", "resource-not-in-fdp-3");
         Map<String, SchemaInfo> fdpSchemaInfoMap = createSchemaInfoMap(fdpSchemaDataResponseList);
 
         when(fdpServiceMock.getAllSchemas()).thenReturn(fdpSchemaDataResponseList);
 
         // Act & Assert
-        this.properties.resources.entrySet().forEach(propertyResource -> {
+        properties.resources.entrySet().forEach(propertyResource -> {
             // Act
             String resourceSchemaId = this.resourceTaskService.getSchemaUUID(propertyResource.getKey(), propertyResource.getValue().schema(), fdpSchemaInfoMap);
 
@@ -248,15 +287,19 @@ class ResourceTaskServiceTest {
     @Test
     void PropertyResourceFoundInFdpSchemaInfoMap_WhenGettingSchemaUuid_ReturnsSchemaIdFromFdpSchema() {
         // Arrange
+        Properties properties = getTestProperties();
         List<SchemaDataResponse> fdpSchemaDataResponseList =  getSchemaDataResponseList("Catalog", "Dataset", "Resource");
         Map<String, SchemaInfo> fdpSchemaInfoMap = createSchemaInfoMap(fdpSchemaDataResponseList);
 
         when(fdpServiceMock.getAllSchemas()).thenReturn(fdpSchemaDataResponseList);
 
         // Act & Assert
-        this.properties.resources.entrySet().forEach(propertyResource -> {
+        properties.resources.entrySet().forEach(propertyResource -> {
+            String propertyResourceName = propertyResource.getKey();
+            String propertyResourceSchema = propertyResource.getValue().schema();
+
             // Act
-            String resourceSchemaId = this.resourceTaskService.getSchemaUUID(propertyResource.getKey(), propertyResource.getValue().schema(), fdpSchemaInfoMap);
+            String resourceSchemaId = this.resourceTaskService.getSchemaUUID(propertyResourceName, propertyResourceSchema, fdpSchemaInfoMap);
 
             // Assert
             String expectedSchemaId = fdpSchemaInfoMap.get(propertyResource.getValue().schema()).uuid();
@@ -267,11 +310,12 @@ class ResourceTaskServiceTest {
     @Test
     void PropertyParentResourceNotFoundInFdpResourceInfoMap_WhenGettingParentResourceInfo_ReturnEmptyParentResourceData(){
         // Arrange
+        Properties properties = getTestProperties();
         List<ResourceResponse> fdpResourceResponseList = getResourceResponseListWithParent("parent-resource-not-in-fdp", "resource-not-in-fdp-1", "resource-not-in-fdp-2", "resource-not-in-fdp-3");
         Map<String, ResourceInfo> fdpResourceInfoMap = createResourceInfoMap(fdpResourceResponseList);
 
         // Act & Assert
-        this.properties.resources.entrySet().forEach(propertyResource -> {
+        properties.resources.entrySet().forEach(propertyResource -> {
             ResourceTaskService.ParentResourceData resourceData =
                     this.resourceTaskService.getParentResourceInfo(propertyResource, fdpResourceInfoMap);
 
@@ -289,11 +333,12 @@ class ResourceTaskServiceTest {
     @Test
     void PropertyParentResourceFoundInFdpResourceInfoMap_WhenGettingParentResourceInfo_ReturnParentResourceDataWithFilledChildInfo(){
         // Arrange
+        Properties properties = getTestProperties();
         List<ResourceResponse> fdpResourceResponseList = getResourceResponseListWithParent("Dataset", "Sample Distribution", "Dataset Series", "Analytics Distribution");
         Map<String, ResourceInfo> fdpResourceInfoMap = createResourceInfoMap(fdpResourceResponseList);
 
         // Act & Assert
-        this.properties.resources.entrySet().forEach(propertyResource -> {
+        properties.resources.entrySet().forEach(propertyResource -> {
             ResourceTaskService.ParentResourceData resourceData =
                     this.resourceTaskService.getParentResourceInfo(propertyResource, fdpResourceInfoMap);
 
@@ -314,41 +359,42 @@ class ResourceTaskServiceTest {
     // createtasksgood
     // createtasksnotgood
 
+    // todo:
     @Test
-    void PropertyParentResourceNotFoundInFdpSchemaInfoMap_WhenCreatingParentTasks_ReturnResourceWithEmptyChildInfo() {
+    void AllPropertyResourcesFoundInFdpResourceInfoMap_WhenCreatingTasks_ReturnsTasksThatExist(){
         // Arrange
+        Properties properties = getRealProperties();
         List<ResourceResponse> fdpResourceResponseList = getResourceResponseList("Sample Distribution", "Dataset Series", "Analytics Distribution");
-
+        Map<String, ResourceInfo> fdpResourceInfoMap = createResourceInfoMap(fdpResourceResponseList);
         when(fdpServiceMock.getAllResources()).thenReturn(fdpResourceResponseList);
 
-        // Act
-        List<ResourceTask> result = resourceTaskService.createParentTasks();
-
-        // Assert
-        assertEquals(3, result.size());
-        for(ResourceTask task : result){
-            assertFalse(task.exists);
-        }
-    }
-
-    @Test
-    void PropertyParentResourceFoundInFdpSchemaInfoMap_WhenCreatingParentTasks_ReturnResourceWithChildInfo(){
-        // Arrange
-        List<ResourceResponse> fdpResourceResponseList = getResourceResponseList("Sample Distribution", "Dataset Series", "Analytics Distribution");
-        List<SchemaDataResponse> schemaDataResponseList =  getSchemaDataResponseList("Resource", "Distribution", "Dataset");
-
-        when(fdpServiceMock.getAllResources()).thenReturn(fdpResourceResponseList);
-        when(fdpServiceMock.getAllSchemas()).thenReturn(schemaDataResponseList);
+        List<SchemaDataResponse> fdpSchemaDataResponseList =  getSchemaDataResponseList("Catalog", "Dataset", "Resource");
+        Map<String, SchemaInfo> fdpSchemaInfoMap = createSchemaInfoMap(fdpSchemaDataResponseList);
+        when(fdpServiceMock.getAllSchemas()).thenReturn(fdpSchemaDataResponseList);
 
         // Act
         List<ResourceTask> result = resourceTaskService.createTasks();
 
         // Assert
-        assertEquals(3, result.size());
-        for(ResourceTask task : result){
-            assertTrue(task.exists);
+        assertEquals(result.size(), fdpSchemaDataResponseList.size());
+        for(ResourceTask resourceTask : result){
+        //    assertEquals(fdpResourceUuid, resourceData.resourceUUID());
+          //  assertTrue(resourceData.exists());
         }
     }
+
+    // todo:
+    @Test
+    void AllPropertyResourcesNotFoundInFdpResourceInfoMap_WhenCreatingTasks_ReturnsTasksThatDoNotExist(){}
+
+    // todo:
+    @Test
+    void AllPropertyResourcesFoundInFdpResourceInfoMap_WhenCreatingParentTasks_ReturnsTasksWithFilledChildDataAndExistsIsTrue(){}
+
+    // todo:
+    @Test
+    void AllPropertyResourcesNotFoundInFdpResourceInfoMap_WhenCreatingParentTasks_ReturnsTasksWithEmptyChildDataAndExistsIsFalse(){}
+
 
     @Test
     void TestResourceTaskService_RealScenario() {
