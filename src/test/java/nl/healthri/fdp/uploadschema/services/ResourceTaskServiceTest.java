@@ -29,6 +29,7 @@ class ResourceTaskServiceTest {
     @BeforeEach
     void setUp() {
         fdpServiceMock = mock(FdpService.class);
+        Properties properties = getRealProperties();
         resourceTaskService = new ResourceTaskService(fdpServiceMock, properties);
     }
 
@@ -361,385 +362,36 @@ class ResourceTaskServiceTest {
 
     // todo:
     @Test
-    void AllPropertyResourcesFoundInFdpResourceInfoMap_WhenCreatingTasks_ReturnsTasksThatExist(){
+    void AllPropertyResourcesFoundInFdpResourceInfoMap_WhenCreatingTasks_ReturnsTasksThatExist() {
         // Arrange
         Properties properties = getRealProperties();
+        resourceTaskService = new ResourceTaskService(fdpServiceMock, properties);
+
         List<ResourceResponse> fdpResourceResponseList = getResourceResponseList("Sample Distribution", "Dataset Series", "Analytics Distribution");
-        Map<String, ResourceInfo> fdpResourceInfoMap = createResourceInfoMap(fdpResourceResponseList);
+        Map<String, ResourceInfo> resourceInfoMap = createResourceInfoMap(fdpResourceResponseList);
         when(fdpServiceMock.getAllResources()).thenReturn(fdpResourceResponseList);
 
-        List<SchemaDataResponse> fdpSchemaDataResponseList =  getSchemaDataResponseList("Catalog", "Dataset", "Resource");
-        Map<String, SchemaInfo> fdpSchemaInfoMap = createSchemaInfoMap(fdpSchemaDataResponseList);
+        List<SchemaDataResponse> fdpSchemaDataResponseList = getSchemaDataResponseList("Distribution", "Dataset Series", "Distribution");
+        Map<String, SchemaInfo> schemaInfoMap = createSchemaInfoMap(fdpSchemaDataResponseList);
         when(fdpServiceMock.getAllSchemas()).thenReturn(fdpSchemaDataResponseList);
 
         // Act
         List<ResourceTask> result = resourceTaskService.createTasks();
 
         // Assert
-        assertEquals(result.size(), fdpSchemaDataResponseList.size());
-        for(ResourceTask resourceTask : result){
-        //    assertEquals(fdpResourceUuid, resourceData.resourceUUID());
-          //  assertTrue(resourceData.exists());
+        assertEquals(properties.resources.size(), result.size());
+        for (ResourceTask task : result) {
+            Properties.ResourceProperties resourceProperty = properties.resources.get(task.resource);
+            String expectedSchemaUuid = schemaInfoMap.get(resourceProperty.schema()).uuid();
+            String expectedFdpResourceId = resourceInfoMap.get(task.resource).uuid();
+
+            assertEquals(expectedSchemaUuid, task.shapeUUUID);
+            assertEquals(expectedFdpResourceId, task.UUID);
+            assertTrue(task.exists);
         }
     }
 
-    // todo:
-    @Test
-    void AllPropertyResourcesNotFoundInFdpResourceInfoMap_WhenCreatingTasks_ReturnsTasksThatDoNotExist(){}
-
-    // todo:
-    @Test
-    void AllPropertyResourcesFoundInFdpResourceInfoMap_WhenCreatingParentTasks_ReturnsTasksWithFilledChildDataAndExistsIsTrue(){}
-
-    // todo:
-    @Test
-    void AllPropertyResourcesNotFoundInFdpResourceInfoMap_WhenCreatingParentTasks_ReturnsTasksWithEmptyChildDataAndExistsIsFalse(){}
 
 
-    @Test
-    void TestResourceTaskService_RealScenario() {
-        // Arrange
-        List<ResourceResponse> fdpResourceResponseList =  List.of(
-                new ResourceResponse(
-                        "2f08228e-1789-40f8-84cd-28e3288c3604",
-                        "Dataset",
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                ),
-                new ResourceResponse(
-                        "02c649de-c579-43bb-b470-306abdc808c7",
-                        "Distribution",
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                ),
-                new ResourceResponse(
-                        "77aaad6a-0136-4c6e-88b9-07ffccd0ee4c",
-                        "FAIR Data Point",
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                ),
-                new ResourceResponse(
-                        "fc089ccc-c06d-4090-bf46-74b9192e5d04",
-                        "Dataset Series",
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                ),
-                new ResourceResponse(
-                        "2da98613-5673-4741-b131-a1410953c3f0",
-                        "Analytics Distribution",
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                ),
-                new ResourceResponse(
-                        "b117e67a-937c-4115-be6d-d79ef5ddadf4",
-                        "Sample Distribution",
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                )
-        );
 
-        List<SchemaDataResponse> schemaDataResponseList =  List.of(
-                new SchemaDataResponse(
-                        "6f7a5a76-6185-4bd0-9fe9-62ecc90c9bad",
-                        "Metadata Service",
-                        new SchemaDataResponse.Latest(
-                                null,
-                                new Version(1,  0, 0).toString(),
-                                null,
-                                null,
-                                null,
-                                false,
-                                false,
-                                true,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
-                        ),
-                        null,
-                        new ArrayList<>(List.of(new Version(1, 0, 0).toString())),
-                        null,
-                        null
-                ),
-                new SchemaDataResponse(
-                        "a92958ab-a414-47e6-8e17-68ba96ba3a2b",
-                        "FAIR Data Point",
-                        new SchemaDataResponse.Latest(
-                                null,
-                                new Version(1,  0, 0).toString(),
-                                null,
-                                null,
-                                null,
-                                false,
-                                false,
-                                true,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
-                        ),
-                        null,
-                        new ArrayList<>(List.of(new Version(1, 0, 0).toString())),
-                        null,
-                        null
-                ),
-                new SchemaDataResponse(
-                        "6a668323-3936-4b53-8380-a4fd2ed082ee",
-                        "Resource",
-                        new SchemaDataResponse.Latest(
-                                null,
-                                new Version(1,  0, 0).toString(),
-                                null,
-                                null,
-                                null,
-                                false,
-                                false,
-                                true,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
-                        ),
-                        null,
-                        new ArrayList<>(List.of(new Version(1, 0, 0).toString())),
-                        null,
-                        null
-                ),
-                new SchemaDataResponse(
-                        "866d7fb8-5982-4215-9c7c-18d0ed1bd5f3",
-                        "Dataset",
-                        new SchemaDataResponse.Latest(
-                                null,
-                                new Version(1,  0, 0).toString(),
-                                null,
-                                null,
-                                null,
-                                false,
-                                false,
-                                true,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
-                        ),
-                        null,
-                        new ArrayList<>(List.of(new Version(1, 0, 0).toString())),
-                        null,
-                        null
-                ),
-                new SchemaDataResponse(
-                        "0bc517a8-79e5-427a-b0a5-100aa32d58ee",
-                        "Dataset Series",
-                        new SchemaDataResponse.Latest(
-                                null,
-                                new Version(1,  0, 0).toString(),
-                                null,
-                                null,
-                                null,
-                                false,
-                                false,
-                                true,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
-                        ),
-                        null,
-                        new ArrayList<>(List.of(new Version(1, 0, 0).toString())),
-                        null,
-                        null
-                ),
-                new SchemaDataResponse(
-                        "ebacbf83-cd4f-4113-8738-d73c0735b0ab",
-                        "Distribution",
-                        new SchemaDataResponse.Latest(
-                                null,
-                                new Version(1,  0, 0).toString(),
-                                null,
-                                null,
-                                null,
-                                false,
-                                false,
-                                true,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
-                        ),
-                        null,
-                        new ArrayList<>(List.of(new Version(1, 0, 0).toString())),
-                        null,
-                        null
-                ),
-                new SchemaDataResponse(
-                        "89d94c1b-f6ff-4545-ba9b-120b2d1921d0",
-                        "Data Service",
-                        new SchemaDataResponse.Latest(
-                                null,
-                                new Version(1,  0, 0).toString(),
-                                null,
-                                null,
-                                null,
-                                false,
-                                false,
-                                true,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
-                        ),
-                        null,
-                        new ArrayList<>(List.of(new Version(1, 0, 0).toString())),
-                        null,
-                        null
-                ),
-                new SchemaDataResponse(
-                        "2aa7ba63-d27a-4c0e-bfa6-3a4e250f4660",
-                        "Catalog",
-                        new SchemaDataResponse.Latest(
-                                null,
-                                new Version(1,  0, 0).toString(),
-                                null,
-                                null,
-                                null,
-                                false,
-                                false,
-                                true,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
-                        ),
-                        null,
-                        new ArrayList<>(List.of(new Version(1, 0, 0).toString())),
-                        null,
-                        null
-                ),
-                new SchemaDataResponse(
-                        "ebacbf83-cd4f-4113-8738-d73c0735b0ab",
-                        "Distribution",
-                        new SchemaDataResponse.Latest(
-                                null,
-                                new Version(1,  0, 0).toString(),
-                                null,
-                                null,
-                                null,
-                                false,
-                                false,
-                                true,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
-                        ),
-                        null,
-                        new ArrayList<>(List.of(new Version(1, 0, 0).toString())),
-                        null,
-                        null
-                ),
-                new SchemaDataResponse(
-                        "ebacbf83-cd4f-4113-8738-d73c0735b0ab",
-                        "Distribution",
-                        new SchemaDataResponse.Latest(
-                                null,
-                                new Version(1,  0, 0).toString(),
-                                null,
-                                null,
-                                null,
-                                false,
-                                false,
-                                true,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
-                        ),
-                        null,
-                        null,
-                        null,
-                        null
-                )
-        );
-
-        when(fdpServiceMock.getAllResources()).thenReturn(fdpResourceResponseList);
-
-        when(fdpServiceMock.getAllSchemas()).thenReturn(schemaDataResponseList);
-
-        // Act
-        List<ResourceTask> result = resourceTaskService.createTasks();
-
-        // Assert
-        assertEquals(3, result.size());
-        for(ResourceTask task : result){
-            assertEquals(true, task.exists);
-        }
-    }
 }
