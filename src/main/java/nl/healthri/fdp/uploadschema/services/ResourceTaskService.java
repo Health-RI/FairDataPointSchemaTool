@@ -85,22 +85,23 @@ public class ResourceTaskService implements  ResourceTaskServiceInterface {
         }).toList();
     }
 
-    protected ParentResourceData getParentResourceInfo(Map.Entry<String, Properties.ResourceProperties> entry, Map<String, ResourceInfo> fdpResourceInfoMap) {
-        String parentResourceName = entry.getValue().parentResource();
+    // Gets information from property resource parent and creates a new parent resource with parent information.
+    protected ParentResourceData getParentResourceInfo(Map.Entry<String, Properties.ResourceProperties> propertyResource, Map<String, ResourceInfo> fdpResourceInfoMap) {
+        String propertyResourceParentName = propertyResource.getValue().parentResource();
 
-        ResourceInfo fdpResourceInfo = fdpResourceInfoMap.get(parentResourceName);
+        ResourceInfo fdpResourceInfo = fdpResourceInfoMap.get(propertyResourceParentName);
         if (fdpResourceInfo == null) {
-            return new ParentResourceData(parentResourceName, null, null, null, null, false);
+            return new ParentResourceData(propertyResourceParentName, null, null, null, null, false);
         }
 
         String parentResourceUuid = fdpResourceInfo.uuid();
-        String childName = entry.getKey();
-        String childIri =  entry.getValue().parentRelationIri();
+        String childName = propertyResource.getKey();
+        String childIri =  propertyResource.getValue().parentRelationIri();
         String childUuid = fdpResourceInfoMap.get(childName).uuid();
         boolean exists = true;
 
         return new ParentResourceData(
-                parentResourceName,
+                propertyResourceParentName,
                 parentResourceUuid,
                 childUuid,
                 childIri,
