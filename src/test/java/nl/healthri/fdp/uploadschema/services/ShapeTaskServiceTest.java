@@ -8,7 +8,6 @@ import nl.healthri.fdp.uploadschema.utils.*;
 import nl.healthri.fdp.uploadschema.utils.Properties;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.impl.LinkedHashModel;
-import org.eclipse.rdf4j.model.util.Models;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
