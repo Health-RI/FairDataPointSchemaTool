@@ -1,12 +1,14 @@
 package nl.healthri.fdp.uploadschema.utils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.exc.StreamReadException;
+import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import nl.healthri.fdp.uploadschema.Version;
+import nl.healthri.fdp.uploadschema.domain.Version;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -22,16 +24,11 @@ public class Properties {
     public final Map<String, ResourceProperties> resources = new HashMap<>();
     public List<String> schemasToPublish;
     public String schemaVersion;
-
     public String inputDir;
-
     public String templateDir;
     public String outputRoot;
-    @JsonProperty("piecesDir")
     public String piecesDir;
-    @JsonProperty("fairDataPointDir")
     public String fairDataPointDir;
-    @JsonProperty("validationDir")
     public String validationDir;
 
     public record ResourceProperties(
@@ -41,8 +38,23 @@ public class Properties {
     }
 
     public static Properties load(File file) throws IOException {
-        var mapper = new ObjectMapper(new YAMLFactory());
-        return mapper.readValue(file, Properties.class);
+        if (!file.exists() || !file.isFile()) {
+            throw new FileNotFoundException("Properties file not found: " + file.getAbsolutePath());
+        }
+
+        try {
+            var mapper = new ObjectMapper(new YAMLFactory());
+            return mapper.readValue(file, Properties.class);
+        } catch (StreamReadException e) {
+            // Malformed YAML (e.g., bad indentation, syntax error)
+            throw new IOException("Failed to read the YAML contents from file: " + file.getAbsolutePath(), e);
+        } catch (DatabindException e) {
+            // Valid YAML, but doesn't mattch the Properties structure
+            throw new IOException("Failed to bind YAML content to Properties object from file: " + file.getAbsolutePath(), e);
+        } catch (IOException e) {
+            // Other IO issues
+            throw new IOException("Error while reading properties from file: " + file.getAbsolutePath(), e);
+        }
     }
 
     /**
@@ -97,6 +109,10 @@ public class Properties {
     @JsonIgnore
     public Version getVersion() {
         return new Version(schemaVersion);
+    }
+
+    public List<String> getSchemasToPublish() {
+        return this.schemasToPublish;
     }
 
     @JsonIgnore
@@ -172,5 +188,8 @@ public class Properties {
                 .map(Map.Entry::getKey).collect(Collectors.toSet());
     }
 
+    public Map<String, ResourceProperties> getResourceProperties() {
+        return this.resources;
+    }
 }
 

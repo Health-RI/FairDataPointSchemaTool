@@ -1,10 +1,13 @@
 package nl.healthri.fdp.uploadschema;
 
-import nl.healthri.fdp.uploadschema.tasks.ResourceUpdateInsertTask;
-import nl.healthri.fdp.uploadschema.tasks.ShapeUpdateInsertTask;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import nl.healthri.fdp.uploadschema.integrations.FdpClient;
+import nl.healthri.fdp.uploadschema.services.FdpService;
+import nl.healthri.fdp.uploadschema.services.ResourceTaskService;
+import nl.healthri.fdp.uploadschema.services.SchemaToolService;
+import nl.healthri.fdp.uploadschema.services.ShapeTaskService;
+import nl.healthri.fdp.uploadschema.utils.FileHandler;
 import nl.healthri.fdp.uploadschema.utils.Properties;
-import nl.healthri.fdp.uploadschema.utils.RdfUtils;
-import org.eclipse.rdf4j.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -13,11 +16,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-
-import static java.util.function.Predicate.not;
+import java.net.http.HttpClient;
+import java.time.Duration;
 
 @CommandLine.Command(name = "SchemaTools utility that create FDP ready Shacls and upload them the the FDP.",
         mixinStandardHelpOptions = true, version = "SchemaTool v1.0")
@@ -41,6 +41,9 @@ public class SchemaTools implements Runnable {
     @CommandLine.Option(names = {"-c", "--command"}, defaultValue = "both", description = "Valid values: ${COMPLETION-CANDIDATES} (default: ${DEFAULT-VALUE})", converter = CommandEnumConverter.class)
     CommandEnum command;
 
+    @CommandLine.Option(names = {"-f", "--force"}, defaultValue = "false", description = "Force upload even if schema has not changed")
+    boolean force;
+
     public static void main(String... args) {
         var cmd = new CommandLine(new SchemaTools());
         System.exit(cmd.execute(args));
@@ -49,61 +52,33 @@ public class SchemaTools implements Runnable {
     @Override
     public void run() {
         try {
-            final Properties p = Properties.load(propertyFile);
-            if (command == CommandEnum.TEMPLATE) {
-                //1 read all(!) excel files from folder, write shapes in Pieces directory
-                logger.info("reading templates from {} ", p.templateDir);
-                for (var e : XlsToRdfUtils.getTemplateFiles(p.templateDir).entrySet()) {
-                    logger.info("  converting {} ", e.getValue());
-                    Path path = p.getPiecesDir().resolve(e.getKey() + ".ttl");
-                    String shacl = XlsToRdfUtils.createShacl(e.getValue());
-                    Files.write(path, shacl.getBytes());
+            HttpClient client = HttpClient.newBuilder()
+                    .connectTimeout(Duration.ofSeconds(10))
+                    .build();
+
+            final ObjectMapper objectMapper = new ObjectMapper();
+            final FdpClient fdpClient = new FdpClient(client, this.hostname, objectMapper);
+            final FdpService fdpService = new FdpService(fdpClient);
+            final Properties properties = Properties.load(propertyFile);
+            final FileHandler fileHandler = new FileHandler();
+            final ResourceTaskService resourceTaskService = new ResourceTaskService(fdpService, properties);
+            final ShapeTaskService shapeTaskService = new ShapeTaskService(fdpService, fileHandler, properties);
+            final SchemaToolService schemaToolService = new SchemaToolService(fdpService, resourceTaskService, shapeTaskService, properties, fileHandler);
+
+            fdpService.authenticate(this.username, this.password);
+
+            switch (command) {
+                case TEMPLATE -> {
+                    schemaToolService.convertTemplatesToShaclShapes();
+                    schemaToolService.mergeShapesToFdpSchemas();
+                    schemaToolService.mergeShapesForValidation();
                 }
-                //2 merge piece to FairDataPoint dir.
-                logger.info("Writing files: {}", p.getFiles().keySet());
-                for (var e : p.getFiles(p.getPiecesDir()).entrySet()) {
-                    Path path = p.getFairDataPointDir().resolve(RdfUtils.schemaToFile(e.getKey()));
-                    Model m = RdfUtils.readFiles(e.getValue());
-                    RdfUtils.safeModel(path, m);
+                case BOTH -> {
+                    schemaToolService.createOrUpdateSchemas(force);
+                    schemaToolService.addResourceDescriptions();
                 }
-                //3 merge all pieces into validation dir.
-
-                Path path = p.getValidationDir().resolve("HRI-Datamodel-shapes.ttl");
-                logger.info("Write validation file {} combining {} files", path, p.getAllFiles().size());
-                Model m = RdfUtils.readFiles(new ArrayList<>(p.getAllFiles()));
-                RdfUtils.safeModel(path, m);
-            } else {
-                logger.info("Connecting to FDP at {} as {} ", hostname, username);
-
-                final FDP fdp = FDP.connectToFdp(hostname, username, password);
-
-                if (command == CommandEnum.SCHEMA || command == CommandEnum.BOTH) {
-                    //Shapes we want to update/insert
-                    var shapeTasks = ShapeUpdateInsertTask.createTasks(p, fdp);
-
-//          insert new schemas and keep the UUID, this is needed for the "release step"
-                    shapeTasks.stream().filter(ShapeUpdateInsertTask::isInsert).forEach(fdp::insertSchema);
-
-//          update existing shape, will get status draft.
-                    shapeTasks.stream().filter(not(ShapeUpdateInsertTask::isInsert)).forEach(fdp::updateSchema);
-
-                    //the draft-schema are released,
-                    shapeTasks.forEach(fdp::releaseSchema);
-                }
-
-                if (command == CommandEnum.RESOURCE || command == CommandEnum.BOTH) {
-                    //add resource-descriptions
-                    var resourceTasks = ResourceUpdateInsertTask.createTask(p, fdp);
-                    resourceTasks.stream().filter(ResourceUpdateInsertTask::isInsert).forEach(fdp::insertResource);
-
-                    if (resourceTasks.stream().noneMatch(not(ResourceUpdateInsertTask::isInsert))) {
-                        logger.warn("Updating resources is not supported yet, but will try to add children if needed)");
-                    }
-
-                    //add the previous resources as child to parent.
-                    var resourceTasksParents = ResourceUpdateInsertTask.createParentTask(p, fdp);
-                    resourceTasksParents.stream().filter(ResourceUpdateInsertTask::hasChild).forEach(fdp::updateResource);
-                }
+                case SCHEMA -> schemaToolService.createOrUpdateSchemas(force);
+                case RESOURCE -> schemaToolService.addResourceDescriptions();
             }
         } catch (IOException io) {
             throw new RuntimeException(io);
