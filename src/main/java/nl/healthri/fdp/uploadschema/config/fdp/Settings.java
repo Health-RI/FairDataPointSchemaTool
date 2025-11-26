@@ -11,6 +11,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+
+import static java.util.stream.Collectors.toMap;
 
 public class Settings {
     private static Settings settings;
@@ -122,43 +125,36 @@ public class Settings {
         mergedSettings.forms.autocomplete.searchNamespace =
                 fdpSettings.forms().autocomplete().searchNamespace();
 
-        List<Forms.Autocomplete.Source> mergedSources =
-                new java.util.ArrayList<>();
+        List<Forms.Autocomplete.Source> mergedSources = new java.util.ArrayList<>();
+        List<Forms.Autocomplete.Source> settingsSources = mergedSettings.forms.autocomplete.sources;
+        List<SettingsResponse.Forms.Autocomplete.Source> fdpSources = fdpSettings.forms().autocomplete().sources();
 
-        List<Forms.Autocomplete.Source> existingSources =
-                mergedSettings.forms.autocomplete.sources;
-
-        List<SettingsResponse.Forms.Autocomplete.Source> incomingSources =
-                fdpSettings.forms().autocomplete().sources();
-
-        // todo: allow multiple rdf types?
-        java.util.Map<String, Forms.Autocomplete.Source> incomingByRdfType =
-                incomingSources.stream().collect(
-                        java.util.stream.Collectors.toMap(
+        // Creates map with RdfType as key and the Source as value
+        // Each source is mapped from SettingsResponse Source to Settings Source.
+        Map<String, Forms.Autocomplete.Source> sourcesByRdfType =
+                fdpSources.stream()
+                        .collect(
+                            toMap(
                                 SettingsResponse.Forms.Autocomplete.Source::rdfType,
-                                s -> {
+                                source -> {
                                     Forms.Autocomplete.Source src = new Forms.Autocomplete.Source();
-                                    src.rdfType = s.rdfType();
-                                    src.sparqlEndpoint = s.sparqlEndpoint();
-                                    src.sparqlQuery = s.sparqlQuery();
+                                    src.rdfType = source.rdfType();
+                                    src.sparqlEndpoint = source.sparqlEndpoint();
+                                    src.sparqlQuery = source.sparqlQuery();
                                     return src;
                                 }
                         ));
 
-        if (existingSources != null) {
-            for (Forms.Autocomplete.Source existing : existingSources) {
-                if (incomingByRdfType.containsKey(existing.rdfType)) {
-                    mergedSources.add(incomingByRdfType.get(existing.rdfType));
-                    incomingByRdfType.remove(existing.rdfType);
-                } else {
-                    mergedSources.add(existing);
-                }
+        // Checks if each Source in Settings Source list is already the in FDP Source map sourcesByRdfType.
+        // If RdfType is already in sourceByRdfMap the Source is ignored, otherwise it's added.
+        if (settingsSources != null) {
+            for (Forms.Autocomplete.Source existing : settingsSources) {
+                Forms.Autocomplete.Source source = sourcesByRdfType.getOrDefault(existing.rdfType, existing);
+                mergedSources.add(source);
             }
         }
 
-        mergedSources.addAll(incomingByRdfType.values());
         mergedSettings.forms.autocomplete.sources = mergedSources;
-
         return this;
     }
 }
