@@ -1,6 +1,6 @@
 package nl.healthri.fdp.uploadschema.utils;
 
-import nl.healthri.fdp.uploadschema.dto.response.Resource.ResourceResponse;
+import nl.healthri.fdp.uploadschema.dto.Resource.ResourceResponse;
 
 import java.util.HashMap;
 import java.util.List;

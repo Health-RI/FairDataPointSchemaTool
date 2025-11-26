@@ -1,17 +1,19 @@
 package nl.healthri.fdp.uploadschema.services;
 
+import nl.healthri.fdp.uploadschema.config.fdp.Settings;
 import nl.healthri.fdp.uploadschema.domain.Version;
 import nl.healthri.fdp.uploadschema.domain.ResourceTask;
 import nl.healthri.fdp.uploadschema.domain.ShapeTask;
-import nl.healthri.fdp.uploadschema.dto.request.Resource.ResourceRequest;
-import nl.healthri.fdp.uploadschema.dto.request.Schema.ReleaseSchemaRequest;
-import nl.healthri.fdp.uploadschema.dto.request.Schema.UpdateSchemaRequest;
-import nl.healthri.fdp.uploadschema.dto.request.auth.LoginRequest;
-import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
-import nl.healthri.fdp.uploadschema.dto.response.auth.LoginResponse;
+import nl.healthri.fdp.uploadschema.dto.Resource.ResourceRequest;
+import nl.healthri.fdp.uploadschema.dto.Schema.ReleaseSchemaRequest;
+import nl.healthri.fdp.uploadschema.dto.Schema.UpdateSchemaRequest;
+import nl.healthri.fdp.uploadschema.dto.Settings.SettingsResponse;
+import nl.healthri.fdp.uploadschema.dto.auth.LoginRequest;
+import nl.healthri.fdp.uploadschema.dto.Schema.SchemaDataResponse;
+import nl.healthri.fdp.uploadschema.dto.auth.LoginResponse;
 import nl.healthri.fdp.uploadschema.integrations.FdpClientInterface;
 import nl.healthri.fdp.uploadschema.utils.SchemaInfo;
-import nl.healthri.fdp.uploadschema.dto.response.Resource.ResourceResponse;
+import nl.healthri.fdp.uploadschema.dto.Resource.ResourceResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -123,5 +125,12 @@ public class FdpService implements FdpServiceInterface {
         }
 
         fdpClient.updateResource(task, resourceResponse);
+    }
+
+    public void updateSettings(Settings newSettings){
+        SettingsResponse currentSettings = fdpClient.getSettings();
+        Settings mergedSettings = newSettings.Merge(currentSettings);
+
+        fdpClient.updateSettings(mergedSettings);
     }
 }

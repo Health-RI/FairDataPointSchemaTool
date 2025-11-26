@@ -3,7 +3,7 @@ package nl.healthri.fdp.uploadschema.services;
 import nl.healthri.fdp.uploadschema.domain.ResourceTask;
 import nl.healthri.fdp.uploadschema.domain.ShapeTask;
 import nl.healthri.fdp.uploadschema.utils.FileHandler;
-import nl.healthri.fdp.uploadschema.utils.Properties;
+import nl.healthri.fdp.uploadschema.config.fdp.Properties;
 import nl.healthri.fdp.uploadschema.utils.RdfUtils;
 import nl.healthri.fdp.uploadschema.utils.XlsToRdfUtils;
 import org.eclipse.rdf4j.model.Model;

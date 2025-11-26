@@ -1,4 +1,4 @@
-package nl.healthri.fdp.uploadschema.dto.request.Schema;
+package nl.healthri.fdp.uploadschema.dto.Schema;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;

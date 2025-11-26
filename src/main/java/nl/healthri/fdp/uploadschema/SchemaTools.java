@@ -1,13 +1,14 @@
 package nl.healthri.fdp.uploadschema;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import nl.healthri.fdp.uploadschema.config.fdp.Settings;
 import nl.healthri.fdp.uploadschema.integrations.FdpClient;
 import nl.healthri.fdp.uploadschema.services.FdpService;
 import nl.healthri.fdp.uploadschema.services.ResourceTaskService;
 import nl.healthri.fdp.uploadschema.services.SchemaToolService;
 import nl.healthri.fdp.uploadschema.services.ShapeTaskService;
 import nl.healthri.fdp.uploadschema.utils.FileHandler;
-import nl.healthri.fdp.uploadschema.utils.Properties;
+import nl.healthri.fdp.uploadschema.config.fdp.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -24,6 +25,9 @@ import java.time.Duration;
 public class SchemaTools implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(SchemaTools.class);
+
+    @CommandLine.Option(names = {"-s", "--settings"}, defaultValue = "./FdpSettings.json", description = "location of the FdpSettings.json file (default: ${DEFAULT-VALUE})")
+    File settingsFile;
 
     @CommandLine.Option(names = {"-i", "--input"}, defaultValue = "./Properties.yaml", description = "location of the Property.yaml file (default: ${DEFAULT-VALUE})")
     File propertyFile;
@@ -59,13 +63,19 @@ public class SchemaTools implements Runnable {
             final ObjectMapper objectMapper = new ObjectMapper();
             final FdpClient fdpClient = new FdpClient(client, this.hostname, objectMapper);
             final FdpService fdpService = new FdpService(fdpClient);
+
             final Properties properties = Properties.load(propertyFile);
-            final FileHandler fileHandler = new FileHandler();
+
             final ResourceTaskService resourceTaskService = new ResourceTaskService(fdpService, properties);
+
+            final FileHandler fileHandler = new FileHandler();
             final ShapeTaskService shapeTaskService = new ShapeTaskService(fdpService, fileHandler, properties);
             final SchemaToolService schemaToolService = new SchemaToolService(fdpService, resourceTaskService, shapeTaskService, properties, fileHandler);
 
             fdpService.authenticate(this.username, this.password);
+
+            final Settings newFdpSettings =  Settings.GetSettings(settingsFile);
+            fdpService.updateSettings(newFdpSettings);
 
             switch (command) {
                 case TEMPLATE -> {

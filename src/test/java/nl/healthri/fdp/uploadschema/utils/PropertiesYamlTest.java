@@ -1,5 +1,6 @@
 package nl.healthri.fdp.uploadschema.utils;
 
+import nl.healthri.fdp.uploadschema.config.fdp.Properties;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;

@@ -1,4 +1,4 @@
-package nl.healthri.fdp.uploadschema.utils;
+package nl.healthri.fdp.uploadschema.config.fdp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.exc.StreamReadException;

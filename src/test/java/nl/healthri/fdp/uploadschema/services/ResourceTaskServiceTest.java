@@ -2,9 +2,9 @@ package nl.healthri.fdp.uploadschema.services;
 
 import nl.healthri.fdp.uploadschema.domain.ResourceTask;
 import nl.healthri.fdp.uploadschema.domain.Version;
-import nl.healthri.fdp.uploadschema.dto.response.Resource.ResourceResponse;
-import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
-import nl.healthri.fdp.uploadschema.utils.Properties;
+import nl.healthri.fdp.uploadschema.dto.Resource.ResourceResponse;
+import nl.healthri.fdp.uploadschema.dto.Schema.SchemaDataResponse;
+import nl.healthri.fdp.uploadschema.config.fdp.Properties;
 import nl.healthri.fdp.uploadschema.utils.ResourceInfo;
 import nl.healthri.fdp.uploadschema.utils.SchemaInfo;
 import org.junit.jupiter.api.BeforeEach;

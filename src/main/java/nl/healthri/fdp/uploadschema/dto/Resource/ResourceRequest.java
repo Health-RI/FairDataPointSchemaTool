@@ -1,4 +1,4 @@
-package nl.healthri.fdp.uploadschema.dto.request.Resource;
+package nl.healthri.fdp.uploadschema.dto.Resource;
 
 import java.util.ArrayList;
 

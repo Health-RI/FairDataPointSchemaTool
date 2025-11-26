@@ -2,15 +2,17 @@ package nl.healthri.fdp.uploadschema.integrations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import nl.healthri.fdp.uploadschema.config.fdp.Settings;
 import nl.healthri.fdp.uploadschema.domain.ResourceTask;
 import nl.healthri.fdp.uploadschema.domain.ShapeTask;
-import nl.healthri.fdp.uploadschema.dto.request.Resource.ResourceRequest;
-import nl.healthri.fdp.uploadschema.dto.request.Schema.ReleaseSchemaRequest;
-import nl.healthri.fdp.uploadschema.dto.request.Schema.UpdateSchemaRequest;
-import nl.healthri.fdp.uploadschema.dto.request.auth.LoginRequest;
-import nl.healthri.fdp.uploadschema.dto.response.Resource.ResourceResponse;
-import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
-import nl.healthri.fdp.uploadschema.dto.response.auth.LoginResponse;
+import nl.healthri.fdp.uploadschema.dto.Resource.ResourceRequest;
+import nl.healthri.fdp.uploadschema.dto.Schema.ReleaseSchemaRequest;
+import nl.healthri.fdp.uploadschema.dto.Schema.UpdateSchemaRequest;
+import nl.healthri.fdp.uploadschema.dto.Settings.SettingsResponse;
+import nl.healthri.fdp.uploadschema.dto.auth.LoginRequest;
+import nl.healthri.fdp.uploadschema.dto.Resource.ResourceResponse;
+import nl.healthri.fdp.uploadschema.dto.Schema.SchemaDataResponse;
+import nl.healthri.fdp.uploadschema.dto.auth.LoginResponse;
 import nl.healthri.fdp.uploadschema.utils.HttpRequestUtils;
 
 import org.slf4j.Logger;
@@ -315,6 +317,66 @@ public class FdpClient implements FdpClientInterface {
 
             HttpRequest.BodyPublisher body = HttpRequest.BodyPublishers.ofString(
                     this.objectMapper.writeValueAsString(resourceResponse)
+            );
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .PUT(body)
+                    .uri(uri)
+                    .header("accept", "application/json")
+                    .header("Content-Type", "application/json")
+                    .header("Authorization", this.authToken)
+                    .build();
+
+            // Sends request
+            HttpResponse<String> response = this.client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            // Handle each response based on Fair Data Point (FDP) Swagger documentation.
+            HttpRequestUtils.handleResponseStatus(response);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public SettingsResponse getSettings() {
+        logger.info("getting settings from FDP");
+
+        try {
+            isAuthenticated();
+
+            URI uri = new URI(this.hostname + "/settings");
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .GET()
+                    .uri(uri)
+                    .header("accept", "application/json")
+                    .header("Content-Type", "application/json")
+                    .header("Authorization", this.authToken)
+                    .build();
+
+            // Sends request
+            HttpResponse<String> response = this.client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            // Handle each response based on Fair Data Point (FDP) Swagger documentation.
+            HttpRequestUtils.handleResponseStatus(response);
+
+            // Maps response body to object
+            return objectMapper.readValue(response.body(), SettingsResponse.class);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void updateSettings(Settings settings) {
+        logger.info("updating settings in FDP");
+
+        try {
+            isAuthenticated();
+
+            URI uri = new URI(this.hostname + "/settings");
+
+            HttpRequest.BodyPublisher body = HttpRequest.BodyPublishers.ofString(
+                    this.objectMapper.writeValueAsString(settings)
             );
 
             HttpRequest request = HttpRequest.newBuilder()

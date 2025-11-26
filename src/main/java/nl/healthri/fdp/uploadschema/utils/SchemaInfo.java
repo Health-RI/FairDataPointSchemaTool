@@ -1,7 +1,7 @@
 package nl.healthri.fdp.uploadschema.utils;
 
 import nl.healthri.fdp.uploadschema.domain.Version;
-import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
+import nl.healthri.fdp.uploadschema.dto.Schema.SchemaDataResponse;
 
 import java.util.HashMap;
 import java.util.List;
