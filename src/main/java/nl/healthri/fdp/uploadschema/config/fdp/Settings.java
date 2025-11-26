@@ -1,10 +1,6 @@
 package nl.healthri.fdp.uploadschema.config.fdp;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.exc.StreamReadException;
-import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import nl.healthri.fdp.uploadschema.dto.Settings.SettingsResponse;
 
 import java.io.File;
@@ -43,33 +39,27 @@ public class Settings {
         public List<String> endpoints;
         public List<String> endpointsFromConfig;
         public String interval;
-
     }
 
     public static class Repository {
         public String type;
-
     }
 
     public static class Search {
         public List<String> filters;
-
     }
 
     public static class Forms {
         public Autocomplete autocomplete;
 
-
         public static class Autocomplete {
             public boolean searchNamespace;
             public List<Source> sources;
-
 
             public static class Source {
                 public String rdfType;
                 public String sparqlEndpoint;
                 public String sparqlQuery;
-
             }
         }
     }
@@ -82,7 +72,6 @@ public class Settings {
             }
             ObjectMapper mapper = new ObjectMapper();
             settings = mapper.readValue(file, Settings.class);
-
         }
 
         return settings;
