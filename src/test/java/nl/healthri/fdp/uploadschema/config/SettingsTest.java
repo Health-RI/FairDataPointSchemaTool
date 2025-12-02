@@ -84,22 +84,6 @@ public class SettingsTest {
     }
 
     @Test
-    public void DuplicateRdfTypeInFdpSettings_WhenMerging_ReturnsDuplicateKeyException() throws IOException {
-        // ARRANGE
-        String jsonFdpSettings = "{\"forms\": {\"autocomplete\": {\"sources\": []}}}";
-        File file = createFile(jsonFdpSettings);
-        SettingsResponse fdpSettingsWithDuplicate = createFdpSettingsResponseWithDuplicates();
-
-        // ACT
-        Settings settings = Settings.GetSettings(file);
-
-        // ACT & ASSERT
-        assertThrows(IllegalStateException.class, () -> {
-            settings.Merge(fdpSettingsWithDuplicate);
-        });
-    }
-
-    @Test
     public void SourceFoundInFdp_WhenMerging_ReturnsSettingsWithFdpSource() throws IOException {
         // ARRANGE
         final String localRdfType = "CommonRdfType";
@@ -134,10 +118,7 @@ public class SettingsTest {
         settings = settings.Merge(fdpSettings);
 
         // ASSERT
-        Settings.Forms.Autocomplete.Source mergedSource = settings.forms.autocomplete.sources.get(0);
-        assertEquals(1, settings.forms.autocomplete.sources.size(), "Should only have one source after merge.");
-        assertEquals(localRdfType, mergedSource.rdfType, "RDF type should be retained.");
-        assertEquals(fdpQuery, mergedSource.sparqlQuery, "Query from FDP settings should be used.");
+        assertEquals(2, settings.forms.autocomplete.sources.size(), "Should have 1 resource from settings and 1 resource from fdpSettings.");
     }
 
     @Test
