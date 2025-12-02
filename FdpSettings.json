@@ -1,0 +1,64 @@
+{
+  "clientUrl": "http://localhost",
+  "persistentUrl": "http://localhost:8080",
+  "appTitle": null,
+  "appSubtitle": null,
+  "appTitleFromConfig": "FAIR Data Point",
+  "appSubtitleFromConfig": "Metadata for machines",
+  "metadataMetrics": [
+    {
+      "metricUri": "https://purl.org/fair-metrics/FM_F1A",
+      "resourceUri": "https://www.ietf.org/rfc/rfc3986.txt"
+    },
+    {
+      "metricUri": "https://purl.org/fair-metrics/FM_A1.1",
+      "resourceUri": "https://www.wikidata.org/wiki/Q8777"
+    }
+  ],
+  "ping": {
+    "enabled": true,
+    "endpoints": [],
+    "endpointsFromConfig": [
+      "https://home.fairdatapoint.org"
+    ],
+    "interval": "PT168H"
+  },
+  "repository": {
+    "type": "InMemory"
+  },
+  "search": {
+    "filters": []
+  },
+  "forms": {
+    "autocomplete": {
+      "searchNamespace": true,
+      "sources": [
+        {
+          "rdfType": "http://purl.org/dc/terms/LinguisticSystem",
+          "sparqlEndpoint": "https://sparql-test.healthdata.nl/repositories/controlled-vocabularies",
+          "sparqlQuery": "PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nSELECT ?entity ?entityLabel WHERE {\n    ?entity skos:prefLabel ?entityLabel\n    FILTER ( lang(?entityLabel) = \"en\")\n}\n"
+        },
+        {
+          "rdfType": "http://purl.org/dc/terms/Frequency",
+          "sparqlEndpoint": "https://sparql-test.healthdata.nl/repositories/controlled-vocabularies",
+          "sparqlQuery": "PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nSELECT ?entity ?entityLabel WHERE {\n    GRAPH <https://publications.europa.eu/resource/authority/frequency> {\n      ?entity skos:prefLabel ?entityLabel\n      FILTER ( lang(?entityLabel) = \"en\")\n    }\n}"
+        },
+        {
+          "rdfType": "http://purl.org/dc/terms/MediaTypeOrExtent",
+          "sparqlEndpoint": "https://sparql-test.healthdata.nl/repositories/controlled-vocabularies",
+          "sparqlQuery": "PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nSELECT ?entity ?entityLabel WHERE {\n    GRAPH <https://publications.europa.eu/resource/authority/file-type> {\n      ?entity skos:prefLabel ?entityLabel\n      FILTER ( lang(?entityLabel) = \"en\")\n    }\n}"
+        },
+        {
+          "rdfType": "http://purl.org/dc/terms/Concept",
+          "sparqlEndpoint": "https://sparql-test.healthdata.nl/repositories/controlled-vocabularies",
+          "sparqlQuery": "PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nSELECT ?entity ?entityLabel WHERE {\n    GRAPH <https://publications.europa.eu/resource/authority/data-theme> {\n      ?entity skos:prefLabel ?entityLabel\n      FILTER ( lang(?entityLabel) = \"en\")\n    }\n}"
+        },
+        {
+          "rdfType": "http://purl.org/dc/terms/Test",
+          "sparqlEndpoint": "https://sparql-test.healthdata.nl/repositories/test",
+          "sparqlQuery": "PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nSELECT ?entity ?entityLabel WHERE {\n    GRAPH <https://publications.europa.eu/resource/authority/distribution-status> {\n      ?entity skos:prefLabel ?entityLabel\n      FILTER ( lang(?entityLabel) = \"en\")\n    }\n}"
+        }
+      ]
+    }
+  }
+}
