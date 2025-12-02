@@ -6,8 +6,10 @@ import nl.healthri.fdp.uploadschema.dto.Settings.SettingsResponse;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -65,6 +67,15 @@ public class Settings {
     }
 
     // Always returns the existing settings if already initialized.
+    public static Settings GetSettings(){
+        if(settings == null){
+            throw new NullPointerException("Settings instance is not set");
+        }
+
+        return settings;
+    }
+
+    // Always returns the existing settings if already initialized.
     public static Settings GetSettings(File file) throws IOException {
         if(settings == null){
             if (!file.exists() || !file.isFile()) {
@@ -116,34 +127,34 @@ public class Settings {
 
         List<Forms.Autocomplete.Source> mergedSources = new java.util.ArrayList<>();
         List<Forms.Autocomplete.Source> settingsSources = mergedSettings.forms.autocomplete.sources;
-        List<SettingsResponse.Forms.Autocomplete.Source> fdpSources = fdpSettings.forms().autocomplete().sources();
 
         // Creates map with RdfType as key and the Source as value
         // Each source is mapped from SettingsResponse Source to Settings Source.
-        Map<String, Forms.Autocomplete.Source> sourcesByRdfType =
-                fdpSources.stream()
-                        .collect(
-                            toMap(
-                                SettingsResponse.Forms.Autocomplete.Source::rdfType,
-                                source -> {
-                                    Forms.Autocomplete.Source src = new Forms.Autocomplete.Source();
-                                    src.rdfType = source.rdfType();
-                                    src.sparqlEndpoint = source.sparqlEndpoint();
-                                    src.sparqlQuery = source.sparqlQuery();
-                                    return src;
-                                }
-                        ));
+        List<Forms.Autocomplete.Source> fdpSourceList = new ArrayList<>();
+        List<SettingsResponse.Forms.Autocomplete.Source> fdpSources = fdpSettings.forms().autocomplete().sources();
+        for (SettingsResponse.Forms.Autocomplete.Source source : fdpSources) {
+            Forms.Autocomplete.Source src = new Forms.Autocomplete.Source();
+            src.rdfType = source.rdfType();
+            src.sparqlEndpoint = source.sparqlEndpoint();
+            src.sparqlQuery = source.sparqlQuery();
+            mergedSettings.forms.autocomplete.sources.add(src);
+        }
 
-        // Checks if each Source in Settings Source list is already the in FDP Source map sourcesByRdfType.
-        // If RdfType is already in sourceByRdfMap the Source is ignored, otherwise it's added.
+
+        // Checks if each Source in Settings is already the in mergedSettings resource.
+        // Adds to mergedSettings resource list if resource is not in merged settings.
         if (settingsSources != null) {
-            for (Forms.Autocomplete.Source existing : settingsSources) {
-                Forms.Autocomplete.Source source = sourcesByRdfType.getOrDefault(existing.rdfType, existing);
-                mergedSources.add(source);
+            for (Forms.Autocomplete.Source source : settingsSources) {
+                boolean exists = mergedSettings.forms.autocomplete.sources
+                        .stream()
+                        .anyMatch(s -> Objects.equals(s.rdfType, source.rdfType));
+
+                if (!exists) {
+                    mergedSettings.forms.autocomplete.sources.add(source);
+                }
             }
         }
 
-        mergedSettings.forms.autocomplete.sources = mergedSources;
         return this;
     }
 }
