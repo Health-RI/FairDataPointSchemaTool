@@ -93,8 +93,13 @@ public class FileHandler {
                 } else {
                     throw new IOException("Failed to fetch file: " + response.statusCode());
                 }
-            } catch (InterruptedException ie) {
-                throw new RuntimeException(ie);
+            } catch (IOException e) {
+                logger.error("Failed to get input stream: {}", e.getMessage());
+                throw new RuntimeException(e);
+            } catch (InterruptedException e){
+                logger.error("Thread was interrupted while getting input stream: {}", e.getMessage());
+                Thread.currentThread().interrupt();
+                throw new RuntimeException(e);
             }
         } else {
             return new FileInputStream(Paths.get(uri).toFile());
