@@ -13,6 +13,8 @@ import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
 import nl.healthri.fdp.uploadschema.dto.response.auth.LoginResponse;
 import nl.healthri.fdp.uploadschema.utils.HttpRequestUtils;
 
+import org.apache.http.HttpHeaders;
+import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -24,9 +26,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.*;
-
-
-// TODO: Throw client exception instead of Runtimeexception (otherwise you hide the error encountered)
 
 @Component
 public class FdpClient implements FdpClientInterface {
@@ -66,8 +65,8 @@ public class FdpClient implements FdpClientInterface {
             HttpRequest request = HttpRequest.newBuilder()
                     .POST(body)
                     .uri(uri)
-                    .header("accept", "application/json")
-                    .header("Content-Type", "application/json")
+                    .header(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
                     .build();
 
 
@@ -101,9 +100,9 @@ public class FdpClient implements FdpClientInterface {
             HttpRequest request = HttpRequest.newBuilder()
                     .GET()
                     .uri(uri)
-                    .header("accept", "application/json")
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", this.authToken)
+                    .header(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.AUTHORIZATION, this.authToken)
                     .build();
 
             // Sends request created through the client
@@ -143,9 +142,9 @@ public class FdpClient implements FdpClientInterface {
             HttpRequest request = HttpRequest.newBuilder()
                     .POST(body)
                     .uri(uri)
-                    .header("accept", "application/json")
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", this.authToken)
+                    .header(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.AUTHORIZATION, this.authToken)
                     .build();
 
             // Sends request
@@ -181,9 +180,9 @@ public class FdpClient implements FdpClientInterface {
             HttpRequest request = HttpRequest.newBuilder()
                     .PUT(body)
                     .uri(uri)
-                    .header("Accept", "application/json")
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", this.authToken)
+                    .header(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.AUTHORIZATION, this.authToken)
                     .build();
 
             // Sends request
@@ -216,9 +215,9 @@ public class FdpClient implements FdpClientInterface {
             HttpRequest request = HttpRequest.newBuilder()
                     .POST(body)
                     .uri(uri)
-                    .header("Accept", "application/json")
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", this.authToken)
+                    .header(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.AUTHORIZATION, this.authToken)
                     .build();
 
             // Sends request
@@ -248,9 +247,9 @@ public class FdpClient implements FdpClientInterface {
             HttpRequest request = HttpRequest.newBuilder()
                     .GET()
                     .uri(uri)
-                    .header("accept", "application/json")
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", this.authToken)
+                    .header(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.AUTHORIZATION, this.authToken)
                     .build();
 
             // Sends request
@@ -282,9 +281,9 @@ public class FdpClient implements FdpClientInterface {
             HttpRequest request = HttpRequest.newBuilder()
                     .GET()
                     .uri(uri)
-                    .header("accept", "application/json")
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", this.authToken)
+                    .header(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.AUTHORIZATION, this.authToken)
                     .build();
 
             // Sends request
@@ -321,9 +320,9 @@ public class FdpClient implements FdpClientInterface {
             HttpRequest request = HttpRequest.newBuilder()
                     .POST(body)
                     .uri(uri)
-                    .header("accept", "application/json")
-                    .header("content-type", "application/json")
-                    .header("authorization", this.authToken)
+                    .header(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.AUTHORIZATION, this.authToken)
                     .build();
 
             // Sends request
@@ -359,9 +358,9 @@ public class FdpClient implements FdpClientInterface {
             HttpRequest request = HttpRequest.newBuilder()
                     .PUT(body)
                     .uri(uri)
-                    .header("accept", "application/json")
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", this.authToken)
+                    .header(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.AUTHORIZATION, this.authToken)
                     .build();
 
             // Sends request

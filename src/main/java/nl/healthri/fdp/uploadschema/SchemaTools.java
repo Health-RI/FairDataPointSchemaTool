@@ -8,8 +8,6 @@ import nl.healthri.fdp.uploadschema.services.SchemaToolService;
 import nl.healthri.fdp.uploadschema.services.ShapeTaskService;
 import nl.healthri.fdp.uploadschema.utils.FileHandler;
 import nl.healthri.fdp.uploadschema.utils.Properties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 
 import java.io.File;
@@ -22,9 +20,6 @@ import java.time.Duration;
 @CommandLine.Command(name = "SchemaTools utility that create FDP ready Shacls and upload them the the FDP.",
         mixinStandardHelpOptions = true, version = "SchemaTool v1.0")
 public class SchemaTools implements Runnable {
-
-    private static final Logger logger = LoggerFactory.getLogger(SchemaTools.class);
-
     @CommandLine.Option(names = {"-i", "--input"}, defaultValue = "./Properties.yaml", description = "location of the Property.yaml file (default: ${DEFAULT-VALUE})")
     File propertyFile;
 
