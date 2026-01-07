@@ -4,6 +4,10 @@
 
 name: Generate Changelog
 
+permissions:
+  contents: write
+  pull-requests: write
+
 on:
   workflow_call:
     inputs:
@@ -16,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           token: '${{ secrets.GITHUB_TOKEN }}'
           fetch-depth: 0
@@ -25,8 +29,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config --local user.email "Health-RI-admin@users.noreply.github.com"
-          git config --local user.name "Health-RI Admin" 
+          git config --local user.email "lnds-Sysadmins@users.noreply.github.com"
+          git config --local user.name "LNDS-Sysadmins"
           git pull
           
           CHANGELOG_FILE="CHANGELOG.md"
@@ -62,10 +66,10 @@ jobs:
           } > temp_changelog.md
 
           if [[ ! -f "$CHANGELOG_FILE" ]]; then
-            echo -e "# Changelog\n\nAll notable changes to this project will be documented here.\n\nThe format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).\n\n" > "$CHANGELOG_FILE"
+            echo -e "# Changelog\n\nAll notable changes to this project will be documented here.\n" > "$CHANGELOG_FILE"
           fi
 
-          sed -i '7r temp_changelog.md' "$CHANGELOG_FILE"
+          sed -i '14r temp_changelog.md' "$CHANGELOG_FILE"
           rm temp_changelog.md
 
           git add "$CHANGELOG_FILE"
@@ -76,5 +80,4 @@ jobs:
             --title "chore: update changelog for $LATEST_TAG" \
             --body "This PR updates the changelog for release $LATEST_TAG." \
             --base main \
-            --draft \
             --head "$CHANGELOG_BRANCH"
