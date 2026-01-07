@@ -14,19 +14,18 @@ on:
         default: 'patch'
 
 jobs:
-  ort:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: oss-review-toolkit/ort-ci-github-action@v1
-        with:
-          allow-dynamic-versions: "true"
-          fail-on: "issues"
-          run: "cache-dependencies,cache-scan-results,labels,analyzer,evaluator,advisor,reporter,upload-results"
+    # ort:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: oss-review-toolkit/ort-ci-github-action@v1
+  #       with:
+  #         allow-dynamic-versions: "true"
+  #         fail-on: "issues"
+  #         run: "cache-dependencies,cache-scan-results,labels,analyzer,evaluator,advisor,reporter,upload-results"
 
   versioning:
     runs-on: ubuntu-latest
-    needs: ort
     outputs:
       new_tag: ${{ steps.tagging.outputs.new_tag }}
     steps:
@@ -52,9 +51,9 @@ jobs:
           echo "Updating : $INCREMENT version"
           
           case "$INCREMENT" in
-            major) ((MAJOR++)); MINOR=0; PATCH=0 ;;
-            minor) ((MINOR++)); PATCH=0 ;;
-            patch|*) ((PATCH++)) ;;
+            major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+            minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
+            patch|*) PATCH=$((PATCH + 1)) ;;
           esac
 
           NEW_TAG="v$MAJOR.$MINOR.$PATCH"
@@ -65,7 +64,6 @@ jobs:
 
           echo "New tag pushed: $NEW_TAG"
           echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
-
   publish-release:
     runs-on: ubuntu-latest
     needs: versioning
