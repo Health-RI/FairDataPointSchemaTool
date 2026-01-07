@@ -73,11 +73,18 @@ jobs:
           rm temp_changelog.md
 
           git add "$CHANGELOG_FILE"
+          if git diff --cached --quiet; then
+            echo "No changelog updates to commit; skipping PR creation."
+            exit 0
+          fi
+
           git commit -m "doc: update CHANGELOG.md for $LATEST_TAG"
           git push origin "$CHANGELOG_BRANCH"
+
+          BASE_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
           
           gh pr create \
             --title "chore: update changelog for $LATEST_TAG" \
             --body "This PR updates the changelog for release $LATEST_TAG." \
-            --base main \
+            --base "$BASE_BRANCH" \
             --head "$CHANGELOG_BRANCH"
