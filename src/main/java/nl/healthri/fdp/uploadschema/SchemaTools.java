@@ -2,12 +2,15 @@ package nl.healthri.fdp.uploadschema;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.healthri.fdp.uploadschema.integrations.FdpClient;
+import nl.healthri.fdp.uploadschema.integrations.exceptions.FdpClientException;
 import nl.healthri.fdp.uploadschema.services.FdpService;
 import nl.healthri.fdp.uploadschema.services.ResourceTaskService;
 import nl.healthri.fdp.uploadschema.services.SchemaToolService;
 import nl.healthri.fdp.uploadschema.services.ShapeTaskService;
 import nl.healthri.fdp.uploadschema.utils.FileHandler;
 import nl.healthri.fdp.uploadschema.utils.Properties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 
 import java.io.File;
@@ -38,6 +41,8 @@ public class SchemaTools implements Runnable {
 
     @CommandLine.Option(names = {"-f", "--force"}, defaultValue = "false", description = "Force upload even if schema has not changed")
     boolean force;
+
+    private static final Logger logger = LoggerFactory.getLogger(SchemaTools.class);
 
     public static void main(String... args) {
         var cmd = new CommandLine(new SchemaTools());
@@ -75,8 +80,10 @@ public class SchemaTools implements Runnable {
                 case SCHEMA -> schemaToolService.createOrUpdateSchemas(force);
                 case RESOURCE -> schemaToolService.addResourceDescriptions();
             }
-        } catch (IOException io) {
-            throw new RuntimeException(io);
+        } catch (IOException e) {
+            logger.error("Unexpected error: {}", e.getMessage());
+        } catch (FdpClientException e){
+            logger.error("FDP Connection Error: {}", e.getMessage());
         }
     }
 

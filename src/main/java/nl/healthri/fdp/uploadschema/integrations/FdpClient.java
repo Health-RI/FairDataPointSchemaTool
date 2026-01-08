@@ -11,6 +11,7 @@ import nl.healthri.fdp.uploadschema.dto.request.auth.LoginRequest;
 import nl.healthri.fdp.uploadschema.dto.response.Resource.ResourceResponse;
 import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
 import nl.healthri.fdp.uploadschema.dto.response.auth.LoginResponse;
+import nl.healthri.fdp.uploadschema.integrations.exceptions.FdpClientException;
 import nl.healthri.fdp.uploadschema.utils.HttpRequestUtils;
 
 import org.apache.http.HttpHeaders;
@@ -80,12 +81,10 @@ public class FdpClient implements FdpClientInterface {
             return this.objectMapper.readValue(response.body(), LoginResponse.class);
 
         } catch (IOException | URISyntaxException e) {
-            logger.error("Failed to get authorization token: {}", e.getMessage());
-            throw new RuntimeException(e);
-        } catch (InterruptedException e){
-            logger.error("Thread was interrupted while getting authorization token: {}", e.getMessage());
+            throw new FdpClientException("Failed to reach FDP during authentication", e);
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
+            throw new FdpClientException("Authentication process was interrupted", e);
         }
     }
 
@@ -113,13 +112,12 @@ public class FdpClient implements FdpClientInterface {
 
             // Maps response body to object
             return List.of(objectMapper.readValue(response.body(), SchemaDataResponse[].class));
+
         } catch (IOException | URISyntaxException e) {
-            logger.error("Failed to fetch schemas: {}", e.getMessage());
-            throw new RuntimeException(e);
-        } catch (InterruptedException e){
-            logger.error("Thread was interrupted while fetching schemas: {}", e.getMessage());
+            throw new FdpClientException("Failed to reach FDP while fetching schemas", e);
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
+            throw new FdpClientException("Request to fetch schemas was interrupted", e);
         }
     }
 
@@ -156,12 +154,10 @@ public class FdpClient implements FdpClientInterface {
             // Maps response body to object
             return objectMapper.readValue(response.body(), ResourceResponse.class);
         } catch (IOException | URISyntaxException e) {
-            logger.error("Failed to insert schema: {}", e.getMessage());
-            throw new RuntimeException(e);
-        } catch (InterruptedException e){
-            logger.error("Thread was interrupted while inserting schemas: {}", e.getMessage());
+            throw new FdpClientException("Failed to reach FDP while inserting schema for " + task.shape, e);
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
+            throw new FdpClientException("Schema insertion was interrupted", e);
         }
     }
 
@@ -191,12 +187,10 @@ public class FdpClient implements FdpClientInterface {
             // Handle each response based on Fair Data Point (FDP) Swagger documentation.
             HttpRequestUtils.handleResponseStatus(response);
         } catch (IOException | URISyntaxException e) {
-            logger.error("Failed to update schema: {}", e.getMessage());
-            throw new RuntimeException(e);
-        } catch (InterruptedException e){
-            logger.error("Thread was interrupted while updating schema: {}", e.getMessage());
+            throw new FdpClientException("Failed to reach FDP while updating schema for " + task.shape, e);
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
+            throw new FdpClientException("Schema update was interrupted", e);
         }
     }
 
@@ -226,13 +220,11 @@ public class FdpClient implements FdpClientInterface {
             // Handle each response based on Fair Data Point (FDP) Swagger documentation.
             HttpRequestUtils.handleResponseStatus(response);
 
-        }  catch (IOException | URISyntaxException e) {
-            logger.error("Failed to release schema: {}", e.getMessage());
-            throw new RuntimeException(e);
-        }  catch (InterruptedException e){
-            logger.error("Thread was interrupted with release schema: {}", e.getMessage());
+        } catch (IOException | URISyntaxException e) {
+            throw new FdpClientException("Failed to reach FDP while releasing schema " + task.shape, e);
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
+            throw new FdpClientException("Schema release was interrupted", e);
         }
     }
 
@@ -260,13 +252,11 @@ public class FdpClient implements FdpClientInterface {
 
             // Map response to body
             return List.of(objectMapper.readValue(response.body(), ResourceResponse[].class));
-        }  catch (IOException | URISyntaxException e) {
-            logger.error("Failed to fetch resources: {}", e.getMessage());
-            throw new RuntimeException(e);
-        }  catch (InterruptedException e){
-            logger.error("Thread was interrupted while fetching resources: {}", e.getMessage());
+        } catch (IOException | URISyntaxException e) {
+            throw new FdpClientException("Failed to reach FDP while fetching resources", e);
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
+            throw new FdpClientException("Resource fetch was interrupted", e);
         }
     }
 
@@ -295,12 +285,10 @@ public class FdpClient implements FdpClientInterface {
             // Maps response body to object
             return objectMapper.readValue(response.body(), ResourceResponse.class);
         } catch (IOException | URISyntaxException e) {
-            logger.error("Failed to fetch resource: {}", e.getMessage());
-            throw new RuntimeException(e);
-        } catch (InterruptedException e){
-            logger.error("Thread was interrupted while fetching resource: {}", e.getMessage());
+            throw new FdpClientException("Failed to reach FDP while fetching resource " + resourceId, e);
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
+            throw new FdpClientException("Resource fetch was interrupted", e);
         }
     }
 
@@ -334,12 +322,10 @@ public class FdpClient implements FdpClientInterface {
             // Maps response body to object
             return objectMapper.readValue(response.body(), ResourceResponse.class);
         } catch (IOException | URISyntaxException e) {
-            logger.error("Failed to insert resources: {}", e.getMessage());
-            throw new RuntimeException(e);
-        } catch (InterruptedException e){
-            logger.error("Thread was interrupted while inserting schema: {}", e.getMessage());
+            throw new FdpClientException("Failed to reach FDP while inserting resource " + task.resource, e);
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
+            throw new FdpClientException("Resource insertion was interrupted", e);
         }
     }
 
@@ -369,12 +355,10 @@ public class FdpClient implements FdpClientInterface {
             // Handle each response based on Fair Data Point (FDP) Swagger documentation.
             HttpRequestUtils.handleResponseStatus(response);
         } catch (IOException | URISyntaxException e) {
-            logger.error("Failed to update resources: {}", e.getMessage());
-            throw new RuntimeException(e);
-        } catch (InterruptedException e){
-            logger.error("Thread was interrupted while updating resource: {}", e.getMessage());
+            throw new FdpClientException("Failed to reach FDP while updating resource " + task.resource, e);
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
+            throw new FdpClientException("Resource update was interrupted", e);
         }
     }
 }

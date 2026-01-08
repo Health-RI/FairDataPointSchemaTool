@@ -9,20 +9,21 @@ import nl.healthri.fdp.uploadschema.dto.request.auth.LoginRequest;
 import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
 import nl.healthri.fdp.uploadschema.dto.response.auth.LoginResponse;
 import nl.healthri.fdp.uploadschema.dto.response.Resource.ResourceResponse;
+import nl.healthri.fdp.uploadschema.integrations.exceptions.FdpClientException;
 
 import java.util.List;
 
 public interface FdpClientInterface {
     void setAuthToken(LoginResponse loginResponse);
-    LoginResponse getAuthToken(LoginRequest loginRequest);
+    LoginResponse getAuthToken(LoginRequest loginRequest) throws FdpClientException;
 
-    List<SchemaDataResponse> fetchSchemas();
-    ResourceResponse insertSchema(ShapeTask task, UpdateSchemaRequest updateSchemaRequest);
-    void updateSchema(ShapeTask task, UpdateSchemaRequest updateSchemaRequest);
-    void releaseSchema(ShapeTask task, ReleaseSchemaRequest releaseSchemaRequest);
+    List<SchemaDataResponse> fetchSchemas() throws FdpClientException;
+    ResourceResponse insertSchema(ShapeTask task, UpdateSchemaRequest updateSchemaRequest) throws FdpClientException;
+    void updateSchema(ShapeTask task, UpdateSchemaRequest updateSchemaRequest) throws FdpClientException;
+    void releaseSchema(ShapeTask task, ReleaseSchemaRequest releaseSchemaRequest) throws FdpClientException;
 
-    List<ResourceResponse> fetchResources();
-    ResourceResponse fetchResource(String resourceId);
-    ResourceResponse insertResource(ResourceTask task, ResourceRequest resourceRequest );
-    void updateResource(ResourceTask task, ResourceResponse resourceResponse);
+    List<ResourceResponse> fetchResources() throws FdpClientException;
+    ResourceResponse fetchResource(String resourceId) throws FdpClientException;
+    ResourceResponse insertResource(ResourceTask task, ResourceRequest resourceRequest) throws FdpClientException;
+    void updateResource(ResourceTask task, ResourceResponse resourceResponse) throws FdpClientException;
 }

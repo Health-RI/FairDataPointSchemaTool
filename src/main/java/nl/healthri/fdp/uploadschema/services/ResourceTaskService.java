@@ -6,8 +6,6 @@ import nl.healthri.fdp.uploadschema.dto.response.Schema.SchemaDataResponse;
 import nl.healthri.fdp.uploadschema.utils.Properties;
 import nl.healthri.fdp.uploadschema.utils.ResourceInfo;
 import nl.healthri.fdp.uploadschema.utils.SchemaInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,10 +16,8 @@ import static nl.healthri.fdp.uploadschema.utils.SchemaInfo.createSchemaInfoMap;
 
 @Service
 public class ResourceTaskService implements  ResourceTaskServiceInterface {
-    public FdpService fdpService;
-    public Properties properties;
-
-    private static final Logger logger = LoggerFactory.getLogger(ResourceTaskService.class);
+    public final FdpService fdpService;
+    public final Properties properties;
 
     public ResourceTaskService(FdpService fdpService, Properties properties) {
         this.fdpService = fdpService;
@@ -31,7 +27,6 @@ public class ResourceTaskService implements  ResourceTaskServiceInterface {
     public List<ResourceTask> createTasks() {
         List<ResourceResponse> resourceResponseList = this.fdpService.getAllResources();
         Map<String, ResourceInfo> resourceInfoMap = createResourceInfoMap(resourceResponseList);
-
         List<SchemaDataResponse> schemaDataResponseList = this.fdpService.getAllSchemas();
         Map<String, SchemaInfo> schemaInfoMap = createSchemaInfoMap(schemaDataResponseList);
 
