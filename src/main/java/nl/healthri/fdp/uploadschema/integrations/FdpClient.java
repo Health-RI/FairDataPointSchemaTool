@@ -13,6 +13,7 @@ import nl.healthri.fdp.uploadschema.dto.auth.LoginRequest;
 import nl.healthri.fdp.uploadschema.dto.Resource.ResourceResponse;
 import nl.healthri.fdp.uploadschema.dto.Schema.SchemaDataResponse;
 import nl.healthri.fdp.uploadschema.dto.auth.LoginResponse;
+import nl.healthri.fdp.uploadschema.integrations.exceptions.FdpClientException;
 import nl.healthri.fdp.uploadschema.utils.HttpRequestUtils;
 
 import org.apache.http.HttpHeaders;
