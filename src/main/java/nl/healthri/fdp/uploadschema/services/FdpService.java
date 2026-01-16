@@ -12,6 +12,7 @@ import nl.healthri.fdp.uploadschema.dto.auth.LoginRequest;
 import nl.healthri.fdp.uploadschema.dto.Schema.SchemaDataResponse;
 import nl.healthri.fdp.uploadschema.dto.auth.LoginResponse;
 import nl.healthri.fdp.uploadschema.integrations.FdpClientInterface;
+import nl.healthri.fdp.uploadschema.integrations.exceptions.FdpClientException;
 import nl.healthri.fdp.uploadschema.utils.SchemaInfo;
 import nl.healthri.fdp.uploadschema.dto.Resource.ResourceResponse;
 import org.slf4j.Logger;
@@ -33,42 +34,41 @@ public class FdpService implements FdpServiceInterface {
         this.fdpClient = fdpClient;
     }
 
-    public void authenticate(String username, String password){
+    public void authenticate(String username, String password) throws FdpClientException {
         LoginRequest loginRequest = new LoginRequest(username, password);
         LoginResponse loginResponse = fdpClient.getAuthToken(loginRequest);
-
         fdpClient.setAuthToken(loginResponse);
     }
 
-    public List<SchemaDataResponse> getAllSchemas() {
+    public List<SchemaDataResponse> getAllSchemas() throws FdpClientException{
         return fdpClient.fetchSchemas();
     }
 
-    public void createSchema(ShapeTask task){
-        List<SchemaDataResponse> schemaDataResponseList = getAllSchemas();
+    public void createSchema(ShapeTask task) throws FdpClientException {
+            List<SchemaDataResponse> schemaDataResponseList = getAllSchemas();
 
-        Map<String, SchemaInfo> schemaInfoMap = new HashMap<>();
-        for(SchemaDataResponse schemaDataResponse : schemaDataResponseList) {
-            Version version = new Version(schemaDataResponse.latest().version());
-            SchemaInfo schemaInfo = new SchemaInfo(version, schemaDataResponse.uuid(), schemaDataResponse.latest().definition());
-            schemaInfoMap.put(schemaDataResponse.name(), schemaInfo);
-        }
+            Map<String, SchemaInfo> schemaInfoMap = new HashMap<>();
+            for(SchemaDataResponse schemaDataResponse : schemaDataResponseList) {
+                Version version = new Version(schemaDataResponse.latest().version());
+                SchemaInfo schemaInfo = new SchemaInfo(version, schemaDataResponse.uuid(), schemaDataResponse.latest().definition());
+                schemaInfoMap.put(schemaDataResponse.name(), schemaInfo);
+            }
 
 
-        UpdateSchemaRequest updateSchemaRequest = new UpdateSchemaRequest(
-                task.shape,
-                task.description(), false,
-                task.model,
-                task.getParentUID(schemaInfoMap),
-                task.shape,
-                task.url());
+            UpdateSchemaRequest updateSchemaRequest = new UpdateSchemaRequest(
+                    task.shape,
+                    task.description(), false,
+                    task.model,
+                    task.getParentUID(schemaInfoMap),
+                    task.shape,
+                    task.url());
 
-        ResourceResponse resourceResponse = fdpClient.insertSchema(task, updateSchemaRequest);
-        task.uuid = resourceResponse.uuid();
+            ResourceResponse resourceResponse = fdpClient.insertSchema(task, updateSchemaRequest);
+            task.uuid = resourceResponse.uuid();
     }
 
 
-    public void updateSchema(ShapeTask task){
+    public void updateSchema(ShapeTask task) throws FdpClientException {
         List<SchemaDataResponse> schemaDataResponseList = getAllSchemas();
 
         Map<String, SchemaInfo> schemaInfoMap = new HashMap<>();
@@ -89,17 +89,17 @@ public class FdpService implements FdpServiceInterface {
         fdpClient.updateSchema(task, updateSchemaRequest);
     }
 
-    public void releaseSchema(ShapeTask task){
+    public void releaseSchema(ShapeTask task) throws FdpClientException{
         ReleaseSchemaRequest releaseSchemaRequest =  ReleaseSchemaRequest.of(task.shape, false, task.version);
 
         fdpClient.releaseSchema(task, releaseSchemaRequest);
     }
 
-    public List<ResourceResponse> getAllResources() {
+    public List<ResourceResponse> getAllResources() throws FdpClientException{
         return fdpClient.fetchResources();
     }
 
-    public void createResource(ResourceTask task){
+    public void createResource(ResourceTask task) throws FdpClientException{
         ResourceRequest resourceRequest = new ResourceRequest(
                 task.resource,
                 task.url(),
@@ -112,7 +112,7 @@ public class FdpService implements FdpServiceInterface {
         task.UUID = resourceResponse.uuid();
     }
 
-    public void updateResource(ResourceTask task){
+    public void updateResource(ResourceTask task) throws FdpClientException{
         ResourceResponse resourceResponse = fdpClient.fetchResource(task.UUID);
 
         if (resourceResponse.children().stream().anyMatch(c -> c.resourceDefinitionUuid().equals(task.childUUuid))) {

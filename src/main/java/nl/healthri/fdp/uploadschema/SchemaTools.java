@@ -3,6 +3,7 @@ package nl.healthri.fdp.uploadschema;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.healthri.fdp.uploadschema.config.fdp.Settings;
 import nl.healthri.fdp.uploadschema.integrations.FdpClient;
+import nl.healthri.fdp.uploadschema.integrations.exceptions.FdpClientException;
 import nl.healthri.fdp.uploadschema.services.FdpService;
 import nl.healthri.fdp.uploadschema.services.ResourceTaskService;
 import nl.healthri.fdp.uploadschema.services.SchemaToolService;
@@ -90,8 +91,10 @@ public class SchemaTools implements Runnable {
                 case SCHEMA -> schemaToolService.createOrUpdateSchemas(force);
                 case RESOURCE -> schemaToolService.addResourceDescriptions();
             }
-        } catch (IOException io) {
-            throw new RuntimeException(io);
+        } catch (IOException e) {
+            logger.error("Unexpected error: {}", e.getMessage());
+        } catch (FdpClientException e){
+            logger.error("FDP Connection Error: {}", e.getMessage());
         }
     }
 

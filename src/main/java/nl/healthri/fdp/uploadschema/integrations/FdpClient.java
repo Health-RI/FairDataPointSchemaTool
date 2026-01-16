@@ -15,18 +15,19 @@ import nl.healthri.fdp.uploadschema.dto.Schema.SchemaDataResponse;
 import nl.healthri.fdp.uploadschema.dto.auth.LoginResponse;
 import nl.healthri.fdp.uploadschema.utils.HttpRequestUtils;
 
+import org.apache.http.HttpHeaders;
+import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.*;
-
-
-// TODO: Throw client exception instead of Runtimeexception (otherwise you hide the error encountered)
 
 @Component
 public class FdpClient implements FdpClientInterface {
@@ -66,8 +67,8 @@ public class FdpClient implements FdpClientInterface {
             HttpRequest request = HttpRequest.newBuilder()
                     .POST(body)
                     .uri(uri)
-                    .header("accept", "application/json")
-                    .header("Content-Type", "application/json")
+                    .header(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
                     .build();
 
 
@@ -80,8 +81,11 @@ public class FdpClient implements FdpClientInterface {
             // Maps response body to object
             return this.objectMapper.readValue(response.body(), LoginResponse.class);
 
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (IOException | URISyntaxException e) {
+            throw new FdpClientException("Failed to reach FDP during authentication", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new FdpClientException("Authentication process was interrupted", e);
         }
     }
 
@@ -96,9 +100,9 @@ public class FdpClient implements FdpClientInterface {
             HttpRequest request = HttpRequest.newBuilder()
                     .GET()
                     .uri(uri)
-                    .header("accept", "application/json")
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", this.authToken)
+                    .header(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.AUTHORIZATION, this.authToken)
                     .build();
 
             // Sends request created through the client
@@ -109,8 +113,12 @@ public class FdpClient implements FdpClientInterface {
 
             // Maps response body to object
             return List.of(objectMapper.readValue(response.body(), SchemaDataResponse[].class));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+
+        } catch (IOException | URISyntaxException e) {
+            throw new FdpClientException("Failed to reach FDP while fetching schemas", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new FdpClientException("Request to fetch schemas was interrupted", e);
         }
     }
 
@@ -133,9 +141,9 @@ public class FdpClient implements FdpClientInterface {
             HttpRequest request = HttpRequest.newBuilder()
                     .POST(body)
                     .uri(uri)
-                    .header("accept", "application/json")
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", this.authToken)
+                    .header(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.AUTHORIZATION, this.authToken)
                     .build();
 
             // Sends request
@@ -146,8 +154,11 @@ public class FdpClient implements FdpClientInterface {
 
             // Maps response body to object
             return objectMapper.readValue(response.body(), ResourceResponse.class);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (IOException | URISyntaxException e) {
+            throw new FdpClientException("Failed to reach FDP while inserting schema for " + task.shape, e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new FdpClientException("Schema insertion was interrupted", e);
         }
     }
 
@@ -169,9 +180,9 @@ public class FdpClient implements FdpClientInterface {
             HttpRequest request = HttpRequest.newBuilder()
                     .PUT(body)
                     .uri(uri)
-                    .header("Accept", "application/json")
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", this.authToken)
+                    .header(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.AUTHORIZATION, this.authToken)
                     .build();
 
             // Sends request
@@ -179,8 +190,11 @@ public class FdpClient implements FdpClientInterface {
 
             // Handle each response based on Fair Data Point (FDP) Swagger documentation.
             HttpRequestUtils.handleResponseStatus(response);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (IOException | URISyntaxException e) {
+            throw new FdpClientException("Failed to reach FDP while updating schema for " + task.shape, e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new FdpClientException("Schema update was interrupted", e);
         }
     }
 
@@ -199,9 +213,9 @@ public class FdpClient implements FdpClientInterface {
             HttpRequest request = HttpRequest.newBuilder()
                     .POST(body)
                     .uri(uri)
-                    .header("Accept", "application/json")
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", this.authToken)
+                    .header(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.AUTHORIZATION, this.authToken)
                     .build();
 
             // Sends request
@@ -210,8 +224,11 @@ public class FdpClient implements FdpClientInterface {
             // Handle each response based on Fair Data Point (FDP) Swagger documentation.
             HttpRequestUtils.handleResponseStatus(response);
 
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (IOException | URISyntaxException e) {
+            throw new FdpClientException("Failed to reach FDP while releasing schema " + task.shape, e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new FdpClientException("Schema release was interrupted", e);
         }
     }
 
@@ -226,9 +243,9 @@ public class FdpClient implements FdpClientInterface {
             HttpRequest request = HttpRequest.newBuilder()
                     .GET()
                     .uri(uri)
-                    .header("accept", "application/json")
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", this.authToken)
+                    .header(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.AUTHORIZATION, this.authToken)
                     .build();
 
             // Sends request
@@ -239,8 +256,11 @@ public class FdpClient implements FdpClientInterface {
 
             // Map response to body
             return List.of(objectMapper.readValue(response.body(), ResourceResponse[].class));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (IOException | URISyntaxException e) {
+            throw new FdpClientException("Failed to reach FDP while fetching resources", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new FdpClientException("Resource fetch was interrupted", e);
         }
     }
 
@@ -255,9 +275,9 @@ public class FdpClient implements FdpClientInterface {
             HttpRequest request = HttpRequest.newBuilder()
                     .GET()
                     .uri(uri)
-                    .header("accept", "application/json")
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", this.authToken)
+                    .header(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.AUTHORIZATION, this.authToken)
                     .build();
 
             // Sends request
@@ -268,8 +288,11 @@ public class FdpClient implements FdpClientInterface {
 
             // Maps response body to object
             return objectMapper.readValue(response.body(), ResourceResponse.class);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (IOException | URISyntaxException e) {
+            throw new FdpClientException("Failed to reach FDP while fetching resource " + resourceId, e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new FdpClientException("Resource fetch was interrupted", e);
         }
     }
 
@@ -289,9 +312,9 @@ public class FdpClient implements FdpClientInterface {
             HttpRequest request = HttpRequest.newBuilder()
                     .POST(body)
                     .uri(uri)
-                    .header("accept", "application/json")
-                    .header("content-type", "application/json")
-                    .header("authorization", this.authToken)
+                    .header(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.AUTHORIZATION, this.authToken)
                     .build();
 
             // Sends request
@@ -302,8 +325,11 @@ public class FdpClient implements FdpClientInterface {
 
             // Maps response body to object
             return objectMapper.readValue(response.body(), ResourceResponse.class);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (IOException | URISyntaxException e) {
+            throw new FdpClientException("Failed to reach FDP while inserting resource " + task.resource, e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new FdpClientException("Resource insertion was interrupted", e);
         }
     }
 
@@ -322,9 +348,9 @@ public class FdpClient implements FdpClientInterface {
             HttpRequest request = HttpRequest.newBuilder()
                     .PUT(body)
                     .uri(uri)
-                    .header("accept", "application/json")
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", this.authToken)
+                    .header(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.AUTHORIZATION, this.authToken)
                     .build();
 
             // Sends request
@@ -332,8 +358,11 @@ public class FdpClient implements FdpClientInterface {
 
             // Handle each response based on Fair Data Point (FDP) Swagger documentation.
             HttpRequestUtils.handleResponseStatus(response);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (IOException | URISyntaxException e) {
+            throw new FdpClientException("Failed to reach FDP while updating resource " + task.resource, e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new FdpClientException("Resource update was interrupted", e);
         }
     }
 
@@ -349,9 +378,9 @@ public class FdpClient implements FdpClientInterface {
             HttpRequest request = HttpRequest.newBuilder()
                     .GET()
                     .uri(uri)
-                    .header("accept", "application/json")
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", this.authToken)
+                    .header(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.AUTHORIZATION, this.authToken)
                     .build();
 
             // Sends request
@@ -382,9 +411,9 @@ public class FdpClient implements FdpClientInterface {
             HttpRequest request = HttpRequest.newBuilder()
                     .PUT(body)
                     .uri(uri)
-                    .header("accept", "application/json")
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", this.authToken)
+                    .header(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                    .header(HttpHeaders.AUTHORIZATION, this.authToken)
                     .build();
 
             // Sends request
@@ -396,4 +425,5 @@ public class FdpClient implements FdpClientInterface {
             throw new RuntimeException(e);
         }
     }
+
 }
