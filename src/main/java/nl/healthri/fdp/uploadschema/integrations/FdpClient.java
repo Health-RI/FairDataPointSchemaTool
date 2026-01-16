@@ -392,8 +392,11 @@ public class FdpClient implements FdpClientInterface {
 
             // Maps response body to object
             return objectMapper.readValue(response.body(), SettingsResponse.class);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (IOException | URISyntaxException e) {
+            throw new FdpClientException("Failed to get FDP settings", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new FdpClientException("Get settings was interrupted", e);
         }
     }
 
@@ -422,8 +425,11 @@ public class FdpClient implements FdpClientInterface {
 
             // Handle each response based on Fair Data Point (FDP) Swagger documentation.
             HttpRequestUtils.handleResponseStatus(response);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (IOException | URISyntaxException e) {
+            throw new FdpClientException("Failed to update settings", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new FdpClientException("Update settings was interrupted", e);
         }
     }
 
