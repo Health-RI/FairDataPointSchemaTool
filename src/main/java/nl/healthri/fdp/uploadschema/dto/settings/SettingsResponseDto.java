@@ -1,8 +1,11 @@
-package nl.healthri.fdp.uploadschema.dto.Settings;
+package nl.healthri.fdp.uploadschema.dto.settings;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import nl.healthri.fdp.uploadschema.config.fdp.Settings;
 
 import java.util.List;
 
-public record SettingsResponse(
+public record SettingsResponseDto(
         String clientUrl,
         String persistentUrl,
         String appTitle,
@@ -49,4 +52,7 @@ public record SettingsResponse(
             ) {}
         }
     }
+
 }
+
+

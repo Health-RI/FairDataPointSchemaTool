@@ -1,8 +1,8 @@
-package nl.healthri.fdp.uploadschema.dto.Schema;
+package nl.healthri.fdp.uploadschema.dto.schema;
 
 import java.util.Set;
 
-public record UpdateSchemaRequest(
+public record UpdateSchemaRequestDto(
         String name,
         String description,
         boolean abstractSchema,

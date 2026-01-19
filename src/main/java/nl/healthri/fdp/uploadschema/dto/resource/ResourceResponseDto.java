@@ -1,11 +1,11 @@
-package nl.healthri.fdp.uploadschema.dto.Resource;
+package nl.healthri.fdp.uploadschema.dto.resource;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.ArrayList;
 
 @JsonIgnoreProperties(ignoreUnknown = true) // Description, abstractschema, definition are ignored.
-public record ResourceResponse(
+public record ResourceResponseDto(
         String uuid,
         String name,
         String urlPrefix,

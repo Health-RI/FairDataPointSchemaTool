@@ -1,10 +1,10 @@
-package nl.healthri.fdp.uploadschema.dto.Schema;
+package nl.healthri.fdp.uploadschema.dto.schema;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import nl.healthri.fdp.uploadschema.domain.Version;
 
-public record ReleaseSchemaRequest(
+public record ReleaseSchemaRequestDto(
         @JsonProperty("description")
         String resourceName,
         boolean published,
@@ -14,7 +14,7 @@ public record ReleaseSchemaRequest(
         String patch) {
 
     @JsonIgnore
-    public static ReleaseSchemaRequest of(String resourceName, boolean published, Version v) {
-        return new ReleaseSchemaRequest(resourceName, published, v.toString(), "" + v.major(), "" + v.minor(), "" + v.patch());
+    public static ReleaseSchemaRequestDto of(String resourceName, boolean published, Version v) {
+        return new ReleaseSchemaRequestDto(resourceName, published, v.toString(), "" + v.major(), "" + v.minor(), "" + v.patch());
     }
 }

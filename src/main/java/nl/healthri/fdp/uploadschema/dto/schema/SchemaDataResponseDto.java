@@ -1,8 +1,8 @@
-package nl.healthri.fdp.uploadschema.dto.Schema;
+package nl.healthri.fdp.uploadschema.dto.schema;
 
 import java.util.ArrayList;
 
-public record SchemaDataResponse(
+public record SchemaDataResponseDto(
         String uuid,
         String name,
         Latest latest,
