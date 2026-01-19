@@ -4,23 +4,26 @@ import nl.healthri.fdp.uploadschema.config.fdp.Settings;
 import nl.healthri.fdp.uploadschema.domain.Version;
 import nl.healthri.fdp.uploadschema.domain.ResourceTask;
 import nl.healthri.fdp.uploadschema.domain.ShapeTask;
-import nl.healthri.fdp.uploadschema.dto.Resource.ResourceRequest;
-import nl.healthri.fdp.uploadschema.dto.Schema.ReleaseSchemaRequest;
-import nl.healthri.fdp.uploadschema.dto.Schema.UpdateSchemaRequest;
-import nl.healthri.fdp.uploadschema.dto.Settings.SettingsResponse;
-import nl.healthri.fdp.uploadschema.dto.auth.LoginRequest;
-import nl.healthri.fdp.uploadschema.dto.Schema.SchemaDataResponse;
-import nl.healthri.fdp.uploadschema.dto.auth.LoginResponse;
+import nl.healthri.fdp.uploadschema.dto.resource.ResourceRequestDto;
+import nl.healthri.fdp.uploadschema.dto.schema.ReleaseSchemaRequestDto;
+import nl.healthri.fdp.uploadschema.dto.schema.UpdateSchemaRequestDto;
+import nl.healthri.fdp.uploadschema.dto.settings.SettingsRequestDto;
+import nl.healthri.fdp.uploadschema.dto.settings.SettingsResponseDto;
+import nl.healthri.fdp.uploadschema.dto.auth.LoginRequestDto;
+import nl.healthri.fdp.uploadschema.dto.schema.SchemaDataResponseDto;
+import nl.healthri.fdp.uploadschema.dto.auth.LoginResponseDto;
 import nl.healthri.fdp.uploadschema.integrations.FdpClientInterface;
 import nl.healthri.fdp.uploadschema.integrations.exceptions.FdpClientException;
 import nl.healthri.fdp.uploadschema.utils.SchemaInfo;
-import nl.healthri.fdp.uploadschema.dto.Resource.ResourceResponse;
+import nl.healthri.fdp.uploadschema.dto.resource.ResourceResponseDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+
+import static nl.healthri.fdp.uploadschema.config.fdp.Settings.*;
 
 
 @Service
@@ -35,27 +38,27 @@ public class FdpService implements FdpServiceInterface {
     }
 
     public void authenticate(String username, String password) throws FdpClientException {
-        LoginRequest loginRequest = new LoginRequest(username, password);
-        LoginResponse loginResponse = fdpClient.getAuthToken(loginRequest);
+        LoginRequestDto loginRequest = new LoginRequestDto(username, password);
+        LoginResponseDto loginResponse = fdpClient.getAuthToken(loginRequest);
         fdpClient.setAuthToken(loginResponse);
     }
 
-    public List<SchemaDataResponse> getAllSchemas() throws FdpClientException{
+    public List<SchemaDataResponseDto> getAllSchemas() throws FdpClientException{
         return fdpClient.fetchSchemas();
     }
 
     public void createSchema(ShapeTask task) throws FdpClientException {
-            List<SchemaDataResponse> schemaDataResponseList = getAllSchemas();
+            List<SchemaDataResponseDto> schemaDataResponseList = getAllSchemas();
 
             Map<String, SchemaInfo> schemaInfoMap = new HashMap<>();
-            for(SchemaDataResponse schemaDataResponse : schemaDataResponseList) {
+            for(SchemaDataResponseDto schemaDataResponse : schemaDataResponseList) {
                 Version version = new Version(schemaDataResponse.latest().version());
                 SchemaInfo schemaInfo = new SchemaInfo(version, schemaDataResponse.uuid(), schemaDataResponse.latest().definition());
                 schemaInfoMap.put(schemaDataResponse.name(), schemaInfo);
             }
 
 
-            UpdateSchemaRequest updateSchemaRequest = new UpdateSchemaRequest(
+            UpdateSchemaRequestDto updateSchemaRequest = new UpdateSchemaRequestDto(
                     task.shape,
                     task.description(), false,
                     task.model,
@@ -63,22 +66,22 @@ public class FdpService implements FdpServiceInterface {
                     task.shape,
                     task.url());
 
-            ResourceResponse resourceResponse = fdpClient.insertSchema(task, updateSchemaRequest);
+            ResourceResponseDto resourceResponse = fdpClient.insertSchema(task, updateSchemaRequest);
             task.uuid = resourceResponse.uuid();
     }
 
 
     public void updateSchema(ShapeTask task) throws FdpClientException {
-        List<SchemaDataResponse> schemaDataResponseList = getAllSchemas();
+        List<SchemaDataResponseDto> schemaDataResponseList = getAllSchemas();
 
         Map<String, SchemaInfo> schemaInfoMap = new HashMap<>();
-        for(SchemaDataResponse schemaDataResponse : schemaDataResponseList) {
+        for(SchemaDataResponseDto schemaDataResponse : schemaDataResponseList) {
             Version version = new Version(schemaDataResponse.latest().version());
             SchemaInfo schemaInfo = new SchemaInfo(version, schemaDataResponse.uuid(), schemaDataResponse.latest().definition());
             schemaInfoMap.put(schemaDataResponse.name(), schemaInfo);
         }
 
-        UpdateSchemaRequest updateSchemaRequest = new UpdateSchemaRequest(
+        UpdateSchemaRequestDto updateSchemaRequest = new UpdateSchemaRequestDto(
                 task.shape,
                 task.description(), false,
                 task.model,
@@ -90,17 +93,17 @@ public class FdpService implements FdpServiceInterface {
     }
 
     public void releaseSchema(ShapeTask task) throws FdpClientException{
-        ReleaseSchemaRequest releaseSchemaRequest =  ReleaseSchemaRequest.of(task.shape, false, task.version);
+        ReleaseSchemaRequestDto releaseSchemaRequest =  ReleaseSchemaRequestDto.of(task.shape, false, task.version);
 
         fdpClient.releaseSchema(task, releaseSchemaRequest);
     }
 
-    public List<ResourceResponse> getAllResources() throws FdpClientException{
+    public List<ResourceResponseDto> getAllResources() throws FdpClientException{
         return fdpClient.fetchResources();
     }
 
     public void createResource(ResourceTask task) throws FdpClientException{
-        ResourceRequest resourceRequest = new ResourceRequest(
+        ResourceRequestDto resourceRequest = new ResourceRequestDto(
                 task.resource,
                 task.url(),
                 new ArrayList<>(List.of(task.shapeUUUID)),
@@ -108,19 +111,19 @@ public class FdpService implements FdpServiceInterface {
                 new ArrayList<>(),
                 new ArrayList<>());
 
-        ResourceResponse resourceResponse = fdpClient.insertResource(task, resourceRequest);
+        ResourceResponseDto resourceResponse = fdpClient.insertResource(task, resourceRequest);
         task.UUID = resourceResponse.uuid();
     }
 
     public void updateResource(ResourceTask task) throws FdpClientException{
-        ResourceResponse resourceResponse = fdpClient.fetchResource(task.UUID);
+        ResourceResponseDto resourceResponse = fdpClient.fetchResource(task.UUID);
 
         if (resourceResponse.children().stream().anyMatch(c -> c.resourceDefinitionUuid().equals(task.childUUuid))) {
             logger.info("resource {} already has link to child {}", resourceResponse.name(), task.childName);
         } else {
             //FIXME TagsURI is hardcoded..
-            ResourceResponse.ListView listView =  new ResourceResponse.ListView(task.pluralName(), "http://www.w3.org/ns/dcat#themeTaxonomy", new ArrayList<>());
-            ResourceResponse.Child child = new ResourceResponse.Child(task.childUUuid, task.childRelationIri, listView);
+            ResourceResponseDto.ListView listView =  new ResourceResponseDto.ListView(task.pluralName(), "http://www.w3.org/ns/dcat#themeTaxonomy", new ArrayList<>());
+            ResourceResponseDto.Child child = new ResourceResponseDto.Child(task.childUUuid, task.childRelationIri, listView);
             resourceResponse.children().add(child);
         }
 
@@ -128,9 +131,12 @@ public class FdpService implements FdpServiceInterface {
     }
 
     public void updateSettings(Settings newSettings){
-        SettingsResponse currentSettings = fdpClient.getSettings();
-        Settings mergedSettings = newSettings.Merge(currentSettings);
+        SettingsResponseDto fdpSettingsResponseDto = fdpClient.getSettings();
 
-        fdpClient.updateSettings(mergedSettings);
+        Settings fdpSettings = convertToEntity(fdpSettingsResponseDto);
+        Settings mergedSettings = fdpSettings.Merge(newSettings);
+
+        SettingsRequestDto settingsRequestDto = SettingsRequestDto.convertToDto(mergedSettings);
+        fdpClient.updateSettings(settingsRequestDto);
     }
 }

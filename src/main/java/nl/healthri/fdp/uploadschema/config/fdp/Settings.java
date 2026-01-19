@@ -1,17 +1,17 @@
 package nl.healthri.fdp.uploadschema.config.fdp;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import nl.healthri.fdp.uploadschema.dto.Settings.SettingsResponse;
+import nl.healthri.fdp.uploadschema.dto.settings.SettingsResponseDto;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toMap;
+import nl.healthri.fdp.uploadschema.config.fdp.Settings.Forms.Autocomplete.Source;
 
 public class Settings {
     private static Settings settings;
@@ -27,8 +27,6 @@ public class Settings {
     public Repository repository;
     public Search search;
     public Forms forms;
-
-    public Settings() {}
 
     public static class MetadataMetric {
         public String metricUri;
@@ -62,9 +60,15 @@ public class Settings {
                 public String rdfType;
                 public String sparqlEndpoint;
                 public String sparqlQuery;
+
+                public String getRdfType() {
+                    return rdfType;
+                }
             }
         }
     }
+
+    public Settings() {}
 
     // Always returns the existing settings if already initialized.
     public static Settings GetSettings(){
@@ -89,72 +93,35 @@ public class Settings {
     }
 
 
-    // Merges all data from fdpSettings into Settings instance only adding missing form sources from Settings instance
-    public Settings Merge(SettingsResponse fdpSettings){
-        Settings mergedSettings = settings;
-
-        mergedSettings.clientUrl = fdpSettings.clientUrl();
-        mergedSettings.persistentUrl = fdpSettings.persistentUrl();
-        mergedSettings.appTitle = fdpSettings.appTitle();
-        mergedSettings.appSubtitle = fdpSettings.appSubtitle();
-        mergedSettings.appTitleFromConfig = fdpSettings.appTitleFromConfig();
-        mergedSettings.appSubtitleFromConfig = fdpSettings.appSubtitleFromConfig();
-        mergedSettings.metadataMetrics = fdpSettings.metadataMetrics().stream()
-                .map(m -> {
-                    MetadataMetric mm = new MetadataMetric();
-                    mm.metricUri = m.metricUri();
-                    mm.resourceUri = m.resourceUri();
-                    return mm;
-                }).toList();
-
-        if (mergedSettings.ping == null) mergedSettings.ping = new Ping();
-        mergedSettings.ping.enabled = fdpSettings.ping().enabled();
-        mergedSettings.ping.endpoints = fdpSettings.ping().endpoints();
-        mergedSettings.ping.endpointsFromConfig = fdpSettings.ping().endpointsFromConfig();
-        mergedSettings.ping.interval = fdpSettings.ping().interval();
-
-        if (mergedSettings.repository == null) mergedSettings.repository = new Repository();
-        this.repository.type = fdpSettings.repository().type();
-
-        if (mergedSettings.search == null) mergedSettings.search = new Search();
-        mergedSettings.search.filters = fdpSettings.search().filters();
-
-        if (mergedSettings.forms == null) mergedSettings.forms = new Forms();
-        if (mergedSettings.forms.autocomplete == null) mergedSettings.forms.autocomplete = new Forms.Autocomplete();
-
-        mergedSettings.forms.autocomplete.searchNamespace =
-                fdpSettings.forms().autocomplete().searchNamespace();
-
-        List<Forms.Autocomplete.Source> mergedSources = new java.util.ArrayList<>();
-        List<Forms.Autocomplete.Source> settingsSources = mergedSettings.forms.autocomplete.sources;
-
-        // Creates map with RdfType as key and the Source as value
-        // Each source is mapped from SettingsResponse Source to Settings Source.
-        List<Forms.Autocomplete.Source> fdpSourceList = new ArrayList<>();
-        List<SettingsResponse.Forms.Autocomplete.Source> fdpSources = fdpSettings.forms().autocomplete().sources();
-        for (SettingsResponse.Forms.Autocomplete.Source source : fdpSources) {
-            Forms.Autocomplete.Source src = new Forms.Autocomplete.Source();
-            src.rdfType = source.rdfType();
-            src.sparqlEndpoint = source.sparqlEndpoint();
-            src.sparqlQuery = source.sparqlQuery();
-            mergedSettings.forms.autocomplete.sources.add(src);
+    // Merges missing sources from new settings into current settings
+    public Settings Merge(Settings newSettings){
+        // Early return if new settings are invalid
+        if (newSettings == null ||
+                newSettings.forms == null ||
+                newSettings.forms.autocomplete == null ||
+                newSettings.forms.autocomplete.sources == null) {
+            return this;
         }
 
+        List<Source> currentSources = this.forms.autocomplete.sources;
+        List<Source> newSources = newSettings.forms.autocomplete.sources;
 
-        // Checks if each Source in Settings is already the in mergedSettings resource.
-        // Adds to mergedSettings resource list if resource is not in merged settings.
-        if (settingsSources != null) {
-            for (Forms.Autocomplete.Source source : settingsSources) {
-                boolean exists = mergedSettings.forms.autocomplete.sources
-                        .stream()
-                        .anyMatch(s -> Objects.equals(s.rdfType, source.rdfType));
+        // Collect existing rdfTypes into a Set for simpler lookup
+        Set<String> existingTypes = currentSources.stream()
+                .map(Source::getRdfType)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
 
-                if (!exists) {
-                    mergedSettings.forms.autocomplete.sources.add(source);
-                }
-            }
-        }
+        // Add sources with rdfTypes not located in currentSources
+        newSources.stream()
+                .filter(s -> s.getRdfType() != null && !existingTypes.contains(s.getRdfType()))
+                .forEach(currentSources::add);
 
         return this;
+    }
+
+    public static Settings convertToEntity(SettingsResponseDto settingsResponseDTO) {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.convertValue(settingsResponseDTO, Settings.class);
     }
 }

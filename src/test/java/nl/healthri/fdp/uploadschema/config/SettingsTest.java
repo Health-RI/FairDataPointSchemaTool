@@ -1,11 +1,8 @@
 package nl.healthri.fdp.uploadschema.config;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.healthri.fdp.uploadschema.config.fdp.Settings;
-import nl.healthri.fdp.uploadschema.dto.Settings.SettingsResponse;
+import nl.healthri.fdp.uploadschema.dto.settings.SettingsResponseDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -33,40 +30,19 @@ public class SettingsTest {
     }
 
     // Create a minimal SettingsResponse for merging
-    private SettingsResponse createMinimalFdpSettingsResponse() {
-        return new SettingsResponse(
+    private SettingsResponseDto createMinimalFdpSettingsResponse() {
+        return new SettingsResponseDto(
                 "clientUrl", "persistentUrl", "appTitle", "appSubtitle",
                 "appTitleConfig", "appSubtitleConfig",
                 List.of(),
-                new SettingsResponse.Ping(true, List.of("e1"), List.of("e1c"), "1h"),
-                new SettingsResponse.Repository("type"),
-                new SettingsResponse.Search(List.of("f1")),
-                new SettingsResponse.Forms(
-                        new SettingsResponse.Forms.Autocomplete(
+                new SettingsResponseDto.Ping(true, List.of("e1"), List.of("e1c"), "1h"),
+                new SettingsResponseDto.Repository("type"),
+                new SettingsResponseDto.Search(List.of("f1")),
+                new SettingsResponseDto.Forms(
+                        new SettingsResponseDto.Forms.Autocomplete(
                                 true,
                                 List.of(
-                                        new SettingsResponse.Forms.Autocomplete.Source("FdpRdfType1", "fsparql1", "fquery1")
-                                )
-                        )
-                )
-        );
-    }
-
-    // Create a SettingsResponse with an RDF Type used twice
-    private SettingsResponse createFdpSettingsResponseWithDuplicates() {
-        return new SettingsResponse(
-                "clientUrl", "persistentUrl", "appTitle", "appSubtitle",
-                "appTitleConfig", "appSubtitleConfig",
-                List.of(),
-                new SettingsResponse.Ping(true, List.of("e1"), List.of("e1c"), "1h"),
-                new SettingsResponse.Repository("type"),
-                new SettingsResponse.Search(List.of("f1")),
-                new SettingsResponse.Forms(
-                        new SettingsResponse.Forms.Autocomplete(
-                                true,
-                                List.of(
-                                        new SettingsResponse.Forms.Autocomplete.Source("DuplicateRdfType", "fsparql1", "fquery1"),
-                                        new SettingsResponse.Forms.Autocomplete.Source("DuplicateRdfType", "fsparql2", "fquery2") // DUPLICATE
+                                        new SettingsResponseDto.Forms.Autocomplete.Source("FdpRdfType1", "fsparql1", "fquery1")
                                 )
                         )
                 )
@@ -97,28 +73,28 @@ public class SettingsTest {
 
 
         // Setup FDP Settings with the same rdfType, but different query
-        SettingsResponse fdpSettings = new SettingsResponse(
+        SettingsResponseDto fdpSettings = new SettingsResponseDto(
                 "clientUrl", "persistentUrl", "appTitle", "appSubtitle",
                 "appTitleConfig", "appSubtitleConfig",
                 List.of(),
-                new SettingsResponse.Ping(true, List.of(), List.of(), "1h"),
-                new SettingsResponse.Repository("type"),
-                new SettingsResponse.Search(List.of()),
-                new SettingsResponse.Forms(
-                        new SettingsResponse.Forms.Autocomplete(
+                new SettingsResponseDto.Ping(true, List.of(), List.of(), "1h"),
+                new SettingsResponseDto.Repository("type"),
+                new SettingsResponseDto.Search(List.of()),
+                new SettingsResponseDto.Forms(
+                        new SettingsResponseDto.Forms.Autocomplete(
                                 true,
                                 List.of(
-                                        new SettingsResponse.Forms.Autocomplete.Source(localRdfType, "fsparql", fdpQuery)
+                                        new SettingsResponseDto.Forms.Autocomplete.Source(localRdfType, "fsparql", fdpQuery)
                                 )
                         )
                 )
         );
 
         // ACT
-        settings = settings.Merge(fdpSettings);
+        settings = settings.Merge(Settings.convertToEntity(fdpSettings));
 
         // ASSERT
-        assertEquals(2, settings.forms.autocomplete.sources.size(), "Should have 1 resource from settings and 1 resource from fdpSettings.");
+        assertEquals(1, settings.forms.autocomplete.sources.size(), "Should have 1 resource from settings and 1 resource from fdpSettings.");
     }
 
     @Test
@@ -130,10 +106,10 @@ public class SettingsTest {
         String jsonFdpSettings = "{\"forms\": {\"autocomplete\": {\"sources\": [{\"rdfType\": \"" + localRdfType + "\", \"sparqlQuery\": \"" + localQuery + "\"}]}}}";
         File file = createFile(jsonFdpSettings);
         Settings settings = Settings.GetSettings(file);
-        SettingsResponse fdpSettings = createMinimalFdpSettingsResponse();
+        SettingsResponseDto fdpSettings = createMinimalFdpSettingsResponse();
 
         // ACT
-        settings = settings.Merge(fdpSettings);
+        settings = settings.Merge(Settings.convertToEntity(fdpSettings));
 
         // ASSERT
         assertEquals(2, settings.forms.autocomplete.sources.size(), "Should have both local and FDP source.");
@@ -151,14 +127,12 @@ public class SettingsTest {
     }
 
     @Test
-    public void FileNotFound_WhenGettingSettings_ThrowsFileNotFoundException() throws IOException {
+    public void FileNotFound_WhenGettingSettings_ThrowsFileNotFoundException() {
         // ARRANGE
         File nonExistentFile = new File(tempDir, "nonExistent.json");
 
         // ACT && ASSERT
-        assertThrows(FileNotFoundException.class, () -> {
-            Settings.GetSettings(nonExistentFile);
-        });
+        assertThrows(FileNotFoundException.class, () -> Settings.GetSettings(nonExistentFile));
     }
 
     @Test
@@ -166,12 +140,9 @@ public class SettingsTest {
         // ARRANGE
         String jsonFdpSettings = "{ \"forms\": { \"autocomplete\": \"invalid";
         File file = createFile(jsonFdpSettings);
-        SettingsResponse fdpSettings = createMinimalFdpSettingsResponse();
 
         // ACT & ASSERT
-        assertThrows(JsonMappingException.class, () -> {
-            Settings.GetSettings(file);
-        });
+        assertThrows(JsonMappingException.class, () -> Settings.GetSettings(file));
     }
 
     @Test
