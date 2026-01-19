@@ -3,13 +3,11 @@ package nl.healthri.fdp.uploadschema.services;
 import nl.healthri.fdp.uploadschema.domain.Version;
 import nl.healthri.fdp.uploadschema.domain.ShapeTask;
 import nl.healthri.fdp.uploadschema.domain.enums.ShapeStatus;
-import nl.healthri.fdp.uploadschema.dto.Schema.SchemaDataResponse;
+import nl.healthri.fdp.uploadschema.dto.schema.SchemaDataResponseDto;
 import nl.healthri.fdp.uploadschema.utils.*;
 import nl.healthri.fdp.uploadschema.config.fdp.Properties;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.util.Models;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -24,8 +22,6 @@ public class ShapeTaskService implements  ShapeTaskServiceInterface {
     public FileHandler fileHandler;
     public Properties properties;
 
-    private static final Logger logger = LoggerFactory.getLogger(ShapeTaskService.class);
-
     public ShapeTaskService(FdpServiceInterface fdpServiceInterface, FileHandler fileHandler, Properties properties) {
         this.fdpService = fdpServiceInterface;
         this.fileHandler = fileHandler;
@@ -34,7 +30,7 @@ public class ShapeTaskService implements  ShapeTaskServiceInterface {
 
     public List<ShapeTask> createTasks() {
         Map<String, List<URI>> files = this.properties.getFiles();
-        List<SchemaDataResponse> schemaDataResponseList = this.fdpService.getAllSchemas();
+        List<SchemaDataResponseDto> schemaDataResponseList = this.fdpService.getAllSchemas();
         Map<String, SchemaInfo> shapesOnFdp = createSchemaInfoMap(schemaDataResponseList);
 
         //list of the task we have to do for insert/updating shacls

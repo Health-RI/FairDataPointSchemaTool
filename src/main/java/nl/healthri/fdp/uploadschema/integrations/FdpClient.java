@@ -2,17 +2,17 @@ package nl.healthri.fdp.uploadschema.integrations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import nl.healthri.fdp.uploadschema.config.fdp.Settings;
 import nl.healthri.fdp.uploadschema.domain.ResourceTask;
 import nl.healthri.fdp.uploadschema.domain.ShapeTask;
-import nl.healthri.fdp.uploadschema.dto.Resource.ResourceRequest;
-import nl.healthri.fdp.uploadschema.dto.Schema.ReleaseSchemaRequest;
-import nl.healthri.fdp.uploadschema.dto.Schema.UpdateSchemaRequest;
-import nl.healthri.fdp.uploadschema.dto.Settings.SettingsResponse;
-import nl.healthri.fdp.uploadschema.dto.auth.LoginRequest;
-import nl.healthri.fdp.uploadschema.dto.Resource.ResourceResponse;
-import nl.healthri.fdp.uploadschema.dto.Schema.SchemaDataResponse;
-import nl.healthri.fdp.uploadschema.dto.auth.LoginResponse;
+import nl.healthri.fdp.uploadschema.dto.resource.ResourceRequestDto;
+import nl.healthri.fdp.uploadschema.dto.schema.ReleaseSchemaRequestDto;
+import nl.healthri.fdp.uploadschema.dto.schema.UpdateSchemaRequestDto;
+import nl.healthri.fdp.uploadschema.dto.settings.SettingsRequestDto;
+import nl.healthri.fdp.uploadschema.dto.settings.SettingsResponseDto;
+import nl.healthri.fdp.uploadschema.dto.auth.LoginRequestDto;
+import nl.healthri.fdp.uploadschema.dto.resource.ResourceResponseDto;
+import nl.healthri.fdp.uploadschema.dto.schema.SchemaDataResponseDto;
+import nl.healthri.fdp.uploadschema.dto.auth.LoginResponseDto;
 import nl.healthri.fdp.uploadschema.integrations.exceptions.FdpClientException;
 import nl.healthri.fdp.uploadschema.utils.HttpRequestUtils;
 
@@ -45,7 +45,7 @@ public class FdpClient implements FdpClientInterface {
         this.objectMapper = Objects.requireNonNull(objectMapper, "ObjectMapper must not be null");
     }
 
-    public void setAuthToken(LoginResponse loginResponse) {
+    public void setAuthToken(LoginResponseDto loginResponse) {
         this.authToken = loginResponse.asHeaderString();
     }
 
@@ -55,7 +55,7 @@ public class FdpClient implements FdpClientInterface {
         }
     }
 
-    public LoginResponse getAuthToken(LoginRequest loginRequest) {
+    public LoginResponseDto getAuthToken(LoginRequestDto loginRequest) {
         logger.info("Connecting to FDP at {} as {} ", hostname, loginRequest.email());
 
         try {
@@ -80,7 +80,7 @@ public class FdpClient implements FdpClientInterface {
             HttpRequestUtils.handleResponseStatus(response);
 
             // Maps response body to object
-            return this.objectMapper.readValue(response.body(), LoginResponse.class);
+            return this.objectMapper.readValue(response.body(), LoginResponseDto.class);
 
         } catch (IOException | URISyntaxException e) {
             throw new FdpClientException("Failed to reach FDP during authentication", e);
@@ -90,7 +90,7 @@ public class FdpClient implements FdpClientInterface {
         }
     }
 
-    public List<SchemaDataResponse> fetchSchemas() {
+    public List<SchemaDataResponseDto> fetchSchemas() {
         logger.info("Fetching metadata schemas from FDP");
 
         try {
@@ -113,7 +113,7 @@ public class FdpClient implements FdpClientInterface {
             HttpRequestUtils.handleResponseStatus(response);
 
             // Maps response body to object
-            return List.of(objectMapper.readValue(response.body(), SchemaDataResponse[].class));
+            return List.of(objectMapper.readValue(response.body(), SchemaDataResponseDto[].class));
 
         } catch (IOException | URISyntaxException e) {
             throw new FdpClientException("Failed to reach FDP while fetching schemas", e);
@@ -127,7 +127,7 @@ public class FdpClient implements FdpClientInterface {
      * @param task task, with info about the shape to create,
      *          when the shapes are created it will update this parameter by setting the UUID!
      */
-    public ResourceResponse insertSchema(ShapeTask task, UpdateSchemaRequest updateSchemaRequest) {
+    public ResourceResponseDto insertSchema(ShapeTask task, UpdateSchemaRequestDto updateSchemaRequest) {
         logger.info("Inserting {} schema into FDP", task.shape);
 
         try {
@@ -154,7 +154,7 @@ public class FdpClient implements FdpClientInterface {
             HttpRequestUtils.handleResponseStatus(response);
 
             // Maps response body to object
-            return objectMapper.readValue(response.body(), ResourceResponse.class);
+            return objectMapper.readValue(response.body(), ResourceResponseDto.class);
         } catch (IOException | URISyntaxException e) {
             throw new FdpClientException("Failed to reach FDP while inserting schema for " + task.shape, e);
         } catch (InterruptedException e) {
@@ -166,7 +166,7 @@ public class FdpClient implements FdpClientInterface {
 
 
 
-    public void updateSchema(ShapeTask task, UpdateSchemaRequest updateSchemaRequest) {
+    public void updateSchema(ShapeTask task, UpdateSchemaRequestDto updateSchemaRequest) {
         logger.info("Updating shape {} in FDP", task.shape);
 
         try {
@@ -199,7 +199,7 @@ public class FdpClient implements FdpClientInterface {
         }
     }
 
-    public void releaseSchema(ShapeTask task, ReleaseSchemaRequest releaseSchemaRequest) {
+    public void releaseSchema(ShapeTask task, ReleaseSchemaRequestDto releaseSchemaRequest) {
         logger.info("Releasing {} into FDP", task.shape);
 
         try {
@@ -233,7 +233,7 @@ public class FdpClient implements FdpClientInterface {
         }
     }
 
-    public List<ResourceResponse> fetchResources() {
+    public List<ResourceResponseDto> fetchResources() {
         logger.info("Fetching resources from fdp");
 
         try {
@@ -256,7 +256,7 @@ public class FdpClient implements FdpClientInterface {
             HttpRequestUtils.handleResponseStatus(response);
 
             // Map response to body
-            return List.of(objectMapper.readValue(response.body(), ResourceResponse[].class));
+            return List.of(objectMapper.readValue(response.body(), ResourceResponseDto[].class));
         } catch (IOException | URISyntaxException e) {
             throw new FdpClientException("Failed to reach FDP while fetching resources", e);
         } catch (InterruptedException e) {
@@ -265,7 +265,7 @@ public class FdpClient implements FdpClientInterface {
         }
     }
 
-    public ResourceResponse fetchResource(String resourceId){
+    public ResourceResponseDto fetchResource(String resourceId){
         logger.info("fetching resource {} from FDP", resourceId);
 
         try {
@@ -288,7 +288,7 @@ public class FdpClient implements FdpClientInterface {
             HttpRequestUtils.handleResponseStatus(response);
 
             // Maps response body to object
-            return objectMapper.readValue(response.body(), ResourceResponse.class);
+            return objectMapper.readValue(response.body(), ResourceResponseDto.class);
         } catch (IOException | URISyntaxException e) {
             throw new FdpClientException("Failed to reach FDP while fetching resource " + resourceId, e);
         } catch (InterruptedException e) {
@@ -297,7 +297,7 @@ public class FdpClient implements FdpClientInterface {
         }
     }
 
-    public ResourceResponse insertResource(ResourceTask task, ResourceRequest resourceRequest) {
+    public ResourceResponseDto insertResource(ResourceTask task, ResourceRequestDto resourceRequest) {
         logger.info("Inserting {} resources into FDP", task.resource);
 
         try {
@@ -325,7 +325,7 @@ public class FdpClient implements FdpClientInterface {
             HttpRequestUtils.handleResponseStatus(response);
 
             // Maps response body to object
-            return objectMapper.readValue(response.body(), ResourceResponse.class);
+            return objectMapper.readValue(response.body(), ResourceResponseDto.class);
         } catch (IOException | URISyntaxException e) {
             throw new FdpClientException("Failed to reach FDP while inserting resource " + task.resource, e);
         } catch (InterruptedException e) {
@@ -334,7 +334,7 @@ public class FdpClient implements FdpClientInterface {
         }
     }
 
-    public void updateResource(ResourceTask task, ResourceResponse resourceResponse) {
+    public void updateResource(ResourceTask task, ResourceResponseDto resourceResponse) {
         logger.info("updating resource {} in FDP", task.resource);
 
         try {
@@ -368,7 +368,7 @@ public class FdpClient implements FdpClientInterface {
     }
 
 
-    public SettingsResponse getSettings() {
+    public SettingsResponseDto getSettings() {
         logger.info("getting settings from FDP");
 
         try {
@@ -391,7 +391,7 @@ public class FdpClient implements FdpClientInterface {
             HttpRequestUtils.handleResponseStatus(response);
 
             // Maps response body to object
-            return objectMapper.readValue(response.body(), SettingsResponse.class);
+            return objectMapper.readValue(response.body(), SettingsResponseDto.class);
         } catch (IOException | URISyntaxException e) {
             throw new FdpClientException("Failed to get FDP settings", e);
         } catch (InterruptedException e) {
@@ -400,7 +400,7 @@ public class FdpClient implements FdpClientInterface {
         }
     }
 
-    public void updateSettings(Settings settings) {
+    public void updateSettings(SettingsRequestDto settingsRequestDto) {
         logger.info("updating settings in FDP");
 
         try {
@@ -409,7 +409,7 @@ public class FdpClient implements FdpClientInterface {
             URI uri = new URI(this.hostname + "/settings");
 
             HttpRequest.BodyPublisher body = HttpRequest.BodyPublishers.ofString(
-                    this.objectMapper.writeValueAsString(settings)
+                    this.objectMapper.writeValueAsString(settingsRequestDto)
             );
 
             HttpRequest request = HttpRequest.newBuilder()

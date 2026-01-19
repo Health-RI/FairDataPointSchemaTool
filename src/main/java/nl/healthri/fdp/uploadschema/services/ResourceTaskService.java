@@ -1,13 +1,11 @@
 package nl.healthri.fdp.uploadschema.services;
 
 import nl.healthri.fdp.uploadschema.domain.ResourceTask;
-import nl.healthri.fdp.uploadschema.dto.Resource.ResourceResponse;
-import nl.healthri.fdp.uploadschema.dto.Schema.SchemaDataResponse;
+import nl.healthri.fdp.uploadschema.dto.resource.ResourceResponseDto;
+import nl.healthri.fdp.uploadschema.dto.schema.SchemaDataResponseDto;
 import nl.healthri.fdp.uploadschema.config.fdp.Properties;
 import nl.healthri.fdp.uploadschema.utils.ResourceInfo;
 import nl.healthri.fdp.uploadschema.utils.SchemaInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,9 +18,6 @@ import static nl.healthri.fdp.uploadschema.utils.SchemaInfo.createSchemaInfoMap;
 public class ResourceTaskService implements  ResourceTaskServiceInterface {
     public FdpServiceInterface fdpService;
     public Properties properties;
-
-
-    private static final Logger logger = LoggerFactory.getLogger(ResourceTaskService.class);
 
     public ResourceTaskService(FdpServiceInterface fdpService, Properties properties) {
         this.fdpService = fdpService;
@@ -43,10 +38,10 @@ public class ResourceTaskService implements  ResourceTaskServiceInterface {
 
 
     public List<ResourceTask> createTasks() {
-        List<ResourceResponse> fdpResourceResponseList = this.fdpService.getAllResources();
+        List<ResourceResponseDto> fdpResourceResponseList = this.fdpService.getAllResources();
         Map<String, ResourceInfo> fdpResourceInfoMap = createResourceInfoMap(fdpResourceResponseList);
 
-        List<SchemaDataResponse> fdpSchemaDataResponseList = this.fdpService.getAllSchemas();
+        List<SchemaDataResponseDto> fdpSchemaDataResponseList = this.fdpService.getAllSchemas();
         Map<String, SchemaInfo> fdpSchemaInfoMap = createSchemaInfoMap(fdpSchemaDataResponseList);
 
         return properties.resources.entrySet().stream().map(propertyResource -> {
@@ -66,7 +61,7 @@ public class ResourceTaskService implements  ResourceTaskServiceInterface {
     }
 
     public List<ResourceTask> createParentTasks() {
-        List<ResourceResponse> fdpResourceResponseList = this.fdpService.getAllResources();
+        List<ResourceResponseDto> fdpResourceResponseList = this.fdpService.getAllResources();
         Map<String, ResourceInfo> fdpResourceInfoMap = createResourceInfoMap(fdpResourceResponseList);
 
         return this.properties.resources.entrySet().stream().map(propertyResource -> {

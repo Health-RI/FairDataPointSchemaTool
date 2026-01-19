@@ -3,7 +3,7 @@ package nl.healthri.fdp.uploadschema.services;
 import nl.healthri.fdp.uploadschema.domain.Version;
 import nl.healthri.fdp.uploadschema.domain.ShapeTask;
 import nl.healthri.fdp.uploadschema.domain.enums.ShapeStatus;
-import nl.healthri.fdp.uploadschema.dto.Schema.SchemaDataResponse;
+import nl.healthri.fdp.uploadschema.dto.schema.SchemaDataResponseDto;
 import nl.healthri.fdp.uploadschema.utils.*;
 import nl.healthri.fdp.uploadschema.config.fdp.Properties;
 import org.eclipse.rdf4j.model.Model;
@@ -113,13 +113,13 @@ class ShapeTaskServiceTest {
         Model model = newModel();
         String ttl = RdfUtils.modelAsTurtleString(model);
 
-        SchemaDataResponse.Latest latest = new SchemaDataResponse.Latest(
+        SchemaDataResponseDto.Latest latest = new SchemaDataResponseDto.Latest(
                 "uuid-latest", "1.0.0", "vUuid", null, schemaTitle,
                 true, false, true, "type", "origin", "imported", ttl, "desc",
                 new ArrayList<>(), new ArrayList<>(), "res", "prefix"
         );
 
-        SchemaDataResponse fdpSchemaDataResponse = new SchemaDataResponse(
+        SchemaDataResponseDto fdpSchemaDataResponse = new SchemaDataResponseDto(
                 "uuid-main", schemaTitle, latest, null,
                 new ArrayList<>(), new ArrayList<>(), new ArrayList<>()
         );
@@ -175,7 +175,7 @@ class ShapeTaskServiceTest {
         Model sameModel = newModel();
         String ttlDifferentModel = RdfUtils.modelAsTurtleString(sameModel);
 
-        SchemaDataResponse.Latest latest = new SchemaDataResponse.Latest(
+        SchemaDataResponseDto.Latest latest = new SchemaDataResponseDto.Latest(
                 "uuid-latest",
                 "1.0.0",
                 "versionUuid",
@@ -195,7 +195,7 @@ class ShapeTaskServiceTest {
                 "urlPrefix"
         );
 
-        SchemaDataResponse existingResponse = new SchemaDataResponse(
+        SchemaDataResponseDto existingResponse = new SchemaDataResponseDto(
                 "uuid-main",
                 schemaTitle,
                 latest,
@@ -231,7 +231,7 @@ class ShapeTaskServiceTest {
         Model sameModel = newDifferentModel();
         String ttlDifferentModel = RdfUtils.modelAsTurtleString(sameModel);
 
-        SchemaDataResponse.Latest latest = new SchemaDataResponse.Latest(
+        SchemaDataResponseDto.Latest latest = new SchemaDataResponseDto.Latest(
                 "uuid-latest",
                 "1.0.0",
                 "versionUuid",
@@ -251,7 +251,7 @@ class ShapeTaskServiceTest {
                 "urlPrefix"
         );
 
-        SchemaDataResponse existingResponse = new SchemaDataResponse(
+        SchemaDataResponseDto existingResponse = new SchemaDataResponseDto(
                 "uuid-main",
                 schemaTitle,
                 latest,

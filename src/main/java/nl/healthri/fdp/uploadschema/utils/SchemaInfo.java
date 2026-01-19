@@ -1,16 +1,16 @@
 package nl.healthri.fdp.uploadschema.utils;
 
 import nl.healthri.fdp.uploadschema.domain.Version;
-import nl.healthri.fdp.uploadschema.dto.Schema.SchemaDataResponse;
+import nl.healthri.fdp.uploadschema.dto.schema.SchemaDataResponseDto;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public record SchemaInfo(Version version, String uuid, String definition) {
-    public static Map<String, SchemaInfo> createSchemaInfoMap(List<SchemaDataResponse> schemaDataResponseList) {
+    public static Map<String, SchemaInfo> createSchemaInfoMap(List<SchemaDataResponseDto> schemaDataResponseList) {
         Map<String, SchemaInfo> schemaInfoMap = new HashMap<>();
-        for (SchemaDataResponse schemaDataResponse : schemaDataResponseList) {
+        for (SchemaDataResponseDto schemaDataResponse : schemaDataResponseList) {
             Version version = new Version(schemaDataResponse.latest().version());
 
             SchemaInfo schemaInfo = new SchemaInfo(
