@@ -49,7 +49,7 @@ Run the tool with the required configuration file:
 -i path to Properties.yaml, you can use relative location (default is ./Properties.yaml) works if the property file is
 located at the some location as the jar file.
 
--u fdp admin user (default: albert.einstein@example.com)
+-u fdpClient admin user (default: albert.einstein@example.com)
 
 -p password (default: password)
 

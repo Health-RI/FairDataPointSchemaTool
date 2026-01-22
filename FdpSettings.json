@@ -1,0 +1,9 @@
+{
+  "forms": {
+    "autocomplete": {
+      "searchNamespace": true,
+      "sources": [
+      ]
+    }
+  }
+}

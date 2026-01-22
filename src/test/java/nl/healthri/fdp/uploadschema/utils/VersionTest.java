@@ -1,6 +1,6 @@
 package nl.healthri.fdp.uploadschema.utils;
 
-import nl.healthri.fdp.uploadschema.Version;
+import nl.healthri.fdp.uploadschema.domain.Version;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
