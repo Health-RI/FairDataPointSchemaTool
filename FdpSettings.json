@@ -3,26 +3,6 @@
     "autocomplete": {
       "searchNamespace": true,
       "sources": [
-        {
-          "rdfType": "http://purl.org/dc/terms/LinguisticSystem",
-          "sparqlEndpoint": "https://sparql-test.healthdata.nl/repositories/controlled-vocabularies",
-          "sparqlQuery": "PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nSELECT ?entity ?entityLabel WHERE {\n    ?entity skos:prefLabel ?entityLabel\n    FILTER ( lang(?entityLabel) = \"en\")\n}\n"
-        },
-        {
-          "rdfType": "http://purl.org/dc/terms/Frequency",
-          "sparqlEndpoint": "https://sparql-test.healthdata.nl/repositories/controlled-vocabularies",
-          "sparqlQuery": "PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nSELECT ?entity ?entityLabel WHERE {\n    GRAPH <https://publications.europa.eu/resource/authority/frequency> {\n      ?entity skos:prefLabel ?entityLabel\n      FILTER ( lang(?entityLabel) = \"en\")\n    }\n}"
-        },
-        {
-          "rdfType": "http://purl.org/dc/terms/MediaTypeOrExtent",
-          "sparqlEndpoint": "https://sparql-test.healthdata.nl/repositories/controlled-vocabularies",
-          "sparqlQuery": "PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nSELECT ?entity ?entityLabel WHERE {\n    GRAPH <https://publications.europa.eu/resource/authority/file-type> {\n      ?entity skos:prefLabel ?entityLabel\n      FILTER ( lang(?entityLabel) = \"en\")\n    }\n}"
-        },
-        {
-          "rdfType": "http://purl.org/dc/terms/Concept",
-          "sparqlEndpoint": "https://sparql-test.healthdata.nl/repositories/controlled-vocabularies",
-          "sparqlQuery": "PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nSELECT ?entity ?entityLabel WHERE {\n    GRAPH <https://publications.europa.eu/resource/authority/data-theme> {\n      ?entity skos:prefLabel ?entityLabel\n      FILTER ( lang(?entityLabel) = \"en\")\n    }\n}"
-        }
       ]
     }
   }
