@@ -75,7 +75,8 @@ public class SchemaTools implements Runnable {
 
             fdpService.authenticate(this.username, this.password);
 
-            final Settings newFdpSettings =  Settings.GetSettings(settingsFile);
+            final File resolvedSettingsFile = resolveSettingsFile(settingsFile);
+            final Settings newFdpSettings = Settings.GetSettings(resolvedSettingsFile);
             fdpService.updateSettings(newFdpSettings);
 
             switch (command) {
@@ -96,6 +97,20 @@ public class SchemaTools implements Runnable {
         } catch (FdpClientException e){
             logger.error("FDP Connection Error: {}", e.getMessage());
         }
+    }
+
+    private File resolveSettingsFile(File configuredFile) {
+        if (configuredFile != null && configuredFile.exists() && configuredFile.isFile()) {
+            return configuredFile;
+        }
+
+        File defaultFile = new File("./FdpSettings.json");
+        if (configuredFile == null) {
+            logger.warn("Settings file not provided. Falling back to default: {}", defaultFile.getAbsolutePath());
+        } else {
+            logger.warn("Settings file not found: {}. Falling back to default: {}", configuredFile.getAbsolutePath(), defaultFile.getAbsolutePath());
+        }
+        return defaultFile;
     }
 
     public enum CommandEnum {
