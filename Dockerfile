@@ -7,4 +7,5 @@ RUN mvn -q package -DskipTests=true
 FROM eclipse-temurin:24
 WORKDIR /opt/app
 COPY --from=build /tmp/target/FairDataPointSchemaTool-1.0.jar /opt/app
+COPY --from=build /tmp/FdpSettings.json /opt/app
 ENTRYPOINT ["java", "-jar", "FairDataPointSchemaTool-1.0.jar"]
