@@ -14,6 +14,20 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <sonar.organization>health-ri</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+
+        <rdf4j.version>5.3.1</rdf4j.version>
+        <jackson.version>2.21.3</jackson.version>
+        <logback.version>1.5.32</logback.version>
+        <slf4j.version>2.0.17</slf4j.version>
+        <picocli.version>4.7.7</picocli.version>
+        <junit-jupiter.version>6.0.3</junit-jupiter.version>
+        <hamcrest.version>3.0</hamcrest.version>
+        <xls2rdf.version>3.2.1</xls2rdf.version>
+        <poi.version>5.5.1</poi.version>
+        <poi-ooxml.version>4.1.2</poi-ooxml.version>
+        <mockito.version>5.23.0</mockito.version>
+        <spring-boot.version>4.0.6</spring-boot.version>
+        <modelmapper.version>3.2.6</modelmapper.version>
     </properties>
 
     <dependencyManagement>
@@ -21,14 +35,14 @@
             <dependency>
                 <groupId>org.eclipse.rdf4j</groupId>
                 <artifactId>rdf4j-bom</artifactId>
-                <version>5.3.1</version>
+                <version>${rdf4j.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson</groupId>
                 <artifactId>jackson-bom</artifactId>
-                <version>2.21.3</version> <!-- Use the latest version available -->
+                <version>${jackson.version}</version> <!-- Use the latest version available -->
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -72,27 +86,27 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
-            <version>1.5.32</version>
+            <version>${logback.version}</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.5.32</version>
+            <version>${logback.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>2.0.17</version>
+            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>info.picocli</groupId>
             <artifactId>picocli</artifactId>
-            <version>4.7.7</version>
+            <version>${picocli.version}</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>6.0.3</version>
+            <version>${junit-jupiter.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -110,47 +124,47 @@
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest</artifactId>
-            <version>3.0</version>
+            <version>${hamcrest.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>fr.sparna.rdf.xls2rdf</groupId>
             <artifactId>xls2rdf-pom</artifactId>
-            <version>3.2.1</version>
+            <version>${xls2rdf.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi</artifactId>
-            <version>5.5.1</version>
+            <version>${poi.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
-            <version>5.5.1</version>
+            <version>${poi.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml-schemas</artifactId>
-            <version>4.1.2</version>
+            <version>${poi-ooxml.version}</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>5.23.0</version>
+            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
         <!-- Spring Boot starter (includes @Service, @Autowired, etc.) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
-            <version>4.0.6</version>
+            <version>${spring-boot.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.modelmapper</groupId>
             <artifactId>modelmapper</artifactId>
-            <version>3.2.6</version>
+            <version>${modelmapper.version}</version>
         </dependency>
 
     </dependencies>
