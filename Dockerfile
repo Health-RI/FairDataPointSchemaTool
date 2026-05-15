@@ -1,4 +1,4 @@
-FROM maven:3-eclipse-temurin-24 AS build
+FROM maven:3-eclipse-temurin-26 AS build
 WORKDIR /tmp
 COPY . .
 RUN mvn -q install:install-file -Dfile=./xls2rdf-lib-3.2.1.jar -DgroupId=fr.sparna.rdf.xls2rdf -DartifactId=xls2rdf-pom -Dversion=3.2.1 -Dpackaging=jar 
