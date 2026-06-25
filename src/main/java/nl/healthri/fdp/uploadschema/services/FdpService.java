@@ -1,38 +1,36 @@
 package nl.healthri.fdp.uploadschema.services;
 
 import nl.healthri.fdp.uploadschema.config.fdp.Settings;
-import nl.healthri.fdp.uploadschema.domain.Version;
 import nl.healthri.fdp.uploadschema.domain.ResourceTask;
 import nl.healthri.fdp.uploadschema.domain.ShapeTask;
+import nl.healthri.fdp.uploadschema.domain.Version;
+import nl.healthri.fdp.uploadschema.dto.auth.LoginRequestDto;
+import nl.healthri.fdp.uploadschema.dto.auth.LoginResponseDto;
 import nl.healthri.fdp.uploadschema.dto.resource.ResourceRequestDto;
+import nl.healthri.fdp.uploadschema.dto.resource.ResourceResponseDto;
 import nl.healthri.fdp.uploadschema.dto.schema.ReleaseSchemaRequestDto;
+import nl.healthri.fdp.uploadschema.dto.schema.SchemaDataResponseDto;
 import nl.healthri.fdp.uploadschema.dto.schema.UpdateSchemaRequestDto;
 import nl.healthri.fdp.uploadschema.dto.settings.SettingsRequestDto;
 import nl.healthri.fdp.uploadschema.dto.settings.SettingsResponseDto;
-import nl.healthri.fdp.uploadschema.dto.auth.LoginRequestDto;
-import nl.healthri.fdp.uploadschema.dto.schema.SchemaDataResponseDto;
-import nl.healthri.fdp.uploadschema.dto.auth.LoginResponseDto;
 import nl.healthri.fdp.uploadschema.integrations.FdpClientInterface;
 import nl.healthri.fdp.uploadschema.integrations.exceptions.FdpClientException;
 import nl.healthri.fdp.uploadschema.utils.SchemaInfo;
-import nl.healthri.fdp.uploadschema.dto.resource.ResourceResponseDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import static nl.healthri.fdp.uploadschema.config.fdp.Settings.*;
+import static nl.healthri.fdp.uploadschema.config.fdp.Settings.convertToEntity;
 
-
-@Service
 public class FdpService implements FdpServiceInterface {
     private final FdpClientInterface fdpClient;
 
     private static final Logger logger = LoggerFactory.getLogger(FdpService.class);
 
-    @Autowired
     public FdpService(FdpClientInterface fdpClient) {
         this.fdpClient = fdpClient;
     }
