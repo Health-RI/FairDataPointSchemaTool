@@ -23,7 +23,7 @@
         <spring-boot.version>4.0.7</spring-boot.version>
         <modelmapper.version>3.2.6</modelmapper.version>
         
-        <junit-jupiter.version>6.0.3</junit-jupiter.version>
+        <junit-jupiter.version>6.1.0</junit-jupiter.version>
         <hamcrest.version>3.0</hamcrest.version>
         <mockito.version>5.23.0</mockito.version>
     </properties>
