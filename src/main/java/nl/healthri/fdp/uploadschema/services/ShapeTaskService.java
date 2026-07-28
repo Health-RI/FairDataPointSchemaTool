@@ -1,22 +1,21 @@
 package nl.healthri.fdp.uploadschema.services;
 
-import nl.healthri.fdp.uploadschema.domain.Version;
+import nl.healthri.fdp.uploadschema.config.fdp.Properties;
 import nl.healthri.fdp.uploadschema.domain.ShapeTask;
+import nl.healthri.fdp.uploadschema.domain.Version;
 import nl.healthri.fdp.uploadschema.domain.enums.ShapeStatus;
 import nl.healthri.fdp.uploadschema.dto.schema.SchemaDataResponseDto;
-import nl.healthri.fdp.uploadschema.utils.*;
-import nl.healthri.fdp.uploadschema.config.fdp.Properties;
+import nl.healthri.fdp.uploadschema.utils.FileHandler;
+import nl.healthri.fdp.uploadschema.utils.RdfUtils;
+import nl.healthri.fdp.uploadschema.utils.SchemaInfo;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.util.Models;
-import org.springframework.stereotype.Service;
 
 import java.net.URI;
 import java.util.*;
-import java.util.List;
 
 import static nl.healthri.fdp.uploadschema.utils.SchemaInfo.createSchemaInfoMap;
 
-@Service
 public class ShapeTaskService implements  ShapeTaskServiceInterface {
     public FdpServiceInterface fdpService;
     public FileHandler fileHandler;

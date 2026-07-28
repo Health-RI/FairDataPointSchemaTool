@@ -1,26 +1,23 @@
 package nl.healthri.fdp.uploadschema.integrations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import nl.healthri.fdp.uploadschema.domain.ResourceTask;
 import nl.healthri.fdp.uploadschema.domain.ShapeTask;
+import nl.healthri.fdp.uploadschema.dto.auth.LoginRequestDto;
+import nl.healthri.fdp.uploadschema.dto.auth.LoginResponseDto;
 import nl.healthri.fdp.uploadschema.dto.resource.ResourceRequestDto;
+import nl.healthri.fdp.uploadschema.dto.resource.ResourceResponseDto;
 import nl.healthri.fdp.uploadschema.dto.schema.ReleaseSchemaRequestDto;
+import nl.healthri.fdp.uploadschema.dto.schema.SchemaDataResponseDto;
 import nl.healthri.fdp.uploadschema.dto.schema.UpdateSchemaRequestDto;
 import nl.healthri.fdp.uploadschema.dto.settings.SettingsRequestDto;
 import nl.healthri.fdp.uploadschema.dto.settings.SettingsResponseDto;
-import nl.healthri.fdp.uploadschema.dto.auth.LoginRequestDto;
-import nl.healthri.fdp.uploadschema.dto.resource.ResourceResponseDto;
-import nl.healthri.fdp.uploadschema.dto.schema.SchemaDataResponseDto;
-import nl.healthri.fdp.uploadschema.dto.auth.LoginResponseDto;
 import nl.healthri.fdp.uploadschema.integrations.exceptions.FdpClientException;
 import nl.healthri.fdp.uploadschema.utils.HttpRequestUtils;
-
 import org.apache.http.HttpHeaders;
 import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.net.URI;
@@ -28,9 +25,9 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
 
-@Component
 public class FdpClient implements FdpClientInterface {
     private final HttpClient client;
     private final URI hostname;
