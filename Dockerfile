@@ -15,7 +15,7 @@ RUN mvn -q package -DskipTests=true
 
 FROM eclipse-temurin:26-jre-alpine-3.23
 
-RUN apk add --no-cache expat=2.8.1-r0
+RUN apk upgrade --no-cache
 
 WORKDIR /opt/app
 
