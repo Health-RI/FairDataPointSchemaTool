@@ -61,7 +61,9 @@ public class FdpClient implements FdpClientInterface {
         try {
             return UUID.fromString(id).toString();
         } catch (IllegalArgumentException | NullPointerException e) {
-            throw new FdpClientException("FDP returned an invalid resource id: " + id, e);
+            String safeId = id == null ? "null" : id.replaceAll("[\\r\\n\\t]", "_");
+            if (safeId.length() > 100) safeId = safeId.substring(0, 100) + "...";
+            throw new FdpClientException("FDP returned an invalid id (expected UUID): " + safeId, e);
         }
     }
 
