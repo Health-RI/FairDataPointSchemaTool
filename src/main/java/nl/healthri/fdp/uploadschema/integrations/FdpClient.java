@@ -55,7 +55,7 @@ public class FdpClient implements FdpClientInterface {
 
     /**
      * FDP-supplied ids are embedded in outgoing request URIs; require a well-formed UUID
-     * so a malicious/compromised FDP response can't inject path segments or a different host.
+     * so a malicious/compromised FDP response can't inject additional path/query/fragment components.
      */
     private static String validatedId(String id) {
         try {
