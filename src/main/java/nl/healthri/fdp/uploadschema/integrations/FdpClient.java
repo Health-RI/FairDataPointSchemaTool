@@ -27,6 +27,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 public class FdpClient implements FdpClientInterface {
     private final HttpClient client;
@@ -49,6 +50,20 @@ public class FdpClient implements FdpClientInterface {
     private void isAuthenticated() {
         if (this.authToken == null || this.authToken.isBlank()) {
             throw new IllegalStateException("FdpClient is not authenticated, authorization token is null or empty.");
+        }
+    }
+
+    /**
+     * FDP-supplied ids are embedded in outgoing request URIs; require a well-formed UUID
+     * so a malicious/compromised FDP response can't inject additional path/query/fragment components.
+     */
+    private static String validatedId(String id) {
+        try {
+            return UUID.fromString(id).toString();
+        } catch (IllegalArgumentException | NullPointerException e) {
+            String safeId = id == null ? "null" : id.replaceAll("[\\r\\n\\t]", "_");
+            if (safeId.length() > 100) safeId = safeId.substring(0, 100) + "...";
+            throw new FdpClientException("FDP returned an invalid id (expected UUID): " + safeId, e);
         }
     }
 
@@ -169,7 +184,7 @@ public class FdpClient implements FdpClientInterface {
         try {
             isAuthenticated();
 
-            URI uri = new URI(this.hostname + "/metadata-schemas/" + task.uuid + "/draft");
+            URI uri = new URI(this.hostname + "/metadata-schemas/" + validatedId(task.uuid) + "/draft");
 
             HttpRequest.BodyPublisher body = HttpRequest.BodyPublishers.ofString(
                     this.objectMapper.writeValueAsString(updateSchemaRequest)
@@ -202,7 +217,7 @@ public class FdpClient implements FdpClientInterface {
         try {
             isAuthenticated();
 
-            URI uri = new URI(this.hostname + "/metadata-schemas/" + task.uuid + "/versions");
+            URI uri = new URI(this.hostname + "/metadata-schemas/" + validatedId(task.uuid) + "/versions");
 
             HttpRequest.BodyPublisher body = HttpRequest.BodyPublishers.ofString(
                     this.objectMapper.writeValueAsString(releaseSchemaRequest)
@@ -268,7 +283,7 @@ public class FdpClient implements FdpClientInterface {
         try {
             isAuthenticated();
 
-            URI uri = new URI(this.hostname + "/resource-definitions/" + resourceId);
+            URI uri = new URI(this.hostname + "/resource-definitions/" + validatedId(resourceId));
 
             HttpRequest request = HttpRequest.newBuilder()
                     .GET()
@@ -337,7 +352,7 @@ public class FdpClient implements FdpClientInterface {
         try {
             isAuthenticated();
 
-            URI uri = new URI(this.hostname + "/resource-definitions/" + task.UUID);
+            URI uri = new URI(this.hostname + "/resource-definitions/" + validatedId(task.UUID));
 
             HttpRequest.BodyPublisher body = HttpRequest.BodyPublishers.ofString(
                     this.objectMapper.writeValueAsString(resourceResponse)
