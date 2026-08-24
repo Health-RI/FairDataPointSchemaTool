@@ -12,7 +12,7 @@
         <sonar.organization>health-ri</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
 
-        <rdf4j.version>5.3.1</rdf4j.version>
+        <rdf4j.version>6.0.1</rdf4j.version>
         <jackson.version>2.22.1</jackson.version>
         <logback.version>1.6.1</logback.version>
         <slf4j.version>2.0.18</slf4j.version>
