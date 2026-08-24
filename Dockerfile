@@ -13,7 +13,7 @@ RUN mvn -q install:install-file \
 RUN mvn -q package -DskipTests=true
 
 
-FROM eclipse-temurin:26-jre-alpine-3.23
+FROM eclipse-temurin:26-jre-alpine-3.24
 
 RUN apk upgrade --no-cache
 
