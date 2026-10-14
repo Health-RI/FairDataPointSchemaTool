@@ -73,11 +73,14 @@ public class SchemaTools implements Runnable {
             final ShapeTaskService shapeTaskService = new ShapeTaskService(fdpService, fileHandler, properties);
             final SchemaToolService schemaToolService = new SchemaToolService(fdpService, resourceTaskService, shapeTaskService, properties, fileHandler);
 
-            fdpService.authenticate(this.username, this.password);
+            //the template command only works on local files, so no FDP connection is needed.
+            if (command != CommandEnum.TEMPLATE) {
+                fdpService.authenticate(this.username, this.password);
 
-            final File resolvedSettingsFile = resolveSettingsFile(settingsFile);
-            final Settings newFdpSettings = Settings.GetSettings(resolvedSettingsFile);
-            fdpService.updateSettings(newFdpSettings);
+                final File resolvedSettingsFile = resolveSettingsFile(settingsFile);
+                final Settings newFdpSettings = Settings.GetSettings(resolvedSettingsFile);
+                fdpService.updateSettings(newFdpSettings);
+            }
 
             switch (command) {
                 case TEMPLATE -> {

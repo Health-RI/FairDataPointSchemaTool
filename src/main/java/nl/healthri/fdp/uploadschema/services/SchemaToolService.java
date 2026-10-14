@@ -64,6 +64,7 @@ public class SchemaToolService implements SchemaToolServiceInterface {
 
     public void convertTemplatesToShaclShapes() throws IOException {
         logger.info("reading templates from {} ", properties.templateDir);
+        Files.createDirectories(properties.getPiecesDir());
 
         for (var e : XlsToRdfUtils.getTemplateFiles(properties.templateDir).entrySet()) {
             logger.info("  converting {} ", e.getValue());
@@ -75,6 +76,7 @@ public class SchemaToolService implements SchemaToolServiceInterface {
 
     public void mergeShapesToFdpSchemas() throws IOException {
         logger.info("Writing files: {}", properties.getFiles().keySet());
+        Files.createDirectories(properties.getFairDataPointDir());
 
         for (var e : properties.getFiles(properties.getPiecesDir()).entrySet()) {
             Path path = properties.getFairDataPointDir().resolve(RdfUtils.schemaToFilename(e.getKey()));
@@ -85,6 +87,7 @@ public class SchemaToolService implements SchemaToolServiceInterface {
 
     public void mergeShapesForValidation() throws IOException {
         logger.info("Merging files: {}", properties.getValidationDir());
+        Files.createDirectories(properties.getValidationDir());
 
         Path path = properties.getValidationDir().resolve("HRI-Datamodel-shapes.ttl");
         logger.info("Write validation file {} combining {} files", path, properties.getAllFiles().size());
