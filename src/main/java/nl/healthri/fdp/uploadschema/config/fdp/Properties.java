@@ -1,6 +1,7 @@
 package nl.healthri.fdp.uploadschema.config.fdp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,8 +28,12 @@ public class Properties {
     public String inputDir;
     public String templateDir;
     public String outputRoot;
+    //@JsonProperty is needed, because the @JsonIgnore on the Path getters would otherwise ignore these fields.
+    @JsonProperty
     public String piecesDir;
+    @JsonProperty
     public String fairDataPointDir;
+    @JsonProperty
     public String validationDir;
 
     public record ResourceProperties(
