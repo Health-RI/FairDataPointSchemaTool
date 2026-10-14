@@ -1,4 +1,4 @@
-FROM maven:3-eclipse-temurin-26 AS build
+FROM maven:3-eclipse-temurin-27 AS build
 
 WORKDIR /tmp
 COPY . .
