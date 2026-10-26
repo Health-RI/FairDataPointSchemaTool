@@ -126,6 +126,10 @@ resources:
     parentResource: "Dataset"
     parentRelationIri: "http://healthdataportal.eu/ns/health#analytics"
     schema: "Distribution"
+  Data Service:
+    parentResource: "Distribution"
+    parentRelationIri: "http://www.w3.org/ns/dcat#accessService"
+    schema: "Data Service"
 schemasToPublish:
   - "Resource"
   - "Catalog"
@@ -148,6 +152,12 @@ validationDir: "ValidationShape"
 ```
 
 Note schema names can have spaces, but the turtle filename will be without spaces.
+
+A resource is linked to its parent in the `resources` section with `parentResource` and `parentRelationIri`.
+In the FDP, children are defined per resource definition and are not inherited. The tool therefore adds the child to
+the parent and also to every resource in `resources` that uses the parent as `schema`. For example, Data Service with
+parent Distribution is also added to Sample Distribution and Analytics Distribution, as both use the Distribution
+schema.
 
 ## License
 

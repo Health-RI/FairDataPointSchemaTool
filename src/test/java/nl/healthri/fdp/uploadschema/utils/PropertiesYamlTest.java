@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -19,6 +21,17 @@ public class PropertiesYamlTest {
                 Files.exists(Paths.get("Properties.yaml")),
                 "properties.yaml should exist in the project root"
         );
+    }
+
+    @Test
+    void testDataServiceLinkedToDistribution() throws IOException {
+        Properties properties = Properties.load(Paths.get("Properties.yaml").toFile());
+
+        Properties.ResourceProperties dataService = properties.resources.get("Data Service");
+        assertNotNull(dataService, "Data Service should be defined in resources");
+        assertEquals("Data Service", dataService.schema());
+        assertEquals("Distribution", dataService.parentResource());
+        assertEquals("http://www.w3.org/ns/dcat#accessService", dataService.parentRelationIri());
     }
 
     @Test
