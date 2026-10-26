@@ -1,4 +1,4 @@
-FROM maven:3-eclipse-temurin-26 AS build
+FROM maven:3-eclipse-temurin-27 AS build
 
 WORKDIR /tmp
 COPY . .
@@ -13,7 +13,7 @@ RUN mvn -q install:install-file \
 RUN mvn -q package -DskipTests=true
 
 
-FROM eclipse-temurin:26-jre-alpine-3.23
+FROM eclipse-temurin:27-jre-alpine-3.24
 
 RUN apk upgrade --no-cache
 
