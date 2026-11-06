@@ -429,4 +429,66 @@ class ResourceTaskServiceTest {
         }
     }
 
+    @Test
+    void ParentUsedAsSchemaByOtherResources_WhenCreatingParentTasks_ChildIsLinkedToParentAndThoseResources() {
+        // Arrange
+        String accessService = "http://www.w3.org/ns/dcat#accessService";
+        this.resourceTaskService.properties.resources.put("Data Service",
+                new Properties.ResourceProperties("Distribution", accessService, "Data Service"));
+
+        List<ResourceResponseDto> fdpResourceResponseList = new ArrayList<>(getResourceResponseListWithParent("Dataset", "Sample Distribution", "Dataset Series", "Analytics Distribution"));
+        fdpResourceResponseList.add(new ResourceResponseDto("5", "Distribution", null, null, null, null, null));
+        fdpResourceResponseList.add(new ResourceResponseDto("6", "Data Service", null, null, null, null, null));
+        Map<String, ResourceInfo> resourceInfoMap = createResourceInfoMap(fdpResourceResponseList);
+        when(fdpServiceMock.getAllResources()).thenReturn(fdpResourceResponseList);
+
+        // Act
+        List<ResourceTask> result = resourceTaskService.createParentTasks();
+
+        // Assert
+        List<ResourceTask> dataServiceTasks = result.stream().filter(t -> "Data Service".equals(t.childName)).toList();
+        assertEquals(
+                List.of("Distribution", "Analytics Distribution", "Sample Distribution"),
+                dataServiceTasks.stream().map(t -> t.resource).toList());
+        for (ResourceTask task : dataServiceTasks) {
+            assertEquals(resourceInfoMap.get(task.resource).uuid(), task.UUID);
+            assertEquals(resourceInfoMap.get("Data Service").uuid(), task.childUUuid);
+            assertEquals(accessService, task.childRelationIri);
+            assertTrue(task.exists);
+        }
+    }
+
+    @Test
+    void ParentNotUsedAsSchemaByOtherResources_WhenCreatingParentTasks_ChildIsOnlyLinkedToParent() {
+        // Arrange
+        this.resourceTaskService.properties.resources.put("Data Service",
+                new Properties.ResourceProperties("Dataset", "http://example.org/relation", "Data Service"));
+
+        List<ResourceResponseDto> fdpResourceResponseList = new ArrayList<>(getResourceResponseListWithParent("Dataset", "Sample Distribution", "Dataset Series", "Analytics Distribution"));
+        fdpResourceResponseList.add(new ResourceResponseDto("5", "Data Service", null, null, null, null, null));
+        when(fdpServiceMock.getAllResources()).thenReturn(fdpResourceResponseList);
+
+        // Act
+        List<ResourceTask> result = resourceTaskService.createParentTasks();
+
+        // Assert
+        List<ResourceTask> dataServiceTasks = result.stream().filter(t -> "Data Service".equals(t.childName)).toList();
+        assertEquals(1, dataServiceTasks.size());
+        assertEquals("Dataset", dataServiceTasks.get(0).resource);
+    }
+
+    @Test
+    void ResourceUsingParentAsSchema_WhenGettingParentNames_DoesNotLinkResourceToItself() {
+        // Arrange
+        Map.Entry<String, Properties.ResourceProperties> sampleDistribution = Map.entry("Sample Distribution",
+                new Properties.ResourceProperties("Distribution", "http://example.org/relation", "Distribution"));
+        this.resourceTaskService.properties.resources.put(sampleDistribution.getKey(), sampleDistribution.getValue());
+
+        // Act
+        List<String> parentNames = resourceTaskService.getParentNames(sampleDistribution);
+
+        // Assert
+        assertEquals(List.of("Distribution", "Analytics Distribution"), parentNames);
+    }
+
 }
